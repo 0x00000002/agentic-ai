@@ -3,11 +3,11 @@ AI Framework package.
 
 Re-exports key components for easier access.
 Example:
-    from src import AI, ConfigFactory, PromptManager
+    from src import ToolEnabledAI, AIBase, ModelSelector, UseCase, AIInterface, ProviderInterface
 """
 
 # Core components
-from .core import AI, AIBase
+from .core import ToolEnabledAI, AIBase
 from .core import ModelSelector # Uncommented - Now uses ConfigFactory
 from .core.model_selector import UseCase
 from .core.interfaces import AIInterface, ProviderInterface
@@ -35,11 +35,10 @@ from .exceptions import AIError, AIConfigError, AIProviderError, AIToolError, Co
 
 __all__ = [
     # Core
-    "AI",
+    "ToolEnabledAI",
     "AIBase",
     "ModelSelector", # Uncommented - Now uses ConfigFactory
     "UseCase",
-    "AIInterface",
     "ProviderInterface",
 
     # Config
@@ -61,7 +60,6 @@ __all__ = [
     "ToolManager",
     "ToolDefinition",
     "ToolResult",
-    "ToolCall",
 
     # Utils
     "LoggerFactory",

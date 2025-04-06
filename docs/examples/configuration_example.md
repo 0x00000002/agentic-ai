@@ -2,50 +2,80 @@
 
 This document provides examples of how to use the new configuration system in various scenarios.
 
-## Basic Usage
+## Example 1: Basic Usage
 
 ```python
-# Import the configuration API
-from src.config import configure
-from src.core.tool_enabled_ai import AI
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-# Configure with default settings
-configure()
+from src.core.tool_enabled_ai import ToolEnabledAI
+from src.config.unified_config import UnifiedConfig
+
+# Get the configuration instance
+config = UnifiedConfig.get_instance()
 
 # Create an AI instance using the default configuration
-ai = AI()
+ai = ToolEnabledAI()
 response = ai.request("Hello, who are you?")
-print(response)
+print(f"Default AI Response: {response}")
 ```
 
-## Selecting a Model
+## Example 2: Using Configuration File
+
+Create a `user_config.yml` file:
+
+```yaml
+# user_config.yml
+model: gpt-4o-mini
+temperature: 0.8
+show_thinking: true
+```
+
+Then load it:
 
 ```python
-from src.config import configure
-from src.core.tool_enabled_ai import AI
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-# Configure with a specific model
-configure(model="claude-3-5-sonnet")
+from src.core.tool_enabled_ai import ToolEnabledAI
+from src.config.unified_config import UnifiedConfig
+from src.config.user_config import UserConfig
+
+# Load user configuration from file
+user_cfg = UserConfig(config_file="user_config.yml")
+config = UnifiedConfig.get_instance(user_config=user_cfg)
 
 # Create an AI instance with the configured model
-ai = AI()
+ai = ToolEnabledAI()
 response = ai.request("Explain the concept of recursion")
-print(response)
+print(f"Configured AI Response: {response}")
 ```
 
-## Using a Specific Use Case
+## Example 3: Selecting Model via Use Case
+
+Assuming `use_cases.yml` defines a `solidity_coding` use case and potentially associates preferred models.
 
 ```python
-from src.config import configure, UseCasePreset
-from src.core.tool_enabled_ai import AI
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-# Configure for Solidity smart contract development
-configure(use_case=UseCasePreset.SOLIDITY_CODING)
+from src.core.tool_enabled_ai import ToolEnabledAI
+from src.config.unified_config import UnifiedConfig
+from src.core.model_selector import ModelSelector, UseCase
+
+config = UnifiedConfig.get_instance()
+selector = ModelSelector(config=config)
+
+# Select model based on use case
+selected_model = selector.select_model(UseCase.SOLIDITY_CODING)
 
 # Create an AI instance optimized for Solidity coding
-ai = AI()
-response = ai.request("Write a simple ERC20 token contract")
-print(response)
+ai = ToolEnabledAI(model=selected_model.value if selected_model else None)
+response = ai.request("Write a simple Solidity smart contract for storing a value.")
+print(f"Solidity AI Response: {response}")
 ```
 
 ## Custom Configuration with Multiple Options

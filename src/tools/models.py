@@ -4,7 +4,13 @@ Models for tool-related functionality.
 from typing import Dict, Any, List, Optional, Callable
 from pydantic import BaseModel, Field
 from enum import Enum
-from .tool_call import ToolCall
+
+
+class ToolCall(BaseModel):
+    """Model representing a request from the AI to call a specific tool."""
+    name: str = Field(..., description="The name of the tool to call.")
+    arguments: Dict[str, Any] = Field(..., description="The arguments to pass to the tool, usually as a dictionary.")
+    id: Optional[str] = Field(default=None, description="An optional unique identifier for the tool call, provided by some APIs (e.g., OpenAI).")
 
 
 class ToolExecutionStatus(str, Enum):

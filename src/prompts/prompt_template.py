@@ -72,7 +72,7 @@ class PromptTemplate:
                         
                     for template_id, template_data in templates.items():
                         self._templates[template_id] = template_data
-                        self._logger.info(f"Loaded template: {template_id}")
+                        self._logger.info(f"Loaded template: {template_id} from {filename}")
                 except Exception as e:
                     error_response = ErrorHandler.handle_error(
                         AIConfigError(f"Failed to load template file {filename}: {str(e)}", config_name="templates"),
@@ -100,6 +100,7 @@ class PromptTemplate:
         Raises:
             ValueError: If template not found or invalid
         """
+        self._logger.debug(f"Available templates before rendering '{template_id}': {list(self._templates.keys())}")
         if template_id not in self._templates:
             raise ValueError(f"Template not found: {template_id}")
             

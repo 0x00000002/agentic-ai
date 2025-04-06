@@ -10,7 +10,7 @@ from .interfaces import (
 )
 from ..utils.logger import LoggerInterface
 from .base_ai import AIBase
-from .tool_enabled_ai import AI
+from .tool_enabled_ai import ToolEnabledAI
 from .providers.base_provider import BaseProvider
 from .providers.openai_provider import OpenAIProvider
 from .providers.ollama_provider import OllamaProvider
@@ -27,12 +27,13 @@ __all__ = [
     
     # Base Classes
     'AIBase',
-    'AI',
+    'ToolEnabledAI',
     'BaseProvider',
     'ModelSelector',
     
     # Providers
     'OpenAIProvider',
     'OllamaProvider',
-    'GeminiProvider'
+    'GeminiProvider',
+    'AnthropicProvider'
 ] 

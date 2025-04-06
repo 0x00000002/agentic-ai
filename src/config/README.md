@@ -25,13 +25,13 @@ The system uses these modular YAML files for configuration:
 
 ```python
 from src.config import configure
-from src.core.tool_enabled_ai import AI
+from src.core.tool_enabled_ai import ToolEnabledAI
 
 # Configure the framework
 configure(model="claude-3-5-sonnet", temperature=0.8)
 
 # Create an AI instance
-ai = AI()
+ai = ToolEnabledAI()
 response = ai.request("Hello, world!")
 ```
 
@@ -44,3 +44,11 @@ See the documentation in `docs/config/README.md` and examples in `docs/examples/
 - The `Model` enum is dynamically generated from the configuration files, eliminating the need to manually update the enum when adding or removing models.
 - The `Provider` enum is also dynamically generated, making it easy to add new providers without code changes.
 - The system supports configuration through YAML or JSON files, environment variables, and programmatic overrides.
+
+# Example: Create AI instance using configuration
+
+def create_ai_instance():
+config = UnifiedConfig.get_instance() # AI instance uses the loaded configuration (e.g., default model)
+ai = ToolEnabledAI()
+response = ai.request("Hello, world!")
+print(response)

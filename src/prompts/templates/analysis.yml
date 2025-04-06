@@ -53,7 +53,7 @@ aggregate_responses:
 # --- Add the following template definitions ---
 
 classify_intent:
-  name: "Intent Classification"
+  name: "Intent Classification (Text - Deprecated)"
   description: "Classifies the user's prompt intent (META, TASK, QUESTION)."
   default_version: "v1"
   versions:
@@ -67,10 +67,24 @@ classify_intent:
 
         User Prompt: {{ user_prompt }}
 
-        Intent:
+classify_intent_tool:
+  name: "Intent Classification (Tool)"
+  description: "Classifies the user's prompt intent (META, TASK, QUESTION) using a tool call."
+  default_version: "v1"
+  versions:
+    - version: "v1"
+      template: |
+        Analyze the user prompt below and classify its primary intent.
+        Call the 'report_intent' tool with the classification.
+        Possible intents are: META, TASK, QUESTION.
+        - META: The user is asking about the AI system itself, its capabilities, or the ongoing process.
+        - TASK: The user wants the AI to perform an action, generate content, or achieve a specific goal.
+        - QUESTION: The user is asking for information or an answer to a specific question that doesn't require a complex task.
+
+        User Prompt: {{ user_prompt }}
 
 use_case_classifier:
-  name: "Use Case Classification"
+  name: "Use Case Classification (Text - Deprecated)"
   description: "Classifies the user's prompt into a predefined UseCase."
   default_version: "v1"
   versions:
@@ -86,7 +100,21 @@ use_case_classifier:
         User Prompt:
         {{ user_prompt }}
 
-        Most Appropriate Use Case:
+use_case_classifier_tool:
+  name: "Use Case Classification (Tool)"
+  description: "Classifies the user's prompt into a predefined UseCase using a tool call."
+  default_version: "v1"
+  versions:
+    - version: "v1"
+      template: |
+        Analyze the following user prompt and determine the most appropriate use case.
+        Call the 'report_use_case' tool with the name of the most fitting use case from the list below. 
+
+        Available Use Cases:
+        {{ available_use_cases }}
+
+        User Prompt:
+        {{ user_prompt }}
 
 plan_generation:
   name: "Plan Generation"
@@ -115,8 +143,10 @@ answer_meta_query:
   versions:
     - version: "v1"
       template: |
-        You are answering a question about the AI system you are part of.
-        Use the provided context about the system's capabilities to formulate your answer.
+        You are an AI assistant describing the specific capabilities of the system you are operating within.
+        Answer the user's query based *strictly* and *only* on the System Context provided below. 
+        Do not add any preamble, disclaimers, or information not present in the System Context.
+        Format your answer clearly, listing the available agents and tools as described in the context.
         
         System Context:
         {{ system_context }}

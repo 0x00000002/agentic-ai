@@ -83,7 +83,7 @@ Create an AI instance with your chosen model:
 
 ```python
 from src.config.models import Model
-from src.core.tool_enabled_ai import AI
+from src.core.tool_enabled_ai import ToolEnabledAI
 
 # Using an Anthropic model
 ai = AI(model=Model.CLAUDE_3_7_SONNET)

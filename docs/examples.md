@@ -7,7 +7,7 @@ This page presents practical examples of using Agentic-AI in different scenarios
 ```python
 from src.config.models import Model
 from src.config.config_manager import ConfigManager
-from src.core.tool_enabled_ai import AI
+from src.core.tool_enabled_ai import ToolEnabledAI
 from src.utils.logger import LoggerFactory
 
 # Set up logger
@@ -32,7 +32,7 @@ print(response)
 
 ```python
 from src.config.models import Model
-from src.core.tool_enabled_ai import AI
+from src.core.tool_enabled_ai import ToolEnabledAI
 
 # Create a weather assistant
 ai = AI(
@@ -81,7 +81,7 @@ This example demonstrates using `AIToolFinder` to automatically select relevant 
 ```python
 from src.config.models import Model
 from src.config.config_manager import ConfigManager
-from src.core.tool_enabled_ai import AI
+from src.core.tool_enabled_ai import ToolEnabledAI
 from src.utils.logger import LoggerFactory
 
 # Set up
@@ -135,7 +135,7 @@ This example shows how to use the prompt management system.
 ```python
 from src.config.models import Model
 from src.prompts import PromptManager
-from src.core.tool_enabled_ai import AI
+from src.core.tool_enabled_ai import ToolEnabledAI
 
 # Initialize prompt manager
 prompt_manager = PromptManager(storage_dir="data/prompts")

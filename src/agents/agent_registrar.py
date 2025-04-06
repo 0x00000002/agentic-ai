@@ -27,8 +27,8 @@ def register_core_agents(registry, logger: Optional[LoggerInterface] = None):
         registry.register("base", BaseAgent)
         
     # Register specific agents
-    _register_tool_finder_agent(registry, logger)
-    _register_orchestrator_agent(registry, logger)
+    # _register_tool_finder_agent(registry, logger) # Removed - ToolFinderAgent deleted
+    _register_coordinator_agent(registry, logger) # Renamed from orchestrator
     _register_listener_agent(registry, logger)
     
     if logger:
@@ -36,30 +36,19 @@ def register_core_agents(registry, logger: Optional[LoggerInterface] = None):
         logger.info(f"Registered agents: {', '.join(agent_types)}")
 
 
-def _register_tool_finder_agent(registry, logger=None):
-    """Register the ToolFinderAgent."""
+def _register_coordinator_agent(registry, logger=None):
+    """Register the Coordinator agent."""
     try:
-        from .tool_finder_agent import ToolFinderAgent
-        if not registry.has_agent_type("tool_finder"):
-            registry.register("tool_finder", ToolFinderAgent)
+        # Import the correct Coordinator class
+        from .coordinator import Coordinator
+        # Register with type "coordinator"
+        if not registry.has_agent_type("coordinator"):
+            registry.register("coordinator", Coordinator)
             if logger:
-                logger.info("Registered ToolFinderAgent")
+                logger.info("Registered Coordinator")
     except Exception as e:
         if logger:
-            logger.error(f"Failed to register ToolFinderAgent: {str(e)}")
-
-
-def _register_orchestrator_agent(registry, logger=None):
-    """Register the Orchestrator agent."""
-    try:
-        from .orchestrator import Orchestrator
-        if not registry.has_agent_type("orchestrator"):
-            registry.register("orchestrator", Orchestrator)
-            if logger:
-                logger.info("Registered Orchestrator")
-    except Exception as e:
-        if logger:
-            logger.error(f"Failed to register Orchestrator: {str(e)}")
+            logger.error(f"Failed to register Coordinator: {str(e)}")
 
 
 def _register_listener_agent(registry, logger=None):

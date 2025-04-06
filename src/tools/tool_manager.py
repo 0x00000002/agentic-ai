@@ -24,11 +24,11 @@ class ToolManager:
     Manager for coordinating tool operations in the Agentic-AI framework.
     
     This class coordinates tool registration, discovery, and execution.
-    It works with the ToolRegistry to maintain tool definitions and usage statistics,
-    and with the ToolFinderAgent to find relevant tools for user requests.
+    It works with the ToolRegistry to maintain tool definitions and usage statistics.
+    (Removed ToolFinderAgent dependency)
     """
     
-    def __init__(self, unified_config=None, logger=None, tool_registry=None, tool_executor=None, agent_factory=None):
+    def __init__(self, unified_config=None, logger=None, tool_registry=None, tool_executor=None):
         """
         Initialize the tool manager.
         
@@ -37,7 +37,6 @@ class ToolManager:
             logger: Optional logger instance
             tool_registry: Optional tool registry
             tool_executor: Optional tool executor
-            agent_factory: Optional agent factory for creating the ToolFinderAgent
         """
         self.logger = logger or LoggerFactory.create("tool_manager")
         self.config = unified_config or UnifiedConfig.get_instance()
@@ -56,15 +55,10 @@ class ToolManager:
             max_retries=executor_config.get("max_retries", 3)
         )
         
-        self.agent_factory = agent_factory
-        
-        # Tool finder agent
-        self.tool_finder_agent = None
-        
         # Initialize stats configuration
         self._init_stats_config()
         
-        self.logger.info("Tool manager initialized")
+        self.logger.info("Tool manager initialized (AIToolFinder removed)")
         
     def _init_stats_config(self):
         """Initialize statistics configuration from the config file."""
@@ -88,79 +82,29 @@ class ToolManager:
         """
         self.tool_registry.register_tool(tool_name, tool_definition)
         
-        # If tool finder agent exists, update its available tools
-        if self.tool_finder_agent:
-            self.logger.debug(f"Updating tool finder agent with new tool: {tool_name}")
-    
-    def enable_agent_based_tool_finding(self, ai_instance) -> None:
-        """
-        Enable agent-based tool finding using the ToolFinderAgent.
-        
-        Args:
-            ai_instance: AI instance for the ToolFinderAgent
-        """
-        # Check if tool finder is enabled in the configuration
-        finder_config = self.tool_config.get("finder_agent", {})
-        if not finder_config.get("enabled", True):
-            self.logger.info("Agent-based tool finding is disabled in configuration")
-            return
-            
-        if not self.agent_factory:
-            self.logger.warning("Agent factory not provided, cannot create ToolFinderAgent")
-            return
-            
-        try:
-            # Import here to avoid circular dependency
-            from src.agents import AgentFactory
-            
-            # Create the ToolFinderAgent with configuration
-            self.tool_finder_agent = self.agent_factory.create_agent(
-                "tool_finder",
-                ai_instance=ai_instance,
-                tool_registry=self.tool_registry,
-                max_recommendations=finder_config.get("max_recommendations", 5),
-                use_history=finder_config.get("use_history", True)
-            )
-            
-            self.logger.info("Agent-based tool finding enabled")
-        except Exception as e:
-            self.logger.error(f"Failed to create ToolFinderAgent: {str(e)}")
-    
     def find_tools(self, prompt: str, conversation_history: Optional[List[str]] = None) -> List[str]:
         """
-        Find relevant tools for a given prompt.
+        Find relevant tools for a given prompt using registry recommendations.
+        (Removed AIToolFinder logic)
         
         Args:
             prompt: User prompt to analyze
-            conversation_history: Optional conversation history
+            conversation_history: Optional conversation history (currently unused)
             
         Returns:
-            List of relevant tool names
+            List of relevant tool names based on registry heuristics (e.g., usage stats).
         """
-        if not self.tool_finder_agent:
-            self.logger.warning("Tool finder agent not enabled, using registry recommendations")
-            # Get the max recommendations from config
-            finder_config = self.tool_config.get("finder_agent", {})
-            max_tools = finder_config.get("max_recommendations", 5)
-            return self.tool_registry.get_recommended_tools(prompt, max_tools=max_tools)
-            
+        self.logger.debug("Finding tools using registry recommendations.")
+        # Get the max recommendations from config
+        finder_config = self.tool_config.get("finder_agent", {}) # Keep config section for params
+        max_tools = finder_config.get("max_recommendations", 5) # Default max
         try:
-            # Create a request object for the agent
-            request = type('Request', (), {
-                'prompt': prompt,
-                'conversation_history': conversation_history or []
-            })
-            
-            # Process the request with the tool finder agent
-            response = self.tool_finder_agent.process_request(request)
-            
-            if response.status == "success":
-                return response.selected_tools
-            else:
-                self.logger.warning(f"Tool finder agent returned error: {response.content}")
-                return []
+            # Always use the registry's recommendation method now
+            recommended_tools = self.tool_registry.get_recommended_tools(prompt, max_tools=max_tools)
+            self.logger.info(f"Registry recommended tools: {recommended_tools}")
+            return recommended_tools
         except Exception as e:
-            self.logger.error(f"Error finding tools: {str(e)}")
+            self.logger.error(f"Error getting recommendations from tool registry: {str(e)}")
             return []
     
     def execute_tool(self, tool_name: str, **kwargs) -> ToolResult:
@@ -256,19 +200,15 @@ class ToolManager:
             "config": tool_config
         }
     
-    def get_all_tools(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_tools(self) -> Dict[str, ToolDefinition]:
         """
-        Get information about all registered tools.
+        Get definitions for all registered tools.
         
         Returns:
-            Dictionary mapping tool names to tool information
+            Dictionary mapping tool names to ToolDefinition objects.
         """
-        tools = {}
-        
-        for tool_name in self.tool_registry.get_tool_names():
-            tools[tool_name] = self.get_tool_info(tool_name)
-            
-        return tools
+        # Directly return the definitions from the registry
+        return self.tool_registry.get_all_tool_definitions()
     
     def format_tools_for_model(self, model_id: str, tool_names: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         """

@@ -128,3 +128,45 @@ See the `examples/tool_finder_agent_example.py` script for a complete example of
 2. **Tool Discovery**: Implement automatic discovery of new tools
 3. **Tool Composition**: Enable the creation of composite tools from existing tools
 4. **Tool Versioning**: Add support for tool versioning and compatibility checking
+
+### Tool Execution Example
+
+```python
+from src.core.tool_enabled_ai import ToolEnabledAI
+from src.tools.tool_manager import ToolManager
+from src.tools.basic_tools import read_file # Example tool
+
+# Initialize ToolManager and AI
+tool_manager = ToolManager()
+tool_manager.register_tool("read_file", read_file)
+ai = ToolEnabledAI(tool_manager=tool_manager)
+
+# Simulate AI deciding to call a tool
+response_from_ai = {
+    "content": "Okay, I will read the file.",
+    "tool_calls": [{
+        "id": "call_1",
+        "type": "tool",
+        "name": "read_file",
+        "args": {"filepath": "README.md"}
+    }]
+}
+
+# Process tool calls (this logic might be inside ToolEnabledAI.request)
+if response_from_ai.get("tool_calls"):
+    results = []
+    for call in response_from_ai["tool_calls"]:
+        tool_name = call.get("name")
+        tool_args = call.get("args")
+        try:
+            # Use ToolManager to execute
+            result = tool_manager.execute_tool(tool_name, tool_args)
+            results.append({"tool_call_id": call["id"], "result": result})
+        except Exception as e:
+            results.append({"tool_call_id": call["id"], "error": str(e)})
+
+    # Send results back to AI to get final response
+    # final_response = ai.request_with_tool_results(original_prompt, response_from_ai, results)
+    # print(final_response)
+    print(f"Tool results: {results}")
+```

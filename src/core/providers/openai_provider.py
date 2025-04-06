@@ -5,10 +5,14 @@ from typing import List, Dict, Any, Optional, Union, Tuple, BinaryIO
 from ..interfaces import ProviderInterface, MultimediaProviderInterface, ToolCapableProviderInterface
 from ...utils.logger import LoggerInterface, LoggerFactory
 from ...config import get_config
-from ...exceptions import AIRequestError, AICredentialsError, AIProviderError
-from ...tools.tool_call import ToolCall
+from ...exceptions import AIRequestError, AICredentialsError, AIProviderError, AIAuthenticationError, AIRateLimitError, ModelNotFoundError, ContentModerationError, InvalidRequestError
+from ...tools.models import ToolResult, ToolCall
+# Import the ProviderResponse model
+from ..models import ProviderResponse, TokenUsage
 from .base_provider import BaseProvider
 import openai
+import os
+import json
 
 
 class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProviderInterface):
@@ -24,20 +28,46 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
     
     def __init__(self, 
                  model_id: str,
+                 provider_config: Dict[str, Any],
+                 model_config: Dict[str, Any],
                  logger: Optional[LoggerInterface] = None):
         """
         Initialize the OpenAI provider.
         
         Args:
             model_id: The model identifier
+            provider_config: Configuration for the OpenAI provider (API key, base URL, etc.)
+            model_config: Configuration for the specific model (parameters)
             logger: Logger instance
         """
-        super().__init__(model_id, logger)
+        super().__init__(model_id=model_id,
+                         provider_config=provider_config,
+                         model_config=model_config,
+                         logger=logger)
         
-        # Initialize model parameters
-        self.parameters = self.model_config.get("parameters", {})
+        # --- Correctly initialize parameters dictionary --- 
+        self.parameters = {}
+        # Extract known OpenAI parameters directly from model_config
+        openai_params = ["temperature", "max_tokens", "top_p", 
+                         "frequency_penalty", "presence_penalty", "stop", 
+                         "response_format"]
         
-        self.logger.info(f"Initialized OpenAI provider with model {model_id}")
+        # Use output_limit from config for max_tokens if present
+        if 'output_limit' in model_config:
+            self.parameters['max_tokens'] = model_config['output_limit']
+            
+        for key in openai_params:
+            if key in model_config and key != 'max_tokens': # Avoid overwriting if output_limit was used
+                self.parameters[key] = model_config[key]
+        
+        # Provide defaults if not specified in config
+        self.parameters.setdefault('temperature', 0.7)
+        self.parameters.setdefault('max_tokens', 4096) # Default fallback
+        # Add other defaults as needed
+        # --- End parameter initialization ---
+        
+        self.logger.info(f"Initialized OpenAI provider with model {self.model_id}")
+        self.logger.debug(f"OpenAI Parameters set: {self.parameters}") # Log the parameters
     
     def _initialize_credentials(self) -> None:
         """Initialize OpenAI API credentials."""
@@ -60,8 +90,16 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
             if org_id:
                 self.client.organization = org_id
                 
+        except openai.AuthenticationError as e:
+             self.logger.error(f"OpenAI Authentication Error: {e}")
+             raise AIAuthenticationError(f"OpenAI authentication failed: {e}", provider="openai") from e
+        except openai.PermissionDeniedError as e: # Often indicates API key issue
+             self.logger.error(f"OpenAI Permission Denied Error: {e}")
+             raise AIAuthenticationError(f"OpenAI permission denied (check API key/org): {e}", provider="openai") from e
         except Exception as e:
-            raise AICredentialsError(f"Failed to initialize OpenAI credentials: {str(e)}")
+            # Catch other potential setup errors (network, config)
+             self.logger.error(f"Failed to initialize OpenAI credentials: {str(e)}", exc_info=True)
+             raise AICredentialsError(f"Failed to initialize OpenAI credentials: {str(e)}", provider="openai") from e
     
     def _map_role(self, role: str) -> str:
         """Map standard role to OpenAI role."""
@@ -86,18 +124,54 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
             params = self.parameters.copy()
             params.update(options)
             
-            # Remove any non-OpenAI parameters
-            for key in list(params.keys()):
-                if key not in ["temperature", "max_tokens", "top_p", "frequency_penalty", 
-                            "presence_penalty", "stop", "tools", "tool_choice", "response_format"]:
-                    del params[key]
+            # --- Format tools if present ---
+            formatted_tools = None
+            if "tools" in params:
+                tools = params.pop("tools") # Remove from params to avoid sending raw
+                if isinstance(tools, list):
+                    formatted_tools = []
+                    for tool in tools:
+                        if isinstance(tool, dict) and "function" in tool and "type" not in tool:
+                             # Assume function type if not specified
+                            formatted_tools.append({"type": "function", "function": tool["function"]})
+                        elif isinstance(tool, dict) and "name" in tool and "parameters" in tool:
+                             # Adapt basic structure if needed
+                             formatted_tools.append({
+                                 "type": "function",
+                                 "function": {
+                                     "name": tool["name"],
+                                     "description": tool.get("description", ""),
+                                     "parameters": tool["parameters"]
+                                 }
+                             })
+                        else:
+                             # Keep tool as is if format is unexpected or already correct
+                            formatted_tools.append(tool) 
             
+            # Remove any non-OpenAI parameters from the main params
+            allowed_params = {"temperature", "max_tokens", "top_p", "frequency_penalty", 
+                              "presence_penalty", "stop", "tool_choice", "response_format"}
+            params_to_send = {k: v for k, v in params.items() if k in allowed_params}
+            
+            # Prepare arguments for the API call
+            api_args = {
+                "model": self.model_id,
+                "messages": formatted_messages,
+                **params_to_send  # Add filtered standard parameters
+            }
+            
+            # Add formatted tools and tool_choice if they exist
+            if formatted_tools:
+                api_args["tools"] = formatted_tools
+                if "tool_choice" in params: # Check original params for tool_choice
+                    api_args["tool_choice"] = params["tool_choice"]
+                else:
+                     # Default tool_choice if tools are provided but no choice specified
+                     # Might need adjustment based on desired behavior (e.g., 'auto')
+                     pass 
+
             # Make the API call
-            response = self.client.chat.completions.create(
-                model=self.model_id,
-                messages=formatted_messages,
-                **params
-            )
+            response = self.client.chat.completions.create(**api_args)
             
             # Extract tool calls if present
             tool_calls = []
@@ -431,27 +505,165 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
                 original_error=e
             )
     
-    def add_tool_message(self, messages: List[Dict[str, Any]], 
-                         name: str, content: str) -> List[Dict[str, Any]]:
+    def _add_tool_message(self, 
+                         tool_call_id: str, 
+                         tool_name: str, 
+                         content: str,
+                         last_assistant_message: Optional[Dict[str, Any]] = None # Not used by OpenAI
+                         ) -> List[Dict[str, Any]]:
         """
-        Add a tool message to the conversation history.
+        Constructs the single 'tool' role message for OpenAI.
         
         Args:
-            messages: The current conversation history
-            name: The name of the tool
-            content: The content/result of the tool call
+            tool_call_id: The ID of the tool call this is a result for.
+            tool_name: The name of the tool that was called.
+            content: The result content of the tool execution (as a string).
+            last_assistant_message: Not used by OpenAI.
             
         Returns:
-            Updated conversation history
+            A list containing a single tool result message dictionary.
         """
-        messages.append({
+        self.logger.debug(f"Constructing tool result message for call_id: {tool_call_id}")
+        # OpenAI expects a single message with role 'tool'
+        tool_message = {
             "role": "tool",
-            "name": name,
-            "content": str(content),
-            "tool_call_id": next((tc.get("id") for msg in reversed(messages) 
-                                 if msg.get("role") == "assistant" 
-                                 and msg.get("tool_calls") 
-                                 for tc in msg["tool_calls"] 
-                                 if tc.get("name") == name), "unknown")
-        })
-        return messages 
+            "tool_call_id": tool_call_id, 
+            "name": tool_name, # Although optional, OpenAI examples include it
+            "content": str(content) # Ensure content is string
+        }
+        return [tool_message] # Return as a list containing one dictionary
+
+    def build_tool_result_messages(self, 
+                                  tool_calls: List[ToolCall], 
+                                  tool_results: List[ToolResult]) -> List[Dict[str, Any]]:
+        """
+        Builds OpenAI 'tool' role messages for each tool result.
+        """
+        messages = []
+        for call, result in zip(tool_calls, tool_results):
+            messages.append({
+                "role": "tool",
+                "tool_call_id": call.id,
+                "name": call.name, 
+                "content": str(result.result) if result.status == "success" else str(result.error or "Tool execution failed")
+            })
+        return messages
+
+    def _make_api_request(self, payload: Dict[str, Any]) -> openai.types.chat.ChatCompletion:
+        """Makes the actual API call to OpenAI chat completions."""
+        self.logger.debug(f"Making OpenAI API request with model {self.model_id}...")
+        try:
+            response = self.client.chat.completions.create(**payload)
+            self.logger.debug(f"Received OpenAI API response.")
+            return response
+        # --- Specific OpenAI Error Handling --- 
+        except openai.AuthenticationError as e:
+             self.logger.error(f"OpenAI Authentication Error: {e}")
+             raise AIAuthenticationError(f"OpenAI authentication failed: {e}", provider="openai") from e
+        except openai.PermissionDeniedError as e:
+             self.logger.error(f"OpenAI Permission Denied Error: {e}")
+             raise AIAuthenticationError(f"OpenAI permission denied: {e}", provider="openai") from e
+        except openai.RateLimitError as e:
+             self.logger.error(f"OpenAI Rate Limit Error: {e}")
+             # TODO: Extract retry_after if available from headers
+             raise AIRateLimitError(f"OpenAI rate limit exceeded: {e}", provider="openai") from e
+        except openai.NotFoundError as e: # Often indicates model not found
+            self.logger.error(f"OpenAI Not Found Error (likely model): {e}")
+            raise ModelNotFoundError(f"Model or endpoint not found for OpenAI: {e}", provider="openai", model_id=payload.get("model")) from e
+        except openai.BadRequestError as e:
+             # Check if it's a content filter error
+             if e.code == 'content_filter':
+                  self.logger.error(f"OpenAI Content Filter Error: {e}")
+                  raise ContentModerationError(f"OpenAI content moderation block: {e}", provider="openai", reason=e.code) from e
+             else:
+                  # General invalid request
+                  self.logger.error(f"OpenAI Bad Request Error: {e}")
+                  raise InvalidRequestError(f"Invalid request to OpenAI: {e}", provider="openai", status_code=e.status_code) from e
+        except openai.APIConnectionError as e:
+             self.logger.error(f"OpenAI API Connection Error: {e}")
+             raise AIProviderError(f"OpenAI connection error: {e}", provider="openai") from e # Generic provider error for connection issues
+        except openai.APIStatusError as e: # Catch other non-2xx status codes
+             self.logger.error(f"OpenAI API Status Error ({e.status_code}): {e}")
+             raise AIProviderError(f"OpenAI API returned status {e.status_code}: {e}", provider="openai", status_code=e.status_code) from e
+        except openai.APIError as e: # Catch-all for other OpenAI API errors
+            self.logger.error(f"OpenAI API Error: {e}", exc_info=True)
+            raise AIProviderError(f"OpenAI API error: {e}", provider="openai", status_code=getattr(e, 'status_code', None)) from e
+        # --- End Specific OpenAI Error Handling ---
+        except Exception as e:
+            # Catch unexpected errors during the request
+            self.logger.error(f"Unexpected error during OpenAI API request: {e}", exc_info=True)
+            raise AIProviderError(f"Unexpected error making OpenAI request: {e}", provider="openai") from e
+
+    def _convert_response(self, raw_response: openai.types.chat.ChatCompletion) -> ProviderResponse:
+        """Converts the raw OpenAI ChatCompletion object into a standardized ProviderResponse model."""
+        self.logger.debug("Converting OpenAI response to standard ProviderResponse...")
+        if not raw_response.choices:
+            # Return an error response object
+            return ProviderResponse(error="OpenAI response missing 'choices'.")
+            
+        message = raw_response.choices[0].message
+        stop_reason = raw_response.choices[0].finish_reason
+        usage_data = raw_response.usage
+        model_id = raw_response.model
+
+        content = message.content or None # Use None if empty
+        tool_calls_list = []
+
+        if message.tool_calls:
+            self.logger.debug(f"Detected {len(message.tool_calls)} tool calls in response.")
+            for tc in message.tool_calls:
+                if tc.type == "function":
+                    try:
+                        arguments = json.loads(tc.function.arguments)
+                    except json.JSONDecodeError:
+                        self.logger.warning(f"Failed to parse JSON arguments for tool {tc.function.name}: {tc.function.arguments}")
+                        arguments = { "_raw_args": tc.function.arguments } # Store raw args if parsing fails
+                        
+                    tool_calls_list.append(
+                        ToolCall(
+                            id=tc.id, 
+                            name=tc.function.name,
+                            arguments=arguments,
+                        )
+                    )
+                else:
+                     self.logger.warning(f"Unsupported tool call type: {tc.type}")
+        else:
+            self.logger.debug("No tool calls detected in response.")
+
+        # Create TokenUsage model
+        usage = None
+        if usage_data:
+            usage = TokenUsage(
+                prompt_tokens=usage_data.prompt_tokens,
+                completion_tokens=usage_data.completion_tokens,
+                total_tokens=usage_data.total_tokens
+            )
+
+        # Create and return ProviderResponse model instance
+        provider_response = ProviderResponse(
+            content=content,
+            tool_calls=tool_calls_list if tool_calls_list else None,
+            stop_reason=stop_reason,
+            usage=usage,
+            model=model_id,
+            error=None, 
+            raw_response=None # Exclude raw response by default
+        )
+        
+        self.logger.debug(f"Standardized response created: {provider_response.model_dump(exclude_none=True, exclude={'raw_response'})}")
+        return provider_response
+
+# End of OpenAIProvider class
+
+
+# --- Utility Functions ---
+
+def load_openai_client():
+    """Load the OpenAI client with API key from environment variables."""
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise EnvironmentError("OPENAI_API_KEY environment variable not set")
+    return openai.OpenAI(api_key=api_key)
+
+# Ensure no trailing code or comments outside definitions 

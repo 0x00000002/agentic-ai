@@ -5,10 +5,9 @@ from typing import Any, Dict, Optional
 import time
 from functools import wraps
 import signal
-from .interfaces import ToolStrategy
 from ..utils.logger import LoggerInterface, LoggerFactory
 from ..exceptions import AIToolError
-from .models import ToolResult, ToolExecutionStatus
+from .models import ToolDefinition, ToolResult, ToolExecutionStatus
 
 
 class TimeoutError(Exception):
@@ -56,26 +55,28 @@ class ToolExecutor:
         signal.alarm(self.timeout)
         
         try:
-            # Execute the tool
-            result = tool.execute(**args)
+            # Execute the function stored in the definition directly
+            # 'tool' here is actually the tool_definition object
+            result = tool.function(**args)
             return result
         finally:
             # Cancel the alarm
             signal.alarm(0)
     
-    def execute(self, tool_definition, **args) -> ToolResult:
+    def execute(self, tool_definition: ToolDefinition, **args) -> ToolResult:
         """
-        Execute a tool with the given arguments and retry on failure.
+        Execute a tool function defined in ToolDefinition with timeout and retries.
         
         Args:
-            tool_definition: The tool definition object
-            args: Arguments to pass to the tool
+            tool_definition: The tool definition object containing the function.
+            args: Arguments to pass to the tool function.
             
         Returns:
             Tool execution result
         """
         tool_name = tool_definition.name
-        tool = tool_definition
+        # We pass the whole definition to _execute_with_timeout now
+        # tool = tool_definition 
         
         # Extract request_id if present
         request_id = args.pop("request_id", None)
@@ -90,7 +91,7 @@ class ToolExecutor:
             try:
                 # Try to execute with timeout
                 try:
-                    result = self._execute_with_timeout(tool, args)
+                    result = self._execute_with_timeout(tool_definition, args)
                     end_time = time.time()
                     execution_time_ms = int((end_time - start_time) * 1000)
                     

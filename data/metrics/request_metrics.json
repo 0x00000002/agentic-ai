@@ -1239,23 +1239,1514 @@
       ],
       "success": true,
       "error": null
+    },
+    "86997cbb-a358-40cf-bee4-01825257c774": {
+      "request_id": "86997cbb-a358-40cf-bee4-01825257c774",
+      "start_time": "2025-04-06T01:35:21.920543+00:00",
+      "end_time": "2025-04-06T01:35:25.665729+00:00",
+      "duration_ms": 3745,
+      "prompt": "1",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "212154e9-ea7c-4031-88ee-2e9f9a8c6e07": {
+      "request_id": "212154e9-ea7c-4031-88ee-2e9f9a8c6e07",
+      "start_time": "2025-04-06T01:35:38.182076+00:00",
+      "end_time": "2025-04-06T01:35:45.755110+00:00",
+      "duration_ms": 7573,
+      "prompt": "what's the meaning of life?\n",
+      "prompt_tokens": 5,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "4c92a59b-bfa8-431b-98e8-a7e4bc8cb374": {
+      "request_id": "4c92a59b-bfa8-431b-98e8-a7e4bc8cb374",
+      "start_time": "2025-04-06T01:36:09.526298+00:00",
+      "end_time": "2025-04-06T01:36:12.398917+00:00",
+      "duration_ms": 2872,
+      "prompt": "hmm\n",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "573beb96-5212-4577-8a70-711ceedd07de": {
+      "request_id": "573beb96-5212-4577-8a70-711ceedd07de",
+      "start_time": "2025-04-06T01:45:44.731782+00:00",
+      "end_time": "2025-04-06T01:45:48.452321+00:00",
+      "duration_ms": 3720,
+      "prompt": "asdf",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "a4044624-29fd-42d4-9baf-a969dd4c1969": {
+      "request_id": "a4044624-29fd-42d4-9baf-a969dd4c1969",
+      "start_time": "2025-04-06T01:45:53.500814+00:00",
+      "end_time": "2025-04-06T01:45:56.008938+00:00",
+      "duration_ms": 2508,
+      "prompt": "s",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "da2592e3-1ed1-4137-9f97-a2d26f684bea": {
+      "request_id": "da2592e3-1ed1-4137-9f97-a2d26f684bea",
+      "start_time": "2025-04-06T01:47:07.179322+00:00",
+      "end_time": "2025-04-06T01:47:13.601268+00:00",
+      "duration_ms": 6421,
+      "prompt": "Hi!\n",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "1164f996-02c9-4c3a-94fc-0640c5649e0c": {
+      "request_id": "1164f996-02c9-4c3a-94fc-0640c5649e0c",
+      "start_time": "2025-04-06T01:47:20.884701+00:00",
+      "end_time": "2025-04-06T01:47:23.543426+00:00",
+      "duration_ms": 2658,
+      "prompt": "what?",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "0e90e511-da06-47e5-bfdd-cab771f7e75a": {
+      "request_id": "0e90e511-da06-47e5-bfdd-cab771f7e75a",
+      "start_time": "2025-04-06T01:50:22.129622+00:00",
+      "end_time": "2025-04-06T01:50:24.067679+00:00",
+      "duration_ms": 1938,
+      "prompt": "123",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "80b249fb-b256-47a2-85b1-92f859c7de03": {
+      "request_id": "80b249fb-b256-47a2-85b1-92f859c7de03",
+      "start_time": "2025-04-06T01:50:34.638919+00:00",
+      "end_time": "2025-04-06T01:50:38.764371+00:00",
+      "duration_ms": 4125,
+      "prompt": "lol, what's about it?\n",
+      "prompt_tokens": 4,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "31503db4-b32f-46e2-9d8d-bbb7ea5b07fb": {
+      "request_id": "31503db4-b32f-46e2-9d8d-bbb7ea5b07fb",
+      "start_time": "2025-04-06T01:50:45.866569+00:00",
+      "end_time": "2025-04-06T01:50:49.777383+00:00",
+      "duration_ms": 3910,
+      "prompt": "interesting.",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "3a6ef90b-cc39-473c-bf1f-8bb0c8e64eff": {
+      "request_id": "3a6ef90b-cc39-473c-bf1f-8bb0c8e64eff",
+      "start_time": "2025-04-06T01:51:45.492212+00:00",
+      "end_time": "2025-04-06T01:51:47.627561+00:00",
+      "duration_ms": 2135,
+      "prompt": "Hi!\n",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "88164f46-f4fc-4a2f-b6dd-bbea3c386abb": {
+      "request_id": "88164f46-f4fc-4a2f-b6dd-bbea3c386abb",
+      "start_time": "2025-04-06T01:51:52.978727+00:00",
+      "end_time": "2025-04-06T01:51:59.156593+00:00",
+      "duration_ms": 6177,
+      "prompt": "why?",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "25191b42-4ba7-4c44-a401-6d6bd6f70e45": {
+      "request_id": "25191b42-4ba7-4c44-a401-6d6bd6f70e45",
+      "start_time": "2025-04-06T02:54:22.185604+00:00",
+      "end_time": "2025-04-06T02:54:24.066618+00:00",
+      "duration_ms": 1881,
+      "prompt": "234",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "efe79869-6b44-4e26-b4da-36b12349f43f": {
+      "request_id": "efe79869-6b44-4e26-b4da-36b12349f43f",
+      "start_time": "2025-04-06T02:54:34.610866+00:00",
+      "end_time": "2025-04-06T02:54:35.568247+00:00",
+      "duration_ms": 957,
+      "prompt": "no, its all good\n",
+      "prompt_tokens": 4,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "a1c9822c-b512-4f1a-b249-a5b1adbfdf5a": {
+      "request_id": "a1c9822c-b512-4f1a-b249-a5b1adbfdf5a",
+      "start_time": "2025-04-06T03:05:19.370229+00:00",
+      "end_time": "2025-04-06T03:05:20.777022+00:00",
+      "duration_ms": 1406,
+      "prompt": "how are you?\n",
+      "prompt_tokens": 3,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "76f3b990-cc11-43a4-82c7-f0bf0455f950": {
+      "request_id": "76f3b990-cc11-43a4-82c7-f0bf0455f950",
+      "start_time": "2025-04-06T03:05:38.924952+00:00",
+      "end_time": "2025-04-06T03:05:43.145556+00:00",
+      "duration_ms": 4220,
+      "prompt": "what tools do you have at your disposal? and what agents?\n",
+      "prompt_tokens": 11,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "f12014d7-5a17-478b-aa4a-d9da9843c30a": {
+      "request_id": "f12014d7-5a17-478b-aa4a-d9da9843c30a",
+      "start_time": "2025-04-06T03:21:03.104956+00:00",
+      "end_time": "2025-04-06T03:21:16.334026+00:00",
+      "duration_ms": 13229,
+      "prompt": "Create a simple ERC20 token contract with a fixed supply of 1,000,000 tokens.",
+      "prompt_tokens": 13,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "c5f0b46f-12f0-427d-be17-af8de8a8ccca": {
+      "request_id": "c5f0b46f-12f0-427d-be17-af8de8a8ccca",
+      "start_time": "2025-04-06T03:21:50.536612+00:00",
+      "end_time": "2025-04-06T03:22:04.529428+00:00",
+      "duration_ms": 13992,
+      "prompt": "Create a simple ERC20 token contract with a fixed supply of 1,000,000 tokens.",
+      "prompt_tokens": 13,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "86ab6a72-c51a-4b8b-895b-7d4a0ff37ff3": {
+      "request_id": "86ab6a72-c51a-4b8b-895b-7d4a0ff37ff3",
+      "start_time": "2025-04-06T03:22:04.606346+00:00",
+      "end_time": "2025-04-06T03:22:11.817704+00:00",
+      "duration_ms": 7211,
+      "prompt": "Search for information about the latest Solidity version and its features.",
+      "prompt_tokens": 11,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "2304a62b-abfc-4765-858a-6b647ffd1c46": {
+      "request_id": "2304a62b-abfc-4765-858a-6b647ffd1c46",
+      "start_time": "2025-04-06T03:22:13.003413+00:00",
+      "end_time": "2025-04-06T03:22:18.084698+00:00",
+      "duration_ms": 5081,
+      "prompt": "Can you explain how the Agentic AI framework works?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "95dfb3fa-0c3a-4771-b23a-ef43bf48d1cf": {
+      "request_id": "95dfb3fa-0c3a-4771-b23a-ef43bf48d1cf",
+      "start_time": "2025-04-06T08:02:08.830477+00:00",
+      "end_time": "2025-04-06T08:02:21.651582+00:00",
+      "duration_ms": 12821,
+      "prompt": "Create a simple ERC20 token contract with a fixed supply of 1,000,000 tokens.",
+      "prompt_tokens": 13,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "ec823c66-9a26-4883-967f-2f825d71c677": {
+      "request_id": "ec823c66-9a26-4883-967f-2f825d71c677",
+      "start_time": "2025-04-06T08:02:21.744470+00:00",
+      "end_time": "2025-04-06T08:02:30.335006+00:00",
+      "duration_ms": 8590,
+      "prompt": "Search for information about the latest Solidity version and its features.",
+      "prompt_tokens": 11,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "83c78d47-429f-43e5-9c8c-05ce32cec40e": {
+      "request_id": "83c78d47-429f-43e5-9c8c-05ce32cec40e",
+      "start_time": "2025-04-06T08:02:31.750203+00:00",
+      "end_time": "2025-04-06T08:02:36.483212+00:00",
+      "duration_ms": 4733,
+      "prompt": "Can you explain how the Agentic AI framework works?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "a5bcbe96-1784-47c0-ac45-8e03a2a82c3b": {
+      "request_id": "a5bcbe96-1784-47c0-ac45-8e03a2a82c3b",
+      "start_time": "2025-04-06T08:03:30.422732+00:00",
+      "end_time": "2025-04-06T08:03:31.729520+00:00",
+      "duration_ms": 1306,
+      "prompt": "hi\n",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "5949f31d-30bf-443f-a0c3-be0682190b91": {
+      "request_id": "5949f31d-30bf-443f-a0c3-be0682190b91",
+      "start_time": "2025-04-06T08:03:53.598207+00:00",
+      "end_time": "2025-04-06T08:03:56.766598+00:00",
+      "duration_ms": 3168,
+      "prompt": "tell me what tools do you have? what agents?\n",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "c4550278-c078-4b99-b661-3f50a171b941": {
+      "request_id": "c4550278-c078-4b99-b661-3f50a171b941",
+      "start_time": "2025-04-06T08:08:00.935053+00:00",
+      "end_time": "2025-04-06T08:08:03.456987+00:00",
+      "duration_ms": 2521,
+      "prompt": "what agents do you have?\n",
+      "prompt_tokens": 5,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "2e65cb49-5407-4397-bcd7-853442e8285a": {
+      "request_id": "2e65cb49-5407-4397-bcd7-853442e8285a",
+      "start_time": "2025-04-06T08:11:59.457417+00:00",
+      "end_time": "2025-04-06T08:12:01.798159+00:00",
+      "duration_ms": 2340,
+      "prompt": "what agents do you have\n",
+      "prompt_tokens": 5,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "67dfe6bf-2858-4f3b-b97d-4f0fa377e15a": {
+      "request_id": "67dfe6bf-2858-4f3b-b97d-4f0fa377e15a",
+      "start_time": "2025-04-06T08:13:23.355704+00:00",
+      "end_time": "2025-04-06T08:13:28.273341+00:00",
+      "duration_ms": 4917,
+      "prompt": "what tools do you have?",
+      "prompt_tokens": 5,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "55e0605d-8144-4252-973c-61424206506b": {
+      "request_id": "55e0605d-8144-4252-973c-61424206506b",
+      "start_time": "2025-04-06T08:18:54.858437+00:00",
+      "end_time": "2025-04-06T08:18:59.865253+00:00",
+      "duration_ms": 5006,
+      "prompt": "tell me what tools do you have? what agents?\n",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "ff5e71ae-5d33-40e8-abf8-507042768a0d": {
+      "request_id": "ff5e71ae-5d33-40e8-abf8-507042768a0d",
+      "start_time": "2025-04-06T08:21:01.714085+00:00",
+      "end_time": "2025-04-06T08:21:07.454172+00:00",
+      "duration_ms": 5740,
+      "prompt": "what tools do you have?",
+      "prompt_tokens": 5,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "688efbab-c20c-4a88-99ef-014ad007febe": {
+      "request_id": "688efbab-c20c-4a88-99ef-014ad007febe",
+      "start_time": "2025-04-06T08:24:22.876324+00:00",
+      "end_time": "2025-04-06T08:24:27.648885+00:00",
+      "duration_ms": 4772,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "8c8d7089-b119-4f7a-b000-6f68e585d0d0": {
+      "request_id": "8c8d7089-b119-4f7a-b000-6f68e585d0d0",
+      "start_time": "2025-04-06T10:13:25.688228+00:00",
+      "end_time": "2025-04-06T10:13:30.304871+00:00",
+      "duration_ms": 4616,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "38c0755e-acb6-4bcd-9559-df96080c887c": {
+      "request_id": "38c0755e-acb6-4bcd-9559-df96080c887c",
+      "start_time": "2025-04-06T10:14:15.124686+00:00",
+      "end_time": "2025-04-06T10:14:18.907792+00:00",
+      "duration_ms": 3783,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "f3acedb6-d503-4214-8c6c-aa80d276f9db": {
+      "request_id": "f3acedb6-d503-4214-8c6c-aa80d276f9db",
+      "start_time": "2025-04-06T10:15:25.418601+00:00",
+      "end_time": "2025-04-06T10:16:21.424054+00:00",
+      "duration_ms": 56005,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "83451782-b25c-4dc7-91a0-2b7efb91c1b7": {
+      "request_id": "83451782-b25c-4dc7-91a0-2b7efb91c1b7",
+      "start_time": "2025-04-06T10:17:37.022951+00:00",
+      "end_time": "2025-04-06T10:17:41.191386+00:00",
+      "duration_ms": 4168,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "26aec770-d1a2-4c2f-97ca-489232d707f5": {
+      "request_id": "26aec770-d1a2-4c2f-97ca-489232d707f5",
+      "start_time": "2025-04-06T10:19:44.661819+00:00",
+      "end_time": "2025-04-06T10:19:50.014145+00:00",
+      "duration_ms": 5352,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "69c41292-7ea6-4aee-b0ed-dec6c6af735f": {
+      "request_id": "69c41292-7ea6-4aee-b0ed-dec6c6af735f",
+      "start_time": "2025-04-06T10:20:34.931971+00:00",
+      "end_time": "2025-04-06T10:20:38.962107+00:00",
+      "duration_ms": 4030,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "d04ecb3c-52cf-474f-b0c3-1104ceab34d3": {
+      "request_id": "d04ecb3c-52cf-474f-b0c3-1104ceab34d3",
+      "start_time": "2025-04-06T10:21:27.629212+00:00",
+      "end_time": "2025-04-06T10:21:31.764015+00:00",
+      "duration_ms": 4134,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "85a6a2c6-88af-494c-a512-7b7363ea768b": {
+      "request_id": "85a6a2c6-88af-494c-a512-7b7363ea768b",
+      "start_time": "2025-04-06T10:22:18.896268+00:00",
+      "end_time": "2025-04-06T10:22:23.635594+00:00",
+      "duration_ms": 4739,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "42020043-8def-4c68-be92-bc84ed83dedc": {
+      "request_id": "42020043-8def-4c68-be92-bc84ed83dedc",
+      "start_time": "2025-04-06T10:23:22.318566+00:00",
+      "end_time": "2025-04-06T10:23:29.422769+00:00",
+      "duration_ms": 7104,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "57a0691a-468d-452a-98ce-dfd7b73b4958": {
+      "request_id": "57a0691a-468d-452a-98ce-dfd7b73b4958",
+      "start_time": "2025-04-06T10:24:26.510529+00:00",
+      "end_time": "2025-04-06T10:24:34.483087+00:00",
+      "duration_ms": 7972,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "f2e2db15-da32-419e-ba76-dfe1c54a31df": {
+      "request_id": "f2e2db15-da32-419e-ba76-dfe1c54a31df",
+      "start_time": "2025-04-06T10:26:10.985985+00:00",
+      "end_time": "2025-04-06T10:26:18.290429+00:00",
+      "duration_ms": 7304,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "bb6c05e9-5514-4599-99f1-59343608a5e1": {
+      "request_id": "bb6c05e9-5514-4599-99f1-59343608a5e1",
+      "start_time": "2025-04-06T10:27:35.118427+00:00",
+      "end_time": "2025-04-06T10:27:43.512099+00:00",
+      "duration_ms": 8393,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "cd617457-3c30-499d-be8b-5eb3470aa4f7": {
+      "request_id": "cd617457-3c30-499d-be8b-5eb3470aa4f7",
+      "start_time": "2025-04-06T10:28:50.705309+00:00",
+      "end_time": "2025-04-06T10:28:58.059430+00:00",
+      "duration_ms": 7354,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "0768e1db-adfc-4424-911a-3ee41088e96f": {
+      "request_id": "0768e1db-adfc-4424-911a-3ee41088e96f",
+      "start_time": "2025-04-06T10:29:57.490088+00:00",
+      "end_time": "2025-04-06T10:30:04.411849+00:00",
+      "duration_ms": 6921,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "bcf097f0-2ee9-4d33-8858-61ffc0bd2e5e": {
+      "request_id": "bcf097f0-2ee9-4d33-8858-61ffc0bd2e5e",
+      "start_time": "2025-04-06T10:30:54.912561+00:00",
+      "end_time": "2025-04-06T10:31:01.552802+00:00",
+      "duration_ms": 6640,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "21075b5f-2863-4a76-9b46-886b04d23f76": {
+      "request_id": "21075b5f-2863-4a76-9b46-886b04d23f76",
+      "start_time": "2025-04-06T10:32:01.171169+00:00",
+      "end_time": "2025-04-06T10:32:09.549268+00:00",
+      "duration_ms": 8378,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "b58d1d79-961a-464a-a991-3c0829e99771": {
+      "request_id": "b58d1d79-961a-464a-a991-3c0829e99771",
+      "start_time": "2025-04-06T10:33:14.900673+00:00",
+      "end_time": "2025-04-06T10:33:22.152192+00:00",
+      "duration_ms": 7251,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "4e59f5b5-dd7a-4e15-94a3-924961551f01": {
+      "request_id": "4e59f5b5-dd7a-4e15-94a3-924961551f01",
+      "start_time": "2025-04-06T10:35:57.303374+00:00",
+      "end_time": "2025-04-06T10:36:03.327006+00:00",
+      "duration_ms": 6023,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "f6124161-32a0-4845-bdd6-11e2b1186ee0": {
+      "request_id": "f6124161-32a0-4845-bdd6-11e2b1186ee0",
+      "start_time": "2025-04-06T10:36:55.532144+00:00",
+      "end_time": "2025-04-06T10:37:03.133019+00:00",
+      "duration_ms": 7600,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "6a6ee10a-883e-48d0-91b4-8d60a013a6db": {
+      "request_id": "6a6ee10a-883e-48d0-91b4-8d60a013a6db",
+      "start_time": "2025-04-06T10:37:49.851038+00:00",
+      "end_time": "2025-04-06T10:37:57.869674+00:00",
+      "duration_ms": 8018,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "eda4901e-1b85-4333-b4c6-f7e74de6af15": {
+      "request_id": "eda4901e-1b85-4333-b4c6-f7e74de6af15",
+      "start_time": "2025-04-06T10:44:20.365570+00:00",
+      "end_time": "2025-04-06T10:44:27.070057+00:00",
+      "duration_ms": 6704,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "3c1ebd55-17e4-40d8-95af-28b306fbe005": {
+      "request_id": "3c1ebd55-17e4-40d8-95af-28b306fbe005",
+      "start_time": "2025-04-06T10:45:29.522503+00:00",
+      "end_time": "2025-04-06T10:45:35.387211+00:00",
+      "duration_ms": 5864,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "973b9e64-002a-4483-a62b-fbd41e3a28e8": {
+      "request_id": "973b9e64-002a-4483-a62b-fbd41e3a28e8",
+      "start_time": "2025-04-06T10:46:50.327295+00:00",
+      "end_time": "2025-04-06T10:46:56.694798+00:00",
+      "duration_ms": 6367,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "6454c034-03bd-45eb-8fdf-2053b1e34013": {
+      "request_id": "6454c034-03bd-45eb-8fdf-2053b1e34013",
+      "start_time": "2025-04-06T10:49:10.127569+00:00",
+      "end_time": "2025-04-06T10:49:17.785338+00:00",
+      "duration_ms": 7657,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "52df5e44-fc2e-491f-acac-e21173f04f99": {
+      "request_id": "52df5e44-fc2e-491f-acac-e21173f04f99",
+      "start_time": "2025-04-06T10:51:26.859152+00:00",
+      "end_time": "2025-04-06T10:51:33.937771+00:00",
+      "duration_ms": 7078,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "a3ed9d4c-005e-4d6d-8df3-c0219cbcb4b7": {
+      "request_id": "a3ed9d4c-005e-4d6d-8df3-c0219cbcb4b7",
+      "start_time": "2025-04-06T10:53:30.516917+00:00",
+      "end_time": "2025-04-06T10:53:37.491496+00:00",
+      "duration_ms": 6974,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "7052a125-47b1-4524-8c99-185f4ae82d8c": {
+      "request_id": "7052a125-47b1-4524-8c99-185f4ae82d8c",
+      "start_time": "2025-04-06T10:54:10.563202+00:00",
+      "end_time": "2025-04-06T10:54:17.795372+00:00",
+      "duration_ms": 7232,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "a17946f5-82e8-4fee-b326-5f8074f48d6d": {
+      "request_id": "a17946f5-82e8-4fee-b326-5f8074f48d6d",
+      "start_time": "2025-04-06T10:54:57.182692+00:00",
+      "end_time": "2025-04-06T10:55:04.023224+00:00",
+      "duration_ms": 6840,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "27f5ec0b-9438-4377-81e3-e9fd82e8d255": {
+      "request_id": "27f5ec0b-9438-4377-81e3-e9fd82e8d255",
+      "start_time": "2025-04-06T10:55:49.880910+00:00",
+      "end_time": "2025-04-06T10:55:56.145693+00:00",
+      "duration_ms": 6264,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "a7bc2a61-452d-4a49-a1d6-36e0798042df": {
+      "request_id": "a7bc2a61-452d-4a49-a1d6-36e0798042df",
+      "start_time": "2025-04-06T10:57:15.409539+00:00",
+      "end_time": "2025-04-06T10:57:24.926206+00:00",
+      "duration_ms": 9516,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "d0415c5f-e92b-4a18-8de7-60252e852220": {
+      "request_id": "d0415c5f-e92b-4a18-8de7-60252e852220",
+      "start_time": "2025-04-06T10:58:34.637743+00:00",
+      "end_time": "2025-04-06T10:58:41.419535+00:00",
+      "duration_ms": 6781,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "e6ffe0fa-ddaa-4e22-bbc9-3ea8f708687a": {
+      "request_id": "e6ffe0fa-ddaa-4e22-bbc9-3ea8f708687a",
+      "start_time": "2025-04-06T10:59:19.388029+00:00",
+      "end_time": "2025-04-06T10:59:26.861233+00:00",
+      "duration_ms": 7473,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "a5696791-4bb3-4b30-9fde-3b87e17ee63b": {
+      "request_id": "a5696791-4bb3-4b30-9fde-3b87e17ee63b",
+      "start_time": "2025-04-06T11:00:50.923116+00:00",
+      "end_time": "2025-04-06T11:00:58.639484+00:00",
+      "duration_ms": 7716,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "1abab0a2-1aa0-4d5a-af80-cd509882258c": {
+      "request_id": "1abab0a2-1aa0-4d5a-af80-cd509882258c",
+      "start_time": "2025-04-06T11:01:13.429522+00:00",
+      "end_time": "2025-04-06T11:01:16.981238+00:00",
+      "duration_ms": 3551,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "ef3dc571-7b2b-4657-a53c-ee8f186b362f": {
+      "request_id": "ef3dc571-7b2b-4657-a53c-ee8f186b362f",
+      "start_time": "2025-04-06T11:04:55.000229+00:00",
+      "end_time": "2025-04-06T11:04:57.616569+00:00",
+      "duration_ms": 2616,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "1b121604-a2be-42d6-9b6b-2bf9f1943e3f": {
+      "request_id": "1b121604-a2be-42d6-9b6b-2bf9f1943e3f",
+      "start_time": "2025-04-06T11:10:41.003550+00:00",
+      "end_time": "2025-04-06T11:10:43.322447+00:00",
+      "duration_ms": 2318,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "9efad24c-892c-4a8e-9f0f-669fa00d5b6b": {
+      "request_id": "9efad24c-892c-4a8e-9f0f-669fa00d5b6b",
+      "start_time": "2025-04-06T11:11:43.820066+00:00",
+      "end_time": "2025-04-06T11:11:45.995189+00:00",
+      "duration_ms": 2175,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "1f60e7c3-3319-4a8f-9388-0342cfffd641": {
+      "request_id": "1f60e7c3-3319-4a8f-9388-0342cfffd641",
+      "start_time": "2025-04-06T11:12:28.112252+00:00",
+      "end_time": "2025-04-06T11:12:31.252882+00:00",
+      "duration_ms": 3140,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "83b3e213-f46a-4cf1-92f1-695ca4045513": {
+      "request_id": "83b3e213-f46a-4cf1-92f1-695ca4045513",
+      "start_time": "2025-04-06T11:13:34.444569+00:00",
+      "end_time": "2025-04-06T11:13:36.697233+00:00",
+      "duration_ms": 2252,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "76ed6af1-8145-42be-8d18-8ebaa4d68c35": {
+      "request_id": "76ed6af1-8145-42be-8d18-8ebaa4d68c35",
+      "start_time": "2025-04-06T11:27:43.534278+00:00",
+      "end_time": "2025-04-06T11:27:46.659415+00:00",
+      "duration_ms": 3125,
+      "prompt": "tell me what tools do you have? what agents?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
     }
   },
   "agent_usage": {
     "request_analyzer": {
-      "total_requests": 90,
-      "successful_requests": 87,
-      "total_duration_ms": 2745,
-      "avg_confidence": 0.9919607620110843,
-      "last_used": "2025-04-06T01:31:49.281090+00:00",
-      "avg_duration_ms": 30.84269662921348
+      "total_requests": 197,
+      "successful_requests": 194,
+      "total_duration_ms": 82862,
+      "avg_confidence": 0.9963272516801908,
+      "last_used": "2025-04-06T11:27:43.549638+00:00",
+      "avg_duration_ms": 436.11578947368423
     },
     "orchestrator": {
-      "total_requests": 55,
-      "successful_requests": 53,
+      "total_requests": 126,
+      "successful_requests": 124,
       "total_duration_ms": 1861,
-      "avg_confidence": 0.9775753005584176,
-      "last_used": "2025-04-06T01:31:52.357349+00:00",
+      "avg_confidence": 0.9902114407199443,
+      "last_used": "2025-04-06T11:27:43.551202+00:00",
       "avg_duration_ms": 206.77777777777777
     },
     "response_aggregator": {
@@ -1341,12 +2832,12 @@
       "avg_duration_ms": 494.25
     },
     "claude-3-5-haiku": {
-      "total_calls": 22,
-      "successful_calls": 22,
+      "total_calls": 93,
+      "successful_calls": 93,
       "total_tokens_in": 0,
       "total_tokens_out": 0,
       "total_duration_ms": 0,
-      "last_used": "2025-04-06T01:31:50.409564+00:00",
+      "last_used": "2025-04-06T11:27:43.546459+00:00",
       "avg_duration_ms": 0
     },
     "test-coding-model": {

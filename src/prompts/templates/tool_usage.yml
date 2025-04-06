@@ -1,3 +1,20 @@
+tool_results_formatter:
+  name: "Tool Results Formatter"
+  description: "Defines the structure for formatting tool execution results to be sent back to the AI model."
+  default_version: "v1"
+  versions:
+    - version: "v1"
+      # This template's output isn't directly used as a string.
+      # It defines the structure for the 'tool' role message.
+      # The variables will be substituted into the structured message.
+      template: |
+        # Template structure definition (not literal text)
+        # Expected variables: tool_call_id, tool_name, tool_result_content
+        role: tool
+        tool_call_id: "{{tool_call_id}}"
+        name: "{{tool_name}}"
+        content: "{{tool_result_content}}"
+
 tool_enhancement:
   name: "Tool Enhancement"
   description: "Template for enhancing a prompt with available tools"

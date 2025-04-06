@@ -51,35 +51,45 @@ class AIBase(AIInterface):
             # Get unified configuration
             self._config = UnifiedConfig.get_instance()
             
-            # Get model configuration using the provided key/alias
+            # --- Add Detailed Init Logging --- 
             model_key = model or self._config.get_default_model()
-            self._logger.debug(f"AIBase attempting to get model config for key: '{model_key}'")
-            self._model_config = self._config.get_model_config(model_key)
+            self._logger.info(f"AIBase Init: Requested model key='{model_key}'")
             
-            # Extract the actual model_id needed by the provider API
-            provider_model_id = self._model_config.get("model_id", model_key) # Fallback to key if field missing
-            provider_name = self._model_config.get("provider", "openai") # Default provider
+            try:
+                self._model_config = self._config.get_model_config(model_key)
+                self._logger.info(f"AIBase Init: Fetched model config: {self._model_config}")
+            except Exception as e:
+                 self._logger.error(f"AIBase Init: Failed to get model config for '{model_key}': {e}", exc_info=True)
+                 raise AISetupError(f"Missing model configuration for '{model_key}'") from e
 
-            # --- Get Provider Config --- 
+            provider_model_id = self._model_config.get("model_id", model_key)
+            provider_name = self._model_config.get("provider") # Get provider, error if missing
+            self._logger.info(f"AIBase Init: Determined provider_name='{provider_name}', provider_model_id='{provider_model_id}'")
+            
+            if not provider_name:
+                 self._logger.error(f"AIBase Init: Provider name missing in model config for '{model_key}'")
+                 raise AISetupError(f"Provider not specified in model configuration for '{model_key}'")
+
             try:
                 provider_config = self._config.get_provider_config(provider_name)
+                self._logger.info(f"AIBase Init: Fetched provider config for '{provider_name}': {provider_config}")
             except AIConfigError as e:
-                 self._logger.error(f"Failed to get provider config for '{provider_name}': {e}")
+                 self._logger.error(f"AIBase Init: Failed to get provider config for '{provider_name}': {e}", exc_info=True)
                  raise AISetupError(f"Missing provider configuration for '{provider_name}'") from e
-            # -------------------------
 
-            # Set up prompt template
             self._prompt_template = prompt_template or PromptTemplate(logger=self._logger)
             
-            # Initialize provider using the correct API model ID and provider/model config
+            self._logger.info(f"AIBase Init: Calling ProviderFactory.create(provider_type='{provider_name}', model_id='{provider_model_id}', ...)")
             self._provider = ProviderFactory.create(
                 provider_type=provider_name,
-                model_id=provider_model_id, # Use the specific ID from config
-                provider_config=provider_config, # PASS provider config
-                model_config=self._model_config,   # PASS model config as well
+                model_id=provider_model_id, 
+                provider_config=provider_config,
+                model_config=self._model_config,
                 logger=self._logger
             )
-            
+            self._logger.info(f"AIBase Init: ProviderFactory returned instance of type: {type(self._provider)}")
+            # --- End Detailed Init Logging ---
+
             # Set up conversation manager
             self._conversation_manager = ConversationManager()
             

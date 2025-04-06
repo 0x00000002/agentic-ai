@@ -3,6 +3,9 @@ Core interfaces for AI and provider implementations.
 """
 from typing import Protocol, List, Dict, Any, Optional, Union, Tuple, BinaryIO
 from typing_extensions import runtime_checkable
+# Import necessary types for tool handling
+from src.tools.models import ToolCall
+from ..tools.models import ToolResult
 
 
 @runtime_checkable
@@ -97,6 +100,25 @@ class ToolCapableProviderInterface(ProviderInterface, Protocol):
             
         Returns:
             Updated conversation history
+        """
+        ...
+
+    def build_tool_result_messages(self, 
+                                  tool_calls: List['ToolCall'], 
+                                  tool_results: List['ToolResult']) -> List[Dict[str, Any]]:
+        """
+        Builds the list of message dictionaries representing tool results, 
+        formatted correctly for the specific provider's API.
+
+        This might return multiple messages (e.g., one per tool for OpenAI)
+        or a single message containing all results (e.g., for Anthropic).
+
+        Args:
+            tool_calls: The list of ToolCall objects that the AI requested.
+            tool_results: The list of corresponding ToolResult objects.
+
+        Returns:
+            A list of message dictionaries to be added to the conversation history.
         """
         ...
 

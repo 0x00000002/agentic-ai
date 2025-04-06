@@ -36,26 +36,13 @@ pip install -e .
 ## Quick Example
 
 ```python
-from src.config.models import Model
-from src.core.tool_enabled_ai import AI
+from src.core.tool_enabled_ai import ToolEnabledAI
 
 # Create an AI instance
-ai = AI(model=Model.CLAUDE_3_7_SONNET)
+ai = ToolEnabledAI()
 
-# Define a tool function
-def get_weather(location: str) -> str:
-    """Get the weather for a location."""
-    return f"It's sunny in {location} today!"
-
-# Register the tool
-ai.register_tool(
-    tool_name="get_weather",
-    tool_function=get_weather,
-    description="Get current weather for a location"
-)
-
-# Use the AI with tools
-response = ai.request("What's the weather like in Paris today?")
+# Make a request
+response = ai.request("What is the capital of France?")
 print(response)
 ```
 
@@ -106,3 +93,56 @@ python tests/tools/run_tools_tests.py
 ## License
 
 [MIT License](LICENSE)
+
+### Basic Usage
+
+```python
+from src.core.tool_enabled_ai import ToolEnabledAI
+
+# Create an AI instance
+ai = ToolEnabledAI()
+
+# Make a request
+response = ai.request("What is the capital of France?")
+print(response)
+```
+
+### Using Specific Models
+
+You can specify a model during initialization:
+
+```python
+from src.core.tool_enabled_ai import ToolEnabledAI
+from src.config.dynamic_models import Model
+
+# Use a specific model
+ai = ToolEnabledAI(model=Model.CLAUDE_3_7_SONNET)
+response = ai.request("Write a short poem about AI.")
+print(response)
+```
+
+### Using Tools
+
+Define a Python function and register it as a tool:
+
+```python
+from src.core.tool_enabled_ai import ToolEnabledAI
+import requests
+
+def get_weather(location: str):
+# ... (function remains same)
+
+# Create AI instance
+ai = ToolEnabledAI()
+
+# Register the tool
+ai.register_tool(
+    tool_name="get_weather",
+    tool_function=get_weather,
+    description="Get the current weather for a specified location"
+)
+
+# Use the AI with tools
+response = ai.request("What's the weather like in Paris today?")
+print(response)
+```

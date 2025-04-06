@@ -5,6 +5,7 @@ Agentic-AI includes a powerful feature called `AIToolFinder` that enables AI to 
 ## Overview
 
 The `AIToolFinder` component uses an AI model to analyze:
+
 1. The user's request
 2. Available tools and their descriptions
 3. Conversation context (optional)
@@ -42,6 +43,7 @@ Final Response
 ### Behind the Scenes
 
 1. When a user submits a query, the `AIToolFinder` prepares a prompt containing:
+
    - The user's query
    - A list of all available tools with descriptions
    - Optional conversation history for context
@@ -49,6 +51,7 @@ Final Response
 2. This prompt is sent to a configured AI model that specializes in tool selection
 
 3. The AI analyzes the query and tool descriptions, then returns a JSON response listing the relevant tools:
+
    ```json
    {
      "tools": ["tool_name_1", "tool_name_2"]
@@ -75,7 +78,7 @@ class AIToolFinder:
                  logger: LoggerInterface):
         """
         Initialize the AIToolFinder.
-        
+
         Args:
             model_id: The ID of the AI model to use for tool finding.
             config_manager: Configuration manager instance.
@@ -97,7 +100,7 @@ class AIToolFinder:
 Enable automatic tool finding by setting `auto_find_tools=True` when creating an AI instance:
 
 ```python
-from src.core.tool_enabled_ai import AI
+from src.core.tool_enabled_ai import ToolEnabledAI
 from src.config.models import Model
 
 # Create AI with auto tool finding

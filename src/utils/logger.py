@@ -154,17 +154,22 @@ class Logger(LoggerInterface):
         handler = logging.FileHandler(filename)
         self._configure_handler(handler)
     
-    def info(self, message: str) -> None:
-        self._logger.info(message)
+    def info(self, message: str, **kwargs) -> None:
+        """Log an INFO level message."""
+        self._logger.info(message, **kwargs)
         
-    def debug(self, message: str) -> None:
-        self._logger.debug(message)
+    def debug(self, message: str, **kwargs) -> None:
+        """Log a DEBUG level message."""
+        self._logger.debug(message, **kwargs)
         
-    def warning(self, message: str) -> None:
-        self._logger.warning(message)
+    def warning(self, message: str, **kwargs) -> None:
+        """Log a WARNING level message."""
+        self._logger.warning(message, **kwargs)
         
-    def error(self, message: str) -> None:
-        self._logger.error(message)
+    def error(self, message: str, **kwargs) -> None:
+        """Log an ERROR level message."""
+        self._logger.error(message, **kwargs)
         
-    def critical(self, message: str) -> None:
-        self._logger.critical(message) 
+    def critical(self, message: str, **kwargs) -> None:
+        """Log a CRITICAL level message."""
+        self._logger.critical(message, **kwargs) 

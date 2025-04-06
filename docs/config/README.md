@@ -16,7 +16,7 @@ The configuration system provides a clean, user-facing interface for configuring
 
 ```python
 from src.config import configure
-from src.core.tool_enabled_ai import AI
+from src.core.tool_enabled_ai import ToolEnabledAI
 
 # Configure the framework
 configure(

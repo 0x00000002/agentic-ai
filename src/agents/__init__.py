@@ -13,8 +13,8 @@ from .agent_registry import AgentRegistry
 from .agent_factory import AgentFactory
 
 # Agent implementations - imported last to avoid circular imports
-from .tool_finder_agent import ToolFinderAgent
-from .orchestrator import Orchestrator
+# from .tool_finder_agent import ToolFinderAgent # Removed - ToolFinderAgent deleted
+from .coordinator import Coordinator
 from .listener_agent import ListenerAgent
 from .coding_assistant_agent import CodingAssistantAgent
 
@@ -25,8 +25,8 @@ __all__ = [
     'BaseAgent',
     'AgentRegistry',
     'AgentFactory',
-    'Orchestrator',
-    'ToolFinderAgent',
+    'Coordinator',
+    # 'ToolFinderAgent', # Removed - ToolFinderAgent deleted
     'ListenerAgent',
     'CodingAssistantAgent'
 ]

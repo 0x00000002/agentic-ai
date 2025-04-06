@@ -112,3 +112,35 @@ metrics_by_version = prompt_manager.get_version_metrics(template_id)
 for version_id, metrics in metrics_by_version.items():
     print(f"Version {version_id}: {metrics}")
 ```
+
+## Example Usage
+
+```python
+from src.core.tool_enabled_ai import ToolEnabledAI
+from src.prompts.prompt_template import PromptTemplate
+
+# Initialize template service (loads templates from default directory)
+template_service = PromptTemplate()
+
+# Create AI instance, passing the template service
+ai = ToolEnabledAI(
+    prompt_template=template_service
+    # ... other AI config ...
+)
+
+# Example: Use a template for a request
+variables = {"topic": "renewable energy"}
+response = ai.request_with_template(
+    template_id="explain_concept",
+    variables=variables,
+    version="v1" # Optional: specify version
+)
+print(response)
+
+# Example: Track performance
+# Assuming 'request_with_template' returns usage_id along with response
+# (or modify AI base to store last usage_id)
+# usage_id = ...
+# metrics = {"tokens_used": 500, "success": True}
+# template_service.record_prompt_performance(usage_id, metrics)
+```

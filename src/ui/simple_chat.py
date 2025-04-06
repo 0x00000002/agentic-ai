@@ -9,9 +9,9 @@ from typing import List, Tuple, Dict, Any, Optional
 import logging
 import time
 
-from ..agents.orchestrator import Orchestrator
-from ..config.user_config import UserConfig
-from ..utils.logger import LoggerFactory
+from ..agents.coordinator import Coordinator
+from src.config.user_config import UserConfig
+from src.utils.logger import LoggerFactory
 
 # Configure logging
 # logging.basicConfig(
@@ -30,7 +30,7 @@ class SimpleChatUI:
     Uses Gradio to create a web-based chat interface.
     """
     
-    def __init__(self, orchestrator, title: str = "Agentic AI Chat"):
+    def __init__(self, coordinator, title: str = "Agentic AI Chat"):
         """
         Initialize the chat UI.
         
@@ -38,7 +38,7 @@ class SimpleChatUI:
             orchestrator: The orchestrator instance to use for processing requests
             title: The title of the chat interface
         """
-        self.orchestrator = orchestrator
+        self.coordinator = coordinator
         self.title = title
         self.logger = logger
         
@@ -67,7 +67,7 @@ class SimpleChatUI:
         
         # Process the request
         try:
-            response = self.orchestrator.process_request(request)
+            response = self.coordinator.process_request(request)
             
             # Extract the content from the response
             if isinstance(response, dict):
@@ -147,7 +147,7 @@ class SimpleChatUI:
 
 # --- Add the following execution block ---
 if __name__ == "__main__":
-    from ..agents.orchestrator import Orchestrator
+    from ..agents.coordinator import Coordinator
     from ..agents.agent_factory import AgentFactory # Assuming AgentFactory exists and is needed
     from ..agents.agent_registry import AgentRegistry # Assuming AgentRegistry exists
     from ..config.unified_config import UnifiedConfig # Assuming UnifiedConfig is used
@@ -175,22 +175,22 @@ if __name__ == "__main__":
         # agent_factory.register_agent("coding_agent", CodingAgent)
         # ---------------------------------------------------------
 
-        # Create the Orchestrator 
+        # Create the Coordinator 
         # It will internally create PromptTemplate instances which load YAMLs
-        orchestrator = Orchestrator(
+        coordinator = Coordinator(
             agent_factory=agent_factory,
             unified_config=config,
-            logger=logger_factory.create("orchestrator")
+            logger=logger_factory.create("coordinator")
             # Removed prompt_manager=... No longer needed here
             # Add other components like tool_finder, model_selector if needed
             # Note: Default ToolFinderAgent/RequestAnalyzer/ResponseAggregator created
             # inside Orchestrator will now correctly use PromptTemplate
         )
         
-        logger.info("Orchestrator initialized successfully.")
+        logger.info("Coordinator initialized successfully.")
         
         # Create and launch the UI
-        ui = SimpleChatUI(orchestrator=orchestrator)
+        ui = SimpleChatUI(coordinator=coordinator)
         logger.info("Launching Simple Chat UI...")
         ui.launch(server_name="0.0.0.0") # Launch on all interfaces
 

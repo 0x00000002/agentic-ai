@@ -13,37 +13,10 @@ import os
 from datetime import datetime
 
 
-class DefaultToolStrategy(ToolStrategy):
-    """Default implementation of the ToolStrategy interface."""
-    
-    def __init__(self, 
-                 function: Callable, 
-                 description: str, 
-                 parameters_schema: Dict[str, Any]):
-        """
-        Initialize the tool strategy.
-        
-        Args:
-            function: The function to execute
-            description: Tool description
-            parameters_schema: JSON schema for parameters
-        """
-        self._function = function
-        self._description = description
-        self._parameters_schema = parameters_schema
-    
-    def execute(self, **args) -> Any:
-        """Execute the tool with the provided arguments."""
-        return self._function(**args)
-    
-    def get_description(self) -> str:
-        """Get the tool description."""
-        return self._description
-    
-    def get_schema(self) -> Dict[str, Any]:
-        """Get the parameters schema."""
-        return self._parameters_schema
-
+# Dummy function for the built-in tool
+def dummy_tool_function(query: str) -> str:
+    """A simple dummy tool for testing."""
+    return f"Dummy tool processed query: {query}"
 
 class ToolRegistry:
     """
@@ -90,8 +63,32 @@ class ToolRegistry:
     
     def _register_builtin_tools(self) -> None:
         """Register any built-in tools."""
-        # This would be implemented to register default tools
-        pass
+        # Define a simple dummy tool
+        dummy_tool_def = ToolDefinition(
+            name="dummy_tool",
+            description="A simple built-in tool for demonstration and testing purposes.",
+            parameters_schema={
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "The input query for the dummy tool."}
+                },
+                "required": ["query"]
+            },
+            function=dummy_tool_function # Reference the actual function
+        )
+        try:
+            # Register the dummy tool, assign to a default category if desired
+            self.register_tool(
+                tool_name=dummy_tool_def.name, 
+                tool_definition=dummy_tool_def,
+                category="built_in" # Assign to a 'built_in' category
+            )
+            self._logger.info("Registered built-in dummy_tool.")
+        except AIToolError as e:
+            # Log if registration fails (e.g., if already registered somehow)
+             self._logger.warning(f"Could not register built-in dummy_tool: {e}")
+        except Exception as e:
+            self._logger.error(f"Unexpected error registering built-in dummy_tool: {e}", exc_info=True)
     
     def register_tool(self, 
                      tool_name: str, 
@@ -108,26 +105,19 @@ class ToolRegistry:
         Raises:
             AIToolError: If registration fails (e.g., name already exists)
         """
-        if tool_name in self._tools:
+        if tool_name in self._tools_metadata:
             raise AIToolError(f"Tool '{tool_name}' already registered")
         
         try:
-            # Create tool implementation from the definition
-            strategy = DefaultToolStrategy(
-                function=tool_definition.function,
-                description=tool_definition.description,
-                parameters_schema=tool_definition.parameters_schema
-            )
-            
-            # Store in registry
-            self._tools[tool_name] = strategy
+            # Store the definition
             self._tools_metadata[tool_name] = tool_definition
             
             # Add to category if specified
             if category:
                 if category not in self._tool_categories:
-                    # Create category if it doesn't exist
+                    # Create category if it doesn't exist (or wasn't in config)
                     self._tool_categories[category] = set()
+                    self._logger.debug(f"Created new tool category during registration: {category}")
                 
                 self._tool_categories[category].add(tool_name)
                 self._logger.debug(f"Tool {tool_name} added to category {category}")
@@ -144,7 +134,13 @@ class ToolRegistry:
                 }
             
         except Exception as e:
-            self._logger.error(f"Tool registration failed: {str(e)}")
+            self._logger.error(f"Tool registration failed for {tool_name}: {str(e)}", exc_info=True)
+            # Remove potentially partially registered data
+            if tool_name in self._tools_metadata:
+                del self._tools_metadata[tool_name]
+            if category and tool_name in self._tool_categories.get(category, set()):
+                 self._tool_categories[category].remove(tool_name)
+                 
             raise AIToolError(f"Failed to register tool {tool_name}: {str(e)}")
     
     def get_tool_names(self) -> List[str]:
@@ -154,7 +150,7 @@ class ToolRegistry:
         Returns:
             List of tool names
         """
-        return list(self._tools.keys())
+        return list(self._tools_metadata.keys())
     
     def get_category_tools(self, category: str) -> List[str]:
         """
@@ -187,7 +183,7 @@ class ToolRegistry:
         Returns:
             True if the tool exists, False otherwise
         """
-        return tool_name in self._tools
+        return tool_name in self._tools_metadata
     
     def get_tool(self, tool_name: str) -> Optional[ToolDefinition]:
         """
@@ -234,7 +230,11 @@ class ToolRegistry:
         Returns:
             Dictionary mapping tool names to implementations
         """
-        return self._tools.copy()
+        self._logger.warning("get_all_tools() called, returning internal _tools dict. Consider using get_all_tool_definitions().")
+        # This internal dict _tools was populated by DefaultToolStrategy, which was removed.
+        # This method might be dead code or needs refactoring if still used.
+        # Returning empty for safety as _tools isn't populated anymore.
+        return {} # Return empty as _tools is no longer populated correctly
     
     def get_all_tool_definitions(self) -> Dict[str, ToolDefinition]:
         """

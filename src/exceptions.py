@@ -371,4 +371,29 @@ class ErrorHandler:
             html += "</div>"
             return html
         else:
-            return str(error_response) 
+            return str(error_response)
+
+
+# --- Add New Specific Provider Errors ---
+
+class InvalidRequestError(AIProviderError):
+    """ Provider indicated the request was invalid (e.g., 400 Bad Request). """
+    def __init__(self, message: str, provider: Optional[str] = None, status_code: int = 400):
+        # Defaults to status_code 400
+        super().__init__(message, provider=provider, status_code=status_code)
+
+class ContentModerationError(AIProviderError):
+    """ Request blocked due to content safety filters. """
+    def __init__(self, message: str, provider: Optional[str] = None, reason: Optional[str] = None):
+        self.reason = reason
+        # Use a specific status code if applicable, e.g., 451 or 400
+        super().__init__(message, provider=provider, status_code=400)
+
+class ModelNotFoundError(AIProviderError):
+    """ Requested model not found or available for the provider. """
+    def __init__(self, message: str, provider: Optional[str] = None, model_id: Optional[str] = None):
+        self.model_id = model_id
+        # Use a specific status code like 404
+        super().__init__(message, provider=provider, status_code=404)
+
+# --- End New Specific Provider Errors --- 

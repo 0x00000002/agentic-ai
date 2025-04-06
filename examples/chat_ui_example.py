@@ -9,6 +9,7 @@ import os
 import sys
 import logging
 from pathlib import Path
+import gradio as gr
 
 # Add the parent directory to sys.path to import the package
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -19,6 +20,12 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger("chat_ui_example")
+
+# Add project root
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.core.tool_enabled_ai import ToolEnabledAI
+from src.config.user_config import UserConfig
 
 def run_chat_ui():
     """Run the chat UI example."""
@@ -75,6 +82,27 @@ def run_chat_ui():
         server_port=7860,       # Default Gradio port
         share=True              # Create a public URL
     )
+
+# Example: Basic chat function using the AI framework
+def chat_function(message, history, model_choice, temperature):
+    print(f"Received: {message}, History: {len(history)}, Model: {model_choice}, Temp: {temperature}")
+    
+    # Simulate user config override (in a real app, this might come from UI elements)
+    user_cfg = UserConfig(model=model_choice, temperature=temperature)
+    
+    # Create AI instance with selected model (overrides default)
+    ai = ToolEnabledAI(model=model_choice)
+    
+    # In a real app, you might load conversation history into the AI instance
+    # ai.load_conversation(history) # Assuming such a method exists
+    
+    try:
+        response = ai.request(message)
+        print(f"Response: {response}")
+        return response
+    except Exception as e:
+        print(f"Error: {e}")
+        return f"Error: {e}"
 
 if __name__ == "__main__":
     run_chat_ui() 

@@ -3,7 +3,7 @@ Response Aggregator component.
 Aggregates responses from multiple agents into a coherent final response.
 """
 from typing import Dict, Any, List, Optional
-from ..core.tool_enabled_ai import AI
+from ..core.tool_enabled_ai import ToolEnabledAI as AI
 from ..config.unified_config import UnifiedConfig
 from ..utils.logger import LoggerInterface, LoggerFactory
 from ..exceptions import AIAgentError, ErrorHandler
