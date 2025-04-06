@@ -13,6 +13,7 @@ from ..utils.logger import LoggerInterface, LoggerFactory
 from ..config.dynamic_models import Model
 from ..tools.tool_manager import ToolManager
 from ..tools.models import ToolDefinition, ToolResult
+from ..prompts.prompt_template import PromptTemplate
 
 
 class AI(AIBase):
@@ -29,7 +30,8 @@ class AI(AIBase):
                  auto_find_tools=False,
                  tool_manager=None,
                  auto_tool_finding=False,
-                 use_structured_tools=True):
+                 use_structured_tools=True,
+                 prompt_template: Optional[PromptTemplate] = None):
         """
         Initialize the tool-enabled AI.
         
@@ -42,6 +44,7 @@ class AI(AIBase):
             tool_manager: Tool manager for handling tools
             auto_tool_finding: Whether to automatically find tools
             use_structured_tools: Whether to use structured tool format
+            prompt_template: Prompt template for the AI
         """
         # Use UnifiedConfig instead of ConfigFactory
         unified_config = UnifiedConfig.get_instance()
@@ -50,7 +53,8 @@ class AI(AIBase):
             model=model,
             system_prompt=system_prompt,
             logger=logger,
-            request_id=request_id
+            request_id=request_id,
+            prompt_template=prompt_template
         )
         
         self._tools = {}

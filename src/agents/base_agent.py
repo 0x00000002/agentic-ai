@@ -56,60 +56,97 @@ class BaseAgent:
         model_override = request.get("model")
         system_prompt_override = request.get("system_prompt")
         
-        # Apply model override if specified
-        if model_override and self.ai_instance:
-            original_model = self.ai_instance.get_model_info().get("model_id")
-            if model_override != original_model:
-                self.logger.info(f"Overriding model: {original_model} -> {model_override}")
-                # Create a new AI instance with the overridden model
-                self.ai_instance = self.ai_instance.__class__(
-                    model=model_override,
-                    logger=self.ai_instance._logger
-                )
-                
-        # Apply system prompt override if specified
-        if system_prompt_override and self.ai_instance:
-            self.logger.info("Using system prompt from request")
-            self.ai_instance.set_system_prompt(system_prompt_override)
-            
-        # Extract prompt from request
-        if isinstance(request, dict) and "prompt" in request:
-            prompt = request["prompt"]
-        else:
-            prompt = str(request)
-            
-        # Process with AI instance
-        if self.ai_instance:
-            try:
-                response = self.ai_instance.request(prompt)
-                
-                # Restore original model after processing if we changed it
-                if model_override and original_model:
+        original_ai_instance = self.ai_instance # Store original instance
+        restored = False
+
+        try:
+            # Apply model override if specified
+            if model_override and self.ai_instance:
+                original_model_info = self.ai_instance.get_model_info()
+                original_model_api_id = original_model_info.get("model_id")
+
+                # We need the short key to compare - let's find it in the config
+                # This is inefficient, ideally AIBase.get_model_info() would return the short key too
+                original_model_short_key = None
+                all_models = self.config.get_all_models()
+                for key, config in all_models.items():
+                    if config.get("model_id") == original_model_api_id:
+                        original_model_short_key = key
+                        break
+
+                if original_model_short_key and model_override != original_model_short_key:
+                    self.logger.info(f"Overriding model: {original_model_short_key} -> {model_override}")
+                    # Create a new AI instance with the overridden model (short key)
+                    # Pass other relevant args from original if needed (e.g., prompt_template)
                     self.ai_instance = self.ai_instance.__class__(
-                        model=original_model,
-                        logger=self.ai_instance._logger
+                        model=model_override,
+                        system_prompt=original_ai_instance.get_system_prompt(), # Preserve original system prompt unless overridden below
+                        logger=original_ai_instance._logger, # Reuse logger
+                        request_id=original_ai_instance._request_id, # Reuse request_id
+                        prompt_template=original_ai_instance._prompt_template # Reuse template engine
                     )
-                    
-                return {
-                    "content": response,
+                elif model_override != original_model_api_id: # Fallback check if short key not found
+                    # This path might indicate a config issue, but we try to proceed
+                     self.logger.warning(f"Could not find short key for {original_model_api_id}. Proceeding with override using key: {model_override}")
+                     self.ai_instance = self.ai_instance.__class__(
+                        model=model_override,
+                        system_prompt=original_ai_instance.get_system_prompt(),
+                        logger=original_ai_instance._logger,
+                        request_id=original_ai_instance._request_id,
+                        prompt_template=original_ai_instance._prompt_template
+                    )
+            
+            # Apply system prompt override if specified
+            if system_prompt_override and self.ai_instance:
+                # Check if it differs from the current system prompt (might have been set by override instance)
+                if system_prompt_override != self.ai_instance.get_system_prompt():
+                    self.logger.info("Using system prompt from request")
+                    self.ai_instance.set_system_prompt(system_prompt_override)
+                
+            # Extract prompt from request
+            if isinstance(request, dict) and "prompt" in request:
+                prompt = request["prompt"]
+            else:
+                prompt = str(request)
+                
+            # Process with AI instance
+            if self.ai_instance:
+                response_content = self.ai_instance.request(prompt)
+                response = {
+                        "content": response_content,
+                        "agent_id": self.agent_id,
+                        "status": "success"
+                    }
+            else:
+                self.logger.warning("No AI instance available for processing")
+                response = {
+                    "content": "Error: No AI instance available for processing",
                     "agent_id": self.agent_id,
-                    "status": "success"
+                    "status": "error"
                 }
-            except Exception as e:
-                self.logger.error(f"Error processing request: {str(e)}")
-                return {
-                    "content": f"Error: {str(e)}",
-                    "agent_id": self.agent_id,
-                    "status": "error",
-                    "error": str(e)
-                }
-        else:
-            self.logger.warning("No AI instance available for processing")
-            return {
-                "content": "Error: No AI instance available for processing",
+
+        except Exception as e:
+            self.logger.error(f"Error processing request: {str(e)}")
+            response = {
+                "content": f"Error: {str(e)}",
                 "agent_id": self.agent_id,
-                "status": "error"
+                "status": "error",
+                "error": str(e)
             }
+        finally:
+            # Restore original AI instance if it was overridden
+            if self.ai_instance is not original_ai_instance:
+                self.logger.info("Restoring original AI instance.")
+                self.ai_instance = original_ai_instance
+                restored = True
+            # Ensure system prompt is reset if it was overridden AND we didn't restore the whole instance    
+            elif system_prompt_override and not restored:
+                 original_system_prompt = original_ai_instance.get_system_prompt()
+                 if self.ai_instance.get_system_prompt() != original_system_prompt:
+                    self.logger.info("Restoring original system prompt.")
+                    self.ai_instance.set_system_prompt(original_system_prompt)
+
+        return self._enrich_response(response)
     
     def can_handle(self, request: Dict[str, Any]) -> float:
         """

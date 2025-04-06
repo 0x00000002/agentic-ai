@@ -12,6 +12,7 @@ from .provider_factory import ProviderFactory
 from .providers.base_provider import BaseProvider
 import uuid
 from ..prompts.prompt_template import PromptTemplate
+from ..config.unified_config import AIConfigError
 
 # Default system prompt if none provided
 DEFAULT_SYSTEM_PROMPT = """You are a helpful AI assistant. Answer the user's questions accurately and concisely."""
@@ -50,17 +51,32 @@ class AIBase(AIInterface):
             # Get unified configuration
             self._config = UnifiedConfig.get_instance()
             
-            # Get model configuration
-            model_id = model or self._config.get_default_model()
-            self._model_config = self._config.get_model_config(model_id)
+            # Get model configuration using the provided key/alias
+            model_key = model or self._config.get_default_model()
+            self._logger.debug(f"AIBase attempting to get model config for key: '{model_key}'")
+            self._model_config = self._config.get_model_config(model_key)
             
+            # Extract the actual model_id needed by the provider API
+            provider_model_id = self._model_config.get("model_id", model_key) # Fallback to key if field missing
+            provider_name = self._model_config.get("provider", "openai") # Default provider
+
+            # --- Get Provider Config --- 
+            try:
+                provider_config = self._config.get_provider_config(provider_name)
+            except AIConfigError as e:
+                 self._logger.error(f"Failed to get provider config for '{provider_name}': {e}")
+                 raise AISetupError(f"Missing provider configuration for '{provider_name}'") from e
+            # -------------------------
+
             # Set up prompt template
             self._prompt_template = prompt_template or PromptTemplate(logger=self._logger)
             
-            # Initialize provider
+            # Initialize provider using the correct API model ID and provider/model config
             self._provider = ProviderFactory.create(
-                provider_type=self._model_config.get("provider", "openai"),
-                model_id=model_id,
+                provider_type=provider_name,
+                model_id=provider_model_id, # Use the specific ID from config
+                provider_config=provider_config, # PASS provider config
+                model_config=self._model_config,   # PASS model config as well
                 logger=self._logger
             )
             
@@ -76,13 +92,13 @@ class AIBase(AIInterface):
                 content=self._system_prompt
             )
             
-            self._logger.info(f"Initialized AI with model: {model_id}")
+            self._logger.info(f"Initialized AI with model: {model_key}")
             
         except Exception as e:
             # Use error handler for standardized error handling
             error_response = ErrorHandler.handle_error(
                 AISetupError(f"Failed to initialize AI: {str(e)}", component="AIBase"),
-                logger
+                self._logger
             )
             self._logger.error(f"Initialization error: {error_response['message']}")
             raise
@@ -230,6 +246,10 @@ class AIBase(AIInterface):
         """
         return self._conversation_manager.get_messages()
     
+    def get_system_prompt(self) -> Optional[str]:
+        """Get the current system prompt."""
+        return self._system_prompt
+
     def set_system_prompt(self, system_prompt: str) -> None:
         """
         Set a new system prompt.

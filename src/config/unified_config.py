@@ -142,8 +142,13 @@ class UnifiedConfig:
         
         # Handle model override
         if "model" in config_dict:
-            self._default_model = config_dict["model"]
-            self._logger.info(f"User override for default model: {self._default_model}")
+            override_model_key = config_dict["model"]
+            available_models = self.get_all_models().keys()
+            if override_model_key in available_models:
+                self._default_model = override_model_key
+                self._logger.info(f"User override for default model: {self._default_model}")
+            else:
+                self._logger.warning(f"User override model '{override_model_key}' not found in available models. Ignoring override.")
         
         # Handle show_thinking override
         if "show_thinking" in config_dict:

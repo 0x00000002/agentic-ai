@@ -86,30 +86,34 @@ class AgentFactory(AgentFactoryInterface):
                 kwargs['ai_instance'] = ai_instance
             
             # Create the agent instance
-            # Remove agent_id from kwargs if it matches the agent_type for orchestrator
-            # to avoid duplicate agent_id parameter
             agent_creation_kwargs = kwargs.copy()
+            # --- Use provided config/logger if available, else factory's default ---
+            config_to_use = agent_creation_kwargs.pop('unified_config', self.config)
+            logger_to_use = agent_creation_kwargs.pop('logger', self.logger)
+            # ---------------------------------------------------------------------
+
             if agent_type == "orchestrator" and 'agent_id' not in agent_creation_kwargs:
-                # Orchestrator sets its own agent_id in __init__, don't pass it
+                # Orchestrator branch
                 agent_instance = agent_class(
-                    unified_config=self.config,
-                    logger=self.logger,
-                    **agent_creation_kwargs
+                    unified_config=config_to_use, # Use determined config
+                    logger=logger_to_use,         # Use determined logger
+                    **agent_creation_kwargs   # Pass remaining args
                 )
             else:
                 # For other agents, pass the agent_type as agent_id
                 agent_instance = agent_class(
-                    unified_config=self.config,
-                    logger=self.logger,
+                    unified_config=config_to_use, # Use determined config
+                    logger=logger_to_use,         # Use determined logger
                     agent_id=agent_type,
-                    **agent_creation_kwargs
+                    **agent_creation_kwargs   # Pass remaining args
                 )
             
             self.logger.info(f"Created agent: {agent_type}")
             return agent_instance
             
         except Exception as e:
-            self.logger.error(f"Error creating agent {agent_type}: {str(e)}")
+            # Log the specific exception and traceback for better debugging
+            self.logger.error(f"Error creating agent {agent_type}: {type(e).__name__} - {str(e)}")
             import traceback
             self.logger.error(traceback.format_exc())
             return None
@@ -184,7 +188,8 @@ class AgentFactory(AgentFactoryInterface):
             return self.create("orchestrator", **kwargs)
             
         except Exception as e:
-            self.logger.error(f"Error creating orchestrator: {str(e)}")
+            # Log the specific exception and traceback for better debugging
+            self.logger.error(f"Error creating orchestrator: {type(e).__name__} - {str(e)}")
             import traceback
             self.logger.error(traceback.format_exc())
             return None
@@ -229,7 +234,8 @@ class AgentFactory(AgentFactoryInterface):
             return self.create("tool_finder", **kwargs)
             
         except Exception as e:
-            self.logger.error(f"Error creating tool finder agent: {str(e)}")
+            # Log the specific exception and traceback for better debugging
+            self.logger.error(f"Error creating tool finder agent: {type(e).__name__} - {str(e)}")
             import traceback
             self.logger.error(traceback.format_exc())
             return None

@@ -6,6 +6,7 @@ from ..interfaces import ProviderInterface
 from ...utils.logger import LoggerInterface, LoggerFactory
 from ...exceptions import AIProviderError
 from ...config import get_config
+from ...config import UnifiedConfig
 
 
 class BaseProvider(ProviderInterface):
@@ -13,31 +14,26 @@ class BaseProvider(ProviderInterface):
     
     def __init__(self, 
                  model_id: str,
+                 provider_config: Dict[str, Any],
+                 model_config: Dict[str, Any],
                  logger: Optional[LoggerInterface] = None):
         """
         Initialize the base provider.
         
         Args:
             model_id: The model identifier
+            provider_config: The provider-specific configuration dictionary
+            model_config: The model-specific configuration dictionary
             logger: Logger instance
         """
+        # Assign arguments
         self.model_id = model_id
-        self.logger = logger or LoggerFactory.create(f"provider.{model_id}")
+        self.provider_config = provider_config # Use passed provider-specific config
+        self.model_config = model_config       # Use passed model-specific config
+        self.logger = logger or LoggerFactory.create(name="base_provider")
+        self.config = UnifiedConfig.get_instance() # Still need global config access
         
-        # Get configuration
-        self.config = get_config()
-        
-        # Get model configuration
-        self.model_config = self.config.get_model_config(model_id)
-        if not self.model_config:
-            self.logger.warning(f"No configuration found for model {model_id}, using defaults")
-            self.model_config = {"model_id": model_id}
-            
-        # Get provider configuration
-        provider_type = self.model_config.get("provider", self.__class__.__name__.replace("Provider", "").lower())
-        self.provider_config = self.config.get_provider_config(provider_type)
-        
-        # Initialize credentials
+        # Initialize credentials (can use self.provider_config and self.config)
         self._initialize_credentials()
         
         self.logger.info(f"Initialized {self.__class__.__name__} for model {model_id}")

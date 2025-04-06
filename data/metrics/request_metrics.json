@@ -297,31 +297,973 @@
       "models_used": [],
       "success": true,
       "error": null
+    },
+    "b09bb1ba-6224-4bc7-8817-5cb43e786cdb": {
+      "request_id": "b09bb1ba-6224-4bc7-8817-5cb43e786cdb",
+      "start_time": "2025-04-05T10:12:09.181081",
+      "end_time": "2025-04-05T10:12:16.926722",
+      "duration_ms": 7745,
+      "prompt": "Create a simple ERC20 token contract with a fixed supply of 1,000,000 tokens.",
+      "prompt_tokens": 13,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "8fa01ec7-ea43-43c6-93f6-cbbe3f0f4f86": {
+      "request_id": "8fa01ec7-ea43-43c6-93f6-cbbe3f0f4f86",
+      "start_time": "2025-04-05T10:12:17.001250",
+      "end_time": "2025-04-05T10:12:27.424754",
+      "duration_ms": 10423,
+      "prompt": "Search for information about the latest Solidity version and its features.",
+      "prompt_tokens": 11,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "341738ee-0820-4ce0-a4e9-2f36c5321f08": {
+      "request_id": "341738ee-0820-4ce0-a4e9-2f36c5321f08",
+      "start_time": "2025-04-05T10:12:28.541954",
+      "end_time": "2025-04-05T10:12:33.078658",
+      "duration_ms": 4536,
+      "prompt": "Can you explain how the Agentic AI framework works?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "bc90f1dd-649e-4b1f-9e19-01cafedadead": {
+      "request_id": "bc90f1dd-649e-4b1f-9e19-01cafedadead",
+      "start_time": "2025-04-05T10:15:48.773725",
+      "end_time": "2025-04-05T10:15:57.347307",
+      "duration_ms": 8573,
+      "prompt": "Create a simple ERC20 token contract with a fixed supply of 1,000,000 tokens.",
+      "prompt_tokens": 13,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "dbab9c62-e4d5-4140-b153-089eb3f38017": {
+      "request_id": "dbab9c62-e4d5-4140-b153-089eb3f38017",
+      "start_time": "2025-04-05T10:15:57.427163",
+      "end_time": "2025-04-05T10:16:08.512730",
+      "duration_ms": 11085,
+      "prompt": "Search for information about the latest Solidity version and its features.",
+      "prompt_tokens": 11,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "33ba21e4-915d-4411-8cc1-4fae677b25f3": {
+      "request_id": "33ba21e4-915d-4411-8cc1-4fae677b25f3",
+      "start_time": "2025-04-05T10:16:09.705423",
+      "end_time": "2025-04-05T10:16:14.942266",
+      "duration_ms": 5236,
+      "prompt": "Can you explain how the Agentic AI framework works?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "860f3bee-bb42-455a-b5f8-5f238560591d": {
+      "request_id": "860f3bee-bb42-455a-b5f8-5f238560591d",
+      "start_time": "2025-04-05T10:16:55.065594",
+      "end_time": "2025-04-05T10:17:07.045018",
+      "duration_ms": 11979,
+      "prompt": "Write a Python function to calculate the Fibonacci sequence",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "82cb86bf-4120-4461-b2d8-76864ecd8727": {
+      "request_id": "82cb86bf-4120-4461-b2d8-76864ecd8727",
+      "start_time": "2025-04-05T10:17:07.129515",
+      "end_time": "2025-04-05T10:17:23.469782",
+      "duration_ms": 16340,
+      "prompt": "Write a simple ERC20 token contract in Solidity",
+      "prompt_tokens": 8,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "d1e1640d-4a42-4ed7-97cc-4a4c73ef8283": {
+      "request_id": "d1e1640d-4a42-4ed7-97cc-4a4c73ef8283",
+      "start_time": "2025-04-05T10:19:53.309516",
+      "end_time": "2025-04-05T10:20:08.659526",
+      "duration_ms": 15350,
+      "prompt": "Write a Python function to calculate the Fibonacci sequence",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "faf0bd06-3b0a-4325-a86d-2152d50870cc": {
+      "request_id": "faf0bd06-3b0a-4325-a86d-2152d50870cc",
+      "start_time": "2025-04-05T10:20:08.734077",
+      "end_time": "2025-04-05T10:20:40.716579",
+      "duration_ms": 31982,
+      "prompt": "Write a simple ERC20 token contract in Solidity",
+      "prompt_tokens": 8,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "da44ac97-7dec-43b7-adf1-47731a72a742": {
+      "request_id": "da44ac97-7dec-43b7-adf1-47731a72a742",
+      "start_time": "2025-04-05T10:22:26.587919+00:00",
+      "end_time": "2025-04-05T10:22:41.746333+00:00",
+      "duration_ms": 15158,
+      "prompt": "Write a Python function to calculate the Fibonacci sequence",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "4aae670d-8406-45ce-971f-0bc5e0a91d31": {
+      "request_id": "4aae670d-8406-45ce-971f-0bc5e0a91d31",
+      "start_time": "2025-04-05T10:22:41.822777+00:00",
+      "end_time": "2025-04-05T10:23:03.512838+00:00",
+      "duration_ms": 21690,
+      "prompt": "Write a simple ERC20 token contract in Solidity",
+      "prompt_tokens": 8,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "111dbee7-1a4d-4094-adbc-f4bd04a97435": {
+      "request_id": "111dbee7-1a4d-4094-adbc-f4bd04a97435",
+      "start_time": "2025-04-05T10:39:35.791614+00:00",
+      "end_time": "2025-04-05T10:39:35.794678+00:00",
+      "duration_ms": 3,
+      "prompt": "Write a Python function to calculate the Fibonacci sequence",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "response_aggregator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "0bc19563-9d3e-4427-a4ae-3ea0b4266a51": {
+      "request_id": "0bc19563-9d3e-4427-a4ae-3ea0b4266a51",
+      "start_time": "2025-04-05T10:39:35.859211+00:00",
+      "end_time": "2025-04-05T10:39:35.861473+00:00",
+      "duration_ms": 2,
+      "prompt": "Write a simple ERC20 token contract in Solidity",
+      "prompt_tokens": 8,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "response_aggregator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "6501438a-2ac2-4285-aedd-2631a91434f7": {
+      "request_id": "6501438a-2ac2-4285-aedd-2631a91434f7",
+      "start_time": "2025-04-05T10:40:24.002180+00:00",
+      "end_time": "2025-04-05T10:40:38.893644+00:00",
+      "duration_ms": 14891,
+      "prompt": "Write a Python function to calculate the Fibonacci sequence",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "affe3f7c-b70f-413d-a244-50750a81fcfb": {
+      "request_id": "affe3f7c-b70f-413d-a244-50750a81fcfb",
+      "start_time": "2025-04-05T10:40:38.928226+00:00",
+      "end_time": "2025-04-05T10:40:59.754346+00:00",
+      "duration_ms": 20826,
+      "prompt": "Write a simple ERC20 token contract in Solidity",
+      "prompt_tokens": 8,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "f2c94481-f024-43ad-a8b1-b6ec6af71611": {
+      "request_id": "f2c94481-f024-43ad-a8b1-b6ec6af71611",
+      "start_time": "2025-04-05T10:52:34.813881+00:00",
+      "end_time": null,
+      "duration_ms": null,
+      "prompt": "Write a Python function to calculate the Fibonacci sequence",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": null,
+      "error": null
+    },
+    "15319b3e-02e5-4fc3-8703-749e468b4bd7": {
+      "request_id": "15319b3e-02e5-4fc3-8703-749e468b4bd7",
+      "start_time": "2025-04-05T11:16:29.655509+00:00",
+      "end_time": "2025-04-05T11:17:10.777167+00:00",
+      "duration_ms": 41121,
+      "prompt": "Write a Python function to calculate the Fibonacci sequence",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "2030ec59-a654-404f-bede-93c51ae92a99": {
+      "request_id": "2030ec59-a654-404f-bede-93c51ae92a99",
+      "start_time": "2025-04-05T11:17:10.903930+00:00",
+      "end_time": "2025-04-05T11:17:48.470480+00:00",
+      "duration_ms": 37566,
+      "prompt": "Write a simple ERC20 token contract in Solidity",
+      "prompt_tokens": 8,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "7b083103-1ed9-4fa6-bcac-feeb54ecb6db": {
+      "request_id": "7b083103-1ed9-4fa6-bcac-feeb54ecb6db",
+      "start_time": "2025-04-05T11:21:42.660772+00:00",
+      "end_time": "2025-04-05T11:22:21.358100+00:00",
+      "duration_ms": 38697,
+      "prompt": "Write a Python function to calculate the Fibonacci sequence",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "81a893db-33d4-4977-b586-339da315b94e": {
+      "request_id": "81a893db-33d4-4977-b586-339da315b94e",
+      "start_time": "2025-04-05T11:22:21.471195+00:00",
+      "end_time": "2025-04-05T11:23:00.170746+00:00",
+      "duration_ms": 38699,
+      "prompt": "Write a simple ERC20 token contract in Solidity",
+      "prompt_tokens": 8,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [],
+      "success": true,
+      "error": null
+    },
+    "c5337db4-135c-4441-98f6-3f2aa9096f70": {
+      "request_id": "c5337db4-135c-4441-98f6-3f2aa9096f70",
+      "start_time": "2025-04-05T11:26:29.957886+00:00",
+      "end_time": "2025-04-05T11:26:36.186530+00:00",
+      "duration_ms": 6228,
+      "prompt": "hi\n",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "4eae5b4a-d941-49c3-8920-0665eb57c1c7": {
+      "request_id": "4eae5b4a-d941-49c3-8920-0665eb57c1c7",
+      "start_time": "2025-04-05T13:20:13.258742+00:00",
+      "end_time": "2025-04-05T13:20:18.081260+00:00",
+      "duration_ms": 4822,
+      "prompt": "asdf\n",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "4dc6d5f1-6d47-49cd-a7b0-1ffb71c376c3": {
+      "request_id": "4dc6d5f1-6d47-49cd-a7b0-1ffb71c376c3",
+      "start_time": "2025-04-05T13:23:32.094127+00:00",
+      "end_time": "2025-04-05T13:23:56.003193+00:00",
+      "duration_ms": 23909,
+      "prompt": "Write a Python function to calculate the Fibonacci sequence",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "09e41e20-c05c-4dfe-ae87-b5c84c0ed257": {
+      "request_id": "09e41e20-c05c-4dfe-ae87-b5c84c0ed257",
+      "start_time": "2025-04-05T13:23:56.119425+00:00",
+      "end_time": "2025-04-05T13:24:16.898004+00:00",
+      "duration_ms": 20778,
+      "prompt": "Write a simple ERC20 token contract in Solidity",
+      "prompt_tokens": 8,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "89583466-f1d7-4ff9-abea-9afbf96d681b": {
+      "request_id": "89583466-f1d7-4ff9-abea-9afbf96d681b",
+      "start_time": "2025-04-05T13:33:23.843771+00:00",
+      "end_time": "2025-04-05T13:33:23.857145+00:00",
+      "duration_ms": 13,
+      "prompt": "Write a Python function to calculate the Fibonacci sequence",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "test-coding-model"
+      ],
+      "success": true,
+      "error": null
+    },
+    "02c9270a-fac8-47c0-acd2-f6db46411acf": {
+      "request_id": "02c9270a-fac8-47c0-acd2-f6db46411acf",
+      "start_time": "2025-04-05T13:33:23.919037+00:00",
+      "end_time": "2025-04-05T13:33:23.929491+00:00",
+      "duration_ms": 10,
+      "prompt": "Write a simple ERC20 token contract in Solidity",
+      "prompt_tokens": 8,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "test-coding-model"
+      ],
+      "success": true,
+      "error": null
+    },
+    "2b88c46c-fc59-4cf1-95f3-e59ae496178f": {
+      "request_id": "2b88c46c-fc59-4cf1-95f3-e59ae496178f",
+      "start_time": "2025-04-05T13:35:24.951123+00:00",
+      "end_time": "2025-04-05T13:35:24.955669+00:00",
+      "duration_ms": 4,
+      "prompt": "Write a Python function to calculate the Fibonacci sequence",
+      "prompt_tokens": 9,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "test-coding-model"
+      ],
+      "success": false,
+      "error": "Orchestration error: 'RequestMetricsService' object has no attribute 'track_request_status'"
+    },
+    "e00d97a9-ac27-4716-a953-a8172111a260": {
+      "request_id": "e00d97a9-ac27-4716-a953-a8172111a260",
+      "start_time": "2025-04-05T13:35:25.020161+00:00",
+      "end_time": "2025-04-05T13:35:25.025209+00:00",
+      "duration_ms": 5,
+      "prompt": "Write a simple ERC20 token contract in Solidity",
+      "prompt_tokens": 8,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "test-coding-model"
+      ],
+      "success": false,
+      "error": "Orchestration error: 'RequestMetricsService' object has no attribute 'track_request_status'"
+    },
+    "75c2f5c3-8055-4160-879b-75b35b59015c": {
+      "request_id": "75c2f5c3-8055-4160-879b-75b35b59015c",
+      "start_time": "2025-04-06T00:10:42.925393+00:00",
+      "end_time": "2025-04-06T00:10:46.001895+00:00",
+      "duration_ms": 3076,
+      "prompt": "hi\n",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "3c9453a5-f4a9-40f3-bf23-d13c6ccee002": {
+      "request_id": "3c9453a5-f4a9-40f3-bf23-d13c6ccee002",
+      "start_time": "2025-04-06T00:11:14.036777+00:00",
+      "end_time": "2025-04-06T00:11:16.554427+00:00",
+      "duration_ms": 2517,
+      "prompt": "hello\n",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "a81b441c-f386-4dd5-b2d9-9d2f62bb9299": {
+      "request_id": "a81b441c-f386-4dd5-b2d9-9d2f62bb9299",
+      "start_time": "2025-04-06T00:12:54.762894+00:00",
+      "end_time": "2025-04-06T00:12:56.358479+00:00",
+      "duration_ms": 1595,
+      "prompt": "asdf",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "REQUEST: Anthropic API error: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-3-5-haiku'}}"
+    },
+    "f6fac69d-851a-4aad-a23b-aae23993bc94": {
+      "request_id": "f6fac69d-851a-4aad-a23b-aae23993bc94",
+      "start_time": "2025-04-06T00:13:18.738239+00:00",
+      "end_time": "2025-04-06T00:13:19.709817+00:00",
+      "duration_ms": 971,
+      "prompt": "s",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "REQUEST: Anthropic API error: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: claude-3-5-haiku'}}"
+    },
+    "1d7499ed-023c-4d81-96ce-ee7db655b5c4": {
+      "request_id": "1d7499ed-023c-4d81-96ce-ee7db655b5c4",
+      "start_time": "2025-04-06T00:14:14.506535+00:00",
+      "end_time": "2025-04-06T00:14:17.221317+00:00",
+      "duration_ms": 2714,
+      "prompt": "1",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "5642e4e5-21d8-407b-852b-b30bdb450835": {
+      "request_id": "5642e4e5-21d8-407b-852b-b30bdb450835",
+      "start_time": "2025-04-06T00:27:43.767022+00:00",
+      "end_time": "2025-04-06T00:27:47.120039+00:00",
+      "duration_ms": 3353,
+      "prompt": "1",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "6248b33e-e448-4063-bfea-cdfdda3e8b90": {
+      "request_id": "6248b33e-e448-4063-bfea-cdfdda3e8b90",
+      "start_time": "2025-04-06T00:42:39.791825+00:00",
+      "end_time": "2025-04-06T00:42:44.149368+00:00",
+      "duration_ms": 4357,
+      "prompt": "1",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "1731c094-a92b-44e7-be11-0be2385895ba": {
+      "request_id": "1731c094-a92b-44e7-be11-0be2385895ba",
+      "start_time": "2025-04-06T00:47:29.303782+00:00",
+      "end_time": "2025-04-06T00:47:32.948488+00:00",
+      "duration_ms": 3644,
+      "prompt": "asdf",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "f051f3f5-1659-4882-bbf5-be69d906cf83": {
+      "request_id": "f051f3f5-1659-4882-bbf5-be69d906cf83",
+      "start_time": "2025-04-06T00:48:39.789554+00:00",
+      "end_time": "2025-04-06T00:48:42.618609+00:00",
+      "duration_ms": 2829,
+      "prompt": "asdf",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "da79dcdd-e7fe-4568-988e-e795d8a80948": {
+      "request_id": "da79dcdd-e7fe-4568-988e-e795d8a80948",
+      "start_time": "2025-04-06T00:52:32.816107+00:00",
+      "end_time": "2025-04-06T00:52:36.363777+00:00",
+      "duration_ms": 3547,
+      "prompt": "1",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "d24ad6e6-e6fa-432d-bcf0-4c6de79d7a4f": {
+      "request_id": "d24ad6e6-e6fa-432d-bcf0-4c6de79d7a4f",
+      "start_time": "2025-04-06T00:54:51.247062+00:00",
+      "end_time": "2025-04-06T00:54:54.776096+00:00",
+      "duration_ms": 3529,
+      "prompt": "1",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "956dddbd-6db3-4281-87d4-0e23a2a0ec61": {
+      "request_id": "956dddbd-6db3-4281-87d4-0e23a2a0ec61",
+      "start_time": "2025-04-06T01:22:41.796518+00:00",
+      "end_time": "2025-04-06T01:22:55.073081+00:00",
+      "duration_ms": 13276,
+      "prompt": "1",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "c9a826e4-1cb7-4ed3-9099-b33808df7f87": {
+      "request_id": "c9a826e4-1cb7-4ed3-9099-b33808df7f87",
+      "start_time": "2025-04-06T01:27:11.422073+00:00",
+      "end_time": "2025-04-06T01:27:14.324261+00:00",
+      "duration_ms": 2902,
+      "prompt": "asdf",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "4033fc5e-45f5-45fc-b263-0630b55bb864": {
+      "request_id": "4033fc5e-45f5-45fc-b263-0630b55bb864",
+      "start_time": "2025-04-06T01:27:56.762004+00:00",
+      "end_time": "2025-04-06T01:27:59.712089+00:00",
+      "duration_ms": 2950,
+      "prompt": "as",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "CONFIG_MODELS: Model configuration not found: claude-3-5-haiku-20241022"
+    },
+    "30c74918-0d0a-4f06-9d68-4ae70993afd9": {
+      "request_id": "30c74918-0d0a-4f06-9d68-4ae70993afd9",
+      "start_time": "2025-04-06T01:29:59.286484+00:00",
+      "end_time": "2025-04-06T01:30:01.201470+00:00",
+      "duration_ms": 1914,
+      "prompt": "asdf",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": false,
+      "error": "Orchestration error: 'AI' object has no attribute 'get_system_prompt'"
+    },
+    "c255c55d-8525-49f2-bf45-21f39a5df8a5": {
+      "request_id": "c255c55d-8525-49f2-bf45-21f39a5df8a5",
+      "start_time": "2025-04-06T01:31:16.211102+00:00",
+      "end_time": "2025-04-06T01:31:19.277319+00:00",
+      "duration_ms": 3066,
+      "prompt": "123",
+      "prompt_tokens": 1,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "9b97e8b5-43fb-4359-9e8b-c3946f63b76f": {
+      "request_id": "9b97e8b5-43fb-4359-9e8b-c3946f63b76f",
+      "start_time": "2025-04-06T01:31:32.534898+00:00",
+      "end_time": "2025-04-06T01:31:36.483650+00:00",
+      "duration_ms": 3948,
+      "prompt": "multiple to 0",
+      "prompt_tokens": 3,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
+    },
+    "694edadd-88ff-4e97-907d-a7abd6559d4c": {
+      "request_id": "694edadd-88ff-4e97-907d-a7abd6559d4c",
+      "start_time": "2025-04-06T01:31:48.053253+00:00",
+      "end_time": "2025-04-06T01:31:52.361043+00:00",
+      "duration_ms": 4307,
+      "prompt": "123 * 0\n",
+      "prompt_tokens": 3,
+      "metadata": {
+        "user_id": null
+      },
+      "agents_used": [
+        "request_analyzer",
+        "orchestrator"
+      ],
+      "tools_used": [],
+      "models_used": [
+        "claude-3-5-haiku"
+      ],
+      "success": true,
+      "error": null
     }
   },
   "agent_usage": {
     "request_analyzer": {
-      "total_requests": 8,
-      "successful_requests": 7,
-      "total_duration_ms": 1558,
-      "avg_confidence": 0.9095585726246981,
-      "last_used": "2025-04-05T09:27:10.875699",
-      "avg_duration_ms": 259.6666666666667
+      "total_requests": 90,
+      "successful_requests": 87,
+      "total_duration_ms": 2745,
+      "avg_confidence": 0.9919607620110843,
+      "last_used": "2025-04-06T01:31:49.281090+00:00",
+      "avg_duration_ms": 30.84269662921348
     },
     "orchestrator": {
-      "total_requests": 11,
-      "successful_requests": 9,
+      "total_requests": 55,
+      "successful_requests": 53,
       "total_duration_ms": 1861,
-      "avg_confidence": 0.8878765027920879,
-      "last_used": "2025-04-05T09:27:10.876654",
+      "avg_confidence": 0.9775753005584176,
+      "last_used": "2025-04-06T01:31:52.357349+00:00",
       "avg_duration_ms": 206.77777777777777
     },
     "response_aggregator": {
-      "total_requests": 7,
-      "successful_requests": 7,
+      "total_requests": 9,
+      "successful_requests": 9,
       "total_duration_ms": 1937,
-      "avg_confidence": 0.8109152441268979,
-      "last_used": "2025-04-05T06:47:25.592281",
+      "avg_confidence": 0.852934078765365,
+      "last_used": "2025-04-05T10:39:35.861163+00:00",
       "avg_duration_ms": 276.7142857142857
     },
     "coding_assistant": {
@@ -397,6 +1339,24 @@
       "total_duration_ms": 1977,
       "last_used": "2025-04-05T06:47:17.274316",
       "avg_duration_ms": 494.25
+    },
+    "claude-3-5-haiku": {
+      "total_calls": 22,
+      "successful_calls": 22,
+      "total_tokens_in": 0,
+      "total_tokens_out": 0,
+      "total_duration_ms": 0,
+      "last_used": "2025-04-06T01:31:50.409564+00:00",
+      "avg_duration_ms": 0
+    },
+    "test-coding-model": {
+      "total_calls": 4,
+      "successful_calls": 4,
+      "total_tokens_in": 0,
+      "total_tokens_out": 0,
+      "total_duration_ms": 0,
+      "last_used": "2025-04-05T13:35:25.021602+00:00",
+      "avg_duration_ms": 0
     }
   }
 }

@@ -35,28 +35,30 @@ class AnthropicProvider(BaseProvider, ToolCapableProviderInterface):
     
     def __init__(self, 
                  model_id: str,
+                 provider_config: Dict[str, Any],
+                 model_config: Dict[str, Any],
                  logger: Optional[LoggerInterface] = None):
         """
         Initialize the Anthropic provider.
         
         Args:
-            model_id: The model identifier
+            model_id: Model identifier
+            provider_config: Provider configuration dictionary
+            model_config: Model configuration dictionary
             logger: Logger instance
         """
         if not ANTHROPIC_AVAILABLE:
             raise AIProviderError("Anthropic Python SDK not installed. Run 'pip install anthropic'")
             
-        super().__init__(model_id, logger)
+        super().__init__(model_id, provider_config, model_config, logger)
         
-        # Initialize model parameters
-        model_config = self.model_config or {}
+        # Initialize model parameters from self.model_config (set by super)
         self.parameters = {
-            "max_tokens": model_config.get("output_limit", 4096),
-            "temperature": model_config.get("temperature", 0.7)
+            "max_tokens": self.model_config.get('output_limit', 4096), # Default from Anthropic docs
+            "temperature": self.model_config.get('temperature', 0.7), # Default
         }
-        
-        # Store the full model ID from configuration
-        self.full_model_id = model_config.get("model_id", model_id)
+        # Store the specific API model ID (already set in self.model_id by super)
+        self.full_model_id = self.model_id
         
         self.logger.info(f"Initialized Anthropic provider with model {model_id} (full model ID: {self.full_model_id})")
         self.logger.info(f"Model parameters: {self.parameters}")

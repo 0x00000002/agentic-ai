@@ -49,3 +49,78 @@ aggregate_responses:
         Focus on addressing the original request completely and clearly.
         Eliminate redundancies and resolve any contradictions between the responses.
         Make the response flow naturally as if it came from a single source. 
+
+# --- Add the following template definitions ---
+
+classify_intent:
+  name: "Intent Classification"
+  description: "Classifies the user's prompt intent (META, TASK, QUESTION)."
+  default_version: "v1"
+  versions:
+    - version: "v1"
+      template: |
+        Analyze the user prompt below and classify its primary intent.
+        Respond with ONLY one of the following words: META, TASK, QUESTION.
+        - META: The user is asking about the AI system itself, its capabilities, or the ongoing process.
+        - TASK: The user wants the AI to perform an action, generate content, or achieve a specific goal.
+        - QUESTION: The user is asking for information or an answer to a specific question that doesn't require a complex task.
+
+        User Prompt: {{ user_prompt }}
+
+        Intent:
+
+use_case_classifier:
+  name: "Use Case Classification"
+  description: "Classifies the user's prompt into a predefined UseCase."
+  default_version: "v1"
+  versions:
+    - version: "v1"
+      template: |
+        Analyze the following user prompt and determine the most appropriate use case.
+        Respond with ONLY the name of the most fitting use case from the list below. 
+        Do not add any explanation or surrounding text.
+
+        Available Use Cases:
+        {{ available_use_cases }}
+
+        User Prompt:
+        {{ user_prompt }}
+
+        Most Appropriate Use Case:
+
+plan_generation:
+  name: "Plan Generation"
+  description: "Generates a step-by-step plan for handling a user request."
+  default_version: "v1"
+  versions:
+    - version: "v1"
+      template: |
+        Based on the user's request, the determined use case, the assigned agents, 
+        and relevant tools, create a concise, step-by-step plan to fulfill the request.
+
+        User Prompt: {{ user_prompt }}
+        Determined Use Case: {{ determined_use_case }}
+        Assigned Agents: {{ assigned_agents_str }}
+        Relevant Tools: {{ relevant_tools_str }}
+
+        Execution Plan:
+        1. [First step]
+        2. [Second step]
+        ...
+
+answer_meta_query:
+  name: "Meta Query Answering"
+  description: "Template for answering questions about the AI system itself."
+  default_version: "v1"
+  versions:
+    - version: "v1"
+      template: |
+        You are answering a question about the AI system you are part of.
+        Use the provided context about the system's capabilities to formulate your answer.
+        
+        System Context:
+        {{ system_context }}
+        
+        User Query: {{ user_query }}
+        
+        Answer: 

@@ -104,7 +104,7 @@ class ModelSelector:
         """
         # Get base parameters from use case configuration
         use_case_name = use_case.name.lower()
-        params = self._config.get_use_case(use_case_name)
+        params = self._config.get_use_case_config(use_case_name)
         # Override with explicit parameters if provided
         if quality:
             params['quality'] = quality

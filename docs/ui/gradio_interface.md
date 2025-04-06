@@ -79,13 +79,16 @@ The UI can be customized in several ways:
 
 1. **CSS Styling**: Modify the `_get_custom_css` method in the `AgenticChatUI` class
 2. **Component Layout**: Customize the Gradio layout in the `build_ui` method
-3. **Agent Configuration**: Update agent parameters in the `agent_config.yml` file
+3. **Model Selection**: Choose the AI model for generation.
+4. **Agent Configuration**: Update agent parameters in the `agents.yml` file
+5. **API Keys**: Ensure necessary API keys are set as environment variables (e.g., `OPENAI_API_KEY`).
 
 ## Adding New Agent Types
 
 To add support for new agent types in the UI:
 
 1. Register the agent class with the registry:
+
    ```python
    agent_factory.register_agent("new_agent_type", NewAgentClass)
    ```
@@ -99,7 +102,7 @@ To add support for new agent types in the UI:
 Planned enhancements for the UI include:
 
 1. File upload/download support
-2. Image/video display capabilities 
+2. Image/video display capabilities
 3. Custom visualization components for specialized agents
 4. Persistent conversation history
 5. User authentication and profiles

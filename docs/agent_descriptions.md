@@ -8,7 +8,7 @@ Agent descriptions are metadata that describe the capabilities and purpose of ea
 
 ## Configuration
 
-Agent descriptions are stored in the `agent_config.yml` file under the `agent_descriptions` section:
+Agent descriptions are stored in the `agents.yml` file under the `agent_descriptions` section:
 
 ```yaml
 # Agent descriptions for AI prompting and routing

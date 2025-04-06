@@ -28,7 +28,7 @@ class ResponseAggregator:
             unified_config: UnifiedConfig instance
             logger: Logger instance
             model: The model to use for aggregation (or None for default)
-            prompt_template: PromptTemplate service (or None to create new)
+            prompt_template: PromptTemplate instance (or None to create default)
         """
         self._config = unified_config or UnifiedConfig.get_instance()
         self._logger = logger or LoggerFactory.create(name="response_aggregator")
@@ -36,14 +36,31 @@ class ResponseAggregator:
         # Get configuration
         self._agent_config = self._config.get_agent_config("response_aggregator")
         
-        # Set up prompt template
+        # Set up prompt template service (loads YAML automatically)
         self._prompt_template = prompt_template or PromptTemplate(logger=self._logger)
         
+        # Get system prompt string using PromptTemplate
+        system_prompt_str = None
+        try:
+            # Render the 'response_aggregator' template
+            system_prompt_str, _ = self._prompt_template.render_prompt(
+                 template_id="response_aggregator"
+            ) 
+        except ValueError:
+            error_msg = "Response Aggregator system prompt template ('response_aggregator') is missing."
+            self._logger.error(error_msg)
+            system_prompt_str = "You are a Response Aggregator responsible for combining multiple agent responses." # Basic fallback
+        except Exception as e:
+             error_msg = f"Error loading Response Aggregator system prompt: {e}"
+             self._logger.error(error_msg)
+             system_prompt_str = "You are a Response Aggregator responsible for combining multiple agent responses." # Basic fallback
+
         # Set up AI instance for aggregation
         self._ai = AI(
             model=model or self._agent_config.get("default_model"),
-            system_prompt=self._get_system_prompt(),
-            logger=self._logger
+            system_prompt=system_prompt_str, # Use loaded/fallback prompt
+            logger=self._logger,
+            prompt_template=self._prompt_template # Pass template service to AI base
         )
     
     def aggregate_responses(self, 
@@ -85,30 +102,16 @@ class ResponseAggregator:
                 "responses_text": responses_text
             }
             
-            # Use template to generate prompt
-            try:
-                prompt, usage_id = self._prompt_template.render_prompt(
-                    template_id="aggregate_responses",
-                    variables=variables
-                )
-            except ValueError:
-                # Fallback if template not found
-                self._logger.warning("Template 'aggregate_responses' not found, using fallback")
-                prompt = self._create_aggregation_prompt(responses_text, original_request)
-                usage_id = None
-            
+            # Use prompt template service directly
+            prompt, usage_id = self._prompt_template.render_prompt(
+                template_id="aggregate_responses",
+                variables=variables
+            )
+            # Let render_prompt raise error if template is missing
+
             # Get aggregated response
             self._logger.info(f"Aggregating {len(agent_responses)} responses...")
             content = self._ai.request(prompt)
-            
-            # Record metrics if we used a template
-            if usage_id:
-                metrics = {
-                    "response_length": len(content),
-                    "model": self._ai.get_model_info().get("model_id", "unknown"),
-                    "num_responses": len(agent_responses)
-                }
-                self._prompt_template.record_prompt_performance(usage_id, metrics)
             
             # Create final response
             contributing_agents = [resp.get("agent_id") for resp in agent_responses]
@@ -154,30 +157,6 @@ class ResponseAggregator:
         
         return formatted
     
-    def _create_aggregation_prompt(self, responses_text: str, original_request: Dict[str, Any]) -> str:
-        """
-        Create a prompt for aggregating responses.
-        
-        Args:
-            responses_text: Formatted responses text
-            original_request: Original user request
-            
-        Returns:
-            Aggregation prompt
-        """
-        return f"""
-Original user request: {original_request.get('prompt', '')}
-
-Multiple agents have provided responses to this request:
-
-{responses_text}
-
-Create a unified, coherent response that combines the most relevant information from each agent.
-Focus on addressing the original request completely and clearly.
-Eliminate redundancies and resolve any contradictions between the responses.
-Make the response flow naturally as if it came from a single source.
-"""
-    
     def _enrich_response(self, response: Dict[str, Any], contributing_agents: List[str]) -> Dict[str, Any]:
         """
         Enrich a single response with metadata.
@@ -195,27 +174,4 @@ Make the response flow naturally as if it came from a single source.
             "contributing_agents": contributing_agents,
             "status": response.get("status", "success"),
             "metadata": response.get("metadata", {})
-        }
-    
-    def _get_system_prompt(self) -> str:
-        """
-        Get the system prompt for the AI model.
-        Uses the template system if available.
-        
-        Returns:
-            System prompt string
-        """
-        try:
-            # Try to use template
-            prompt, _ = self._prompt_template.render_prompt(
-                template_id="response_aggregator"
-            )
-            return prompt
-        except ValueError:
-            # Fallback to hardcoded prompt
-            self._logger.warning("Response Aggregator system prompt template not found, using fallback")
-            return """You are a Response Aggregator responsible for combining multiple agent responses.
-Your task is to create unified, coherent responses that address the user's original request.
-Focus on clarity, relevance, and completeness while eliminating redundancies and resolving contradictions.
-The final response should flow naturally as if it came from a single source.
-""" 
+        } 

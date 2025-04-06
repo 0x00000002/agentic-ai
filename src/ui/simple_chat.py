@@ -7,14 +7,22 @@ import gradio as gr
 import uuid
 from typing import List, Tuple, Dict, Any, Optional
 import logging
+import time
+
+from ..agents.orchestrator import Orchestrator
+from ..config.user_config import UserConfig
+from ..utils.logger import LoggerFactory
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# )
 logger = logging.getLogger("simple_chat_ui")
 
+# --- Enable Real Logging for Debugging ---
+LoggerFactory.enable_real_loggers()
+# -----------------------------------------
 
 class SimpleChatUI:
     """
@@ -135,4 +143,58 @@ class SimpleChatUI:
             **kwargs: Additional arguments to pass to gr.Blocks.launch()
         """
         interface = self.build_interface()
-        interface.launch(**kwargs) 
+        interface.launch(**kwargs)
+
+# --- Add the following execution block ---
+if __name__ == "__main__":
+    from ..agents.orchestrator import Orchestrator
+    from ..agents.agent_factory import AgentFactory # Assuming AgentFactory exists and is needed
+    from ..agents.agent_registry import AgentRegistry # Assuming AgentRegistry exists
+    from ..config.unified_config import UnifiedConfig # Assuming UnifiedConfig is used
+    from ..utils.logger import LoggerFactory # Assuming LoggerFactory is used
+
+    logger.info("Initializing Agentic AI Framework components...")
+    
+    try:
+        # Basic initialization (adjust paths/config as needed)
+        # Load configuration
+        config = UnifiedConfig.get_instance() # Or load from a specific path if needed
+        
+        # Create a logger factory
+        logger_factory = LoggerFactory()
+        
+        # Create an agent registry
+        agent_registry = AgentRegistry()
+        
+        # Create an agent factory (assuming default implementation)
+        agent_factory = AgentFactory(registry=agent_registry, unified_config=config, logger=logger_factory.create("agent_factory"))
+        
+        # --- Register any specific agents your framework uses ---
+        # Example: 
+        # from ..agents.coding_agent import CodingAgent 
+        # agent_factory.register_agent("coding_agent", CodingAgent)
+        # ---------------------------------------------------------
+
+        # Create the Orchestrator 
+        # It will internally create PromptTemplate instances which load YAMLs
+        orchestrator = Orchestrator(
+            agent_factory=agent_factory,
+            unified_config=config,
+            logger=logger_factory.create("orchestrator")
+            # Removed prompt_manager=... No longer needed here
+            # Add other components like tool_finder, model_selector if needed
+            # Note: Default ToolFinderAgent/RequestAnalyzer/ResponseAggregator created
+            # inside Orchestrator will now correctly use PromptTemplate
+        )
+        
+        logger.info("Orchestrator initialized successfully.")
+        
+        # Create and launch the UI
+        ui = SimpleChatUI(orchestrator=orchestrator)
+        logger.info("Launching Simple Chat UI...")
+        ui.launch(server_name="0.0.0.0") # Launch on all interfaces
+
+    except ImportError as ie:
+         logger.error(f"Import error during initialization: {ie}. Please ensure all necessary components exist and paths are correct.")
+    except Exception as e:
+        logger.error(f"Failed to initialize or launch the application: {e}", exc_info=True) 

@@ -1,6 +1,6 @@
 # Default settings
 default_model: phi4
-log_level: INFO
+log_level: DEBUG
 
 # Use case specific configurations
 use_cases:

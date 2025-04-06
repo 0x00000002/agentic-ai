@@ -17,6 +17,8 @@ from ..core.model_selector import ModelSelector, UseCase
 from ..core.tool_enabled_ai import AI
 from ..metrics.request_metrics import RequestMetricsService
 import time
+import json
+import re
 
 
 class Orchestrator(BaseAgent):
@@ -32,11 +34,13 @@ class Orchestrator(BaseAgent):
                  response_aggregator=None,
                  unified_config=None,
                  logger=None,
-                 prompt_template=None,
+                 prompt_template: Optional[PromptTemplate] = None,
                  model_selector=None,
                  **kwargs):
         """
         Initialize the orchestrator.
+        Ensures essential prompt templates ('use_case_classifier', 'plan_generation') 
+        are created if they don't exist.
         
         Args:
             agent_factory: Factory for creating agent instances
@@ -45,7 +49,7 @@ class Orchestrator(BaseAgent):
             response_aggregator: Response aggregator component
             unified_config: UnifiedConfig instance
             logger: Logger instance
-            prompt_template: PromptTemplate service for generating prompts
+            prompt_template: PromptTemplate instance for generating prompts
             model_selector: ModelSelector for intelligent model selection
             **kwargs: Additional arguments for BaseAgent
         """
@@ -57,7 +61,7 @@ class Orchestrator(BaseAgent):
         self.request_analyzer = request_analyzer
         self.response_aggregator = response_aggregator
         
-        # Set up prompt template
+        # Set up prompt template service (loads YAML automatically)
         self._prompt_template = prompt_template or PromptTemplate(logger=self.logger)
         
         # Set up model selector
@@ -86,16 +90,68 @@ class Orchestrator(BaseAgent):
                 logger=self.logger,
                 prompt_template=self._prompt_template
             )
+            
+        # Get system prompt via PromptTemplate
+        system_prompt_str = None
+        try:
+             system_prompt_str, _ = self._prompt_template.render_prompt(template_id="orchestrator")
+        except ValueError:
+             error_msg = "Orchestrator system prompt template ('orchestrator') is missing."
+             self.logger.error(error_msg)
+             system_prompt_str = "You are the Orchestrator agent." # Basic fallback
+        except Exception as e:
+             error_msg = f"Error loading Orchestrator system prompt: {e}"
+             self.logger.error(error_msg)
+             system_prompt_str = "You are the Orchestrator agent." # Basic fallback
+        
+        # Ensure we have an AI instance for meta-query handling, plan generation, etc.
+        default_model = self.agent_config.get("default_model", self.model_selector.select_model(UseCase.CHAT).value if self.model_selector else None)
+        if not default_model:
+             self.logger.warning("No default model found for Orchestrator AI instance, some features might be limited.")
+
+        self.ai_instance = AI(
+            model=default_model,
+            system_prompt=system_prompt_str,
+            logger=self.logger,
+            prompt_template=self._prompt_template
+        )
     
     def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Process a request by orchestrating specialized agents.
+        Process a request by orchestrating specialized agents or handling directly.
+
+        This method follows these steps:
+        1. Check for Resumption: If the request metadata contains 'resumption_context',
+           it means the user has approved a previously generated plan. Extract the
+           context and jump directly to agent processing (Step 6).
+        2. Format Request & Classify Intent: Ensure the request is valid and use
+           RequestAnalyzer to classify the intent (META, QUESTION, TASK).
+        3. Handle META/QUESTION: Handle simple meta-queries or direct questions.
+        4. Determine Use Case (for TASK): Use an LLM (_determine_use_case with
+           'use_case_classifier' prompt) to find the appropriate UseCase.
+        5. Find Tools & Assign Agents (for TASK): Use ToolFinderAgent and
+           RequestAnalyzer to identify relevant tools and agent assignments.
+        6. Generate Plan (for TASK with agents): If agents are assigned, generate an
+           execution plan using an LLM ('plan_generation' prompt).
+        7. Request Approval (if plan generated): Return a response with status
+           'awaiting_approval', the plan, and the 'resumption_context' needed
+           to continue after user approval.
+        8. Process with Agents (Step 6 - if no approval needed or resuming):
+           Dispatch the request (potentially enriched with the plan) to assigned agents.
+        9. Aggregate Responses (Step 7 - if no approval needed or resuming):
+           Combine responses from agents using ResponseAggregator.
         
         Args:
-            request: The request object containing prompt and metadata
+            request: The request object containing prompt and metadata. 
+                     If resuming, metadata should contain 'resumption_context'.
             
         Returns:
-            Response object with content and metadata
+            Response object with content and metadata. Possible statuses include:
+            - 'success': Request completed successfully.
+            - 'error': An error occurred.
+            - 'awaiting_approval': A plan was generated and needs user approval.
+              The metadata will contain 'resumption_context'.
+            - 'partial': Aggregation failed, returning a partial result.
         """
         # Import request metrics service
         metrics_service = RequestMetricsService()
@@ -113,219 +169,501 @@ class Orchestrator(BaseAgent):
         )
         
         try:
-            # Ensure request is properly formatted
+            # --- Check for Resumption Context --- 
+            if isinstance(request, dict) and "resumption_context" in request.get("metadata", {}):
+                self.logger.info("Resuming execution after plan approval.")
+                context = request["metadata"]["resumption_context"]
+                
+                # Ensure context is valid
+                if not all(k in context for k in ["original_request", "agent_assignments", "relevant_tools", "use_case", "generated_plan"]):
+                    self.logger.error("Invalid or incomplete resumption context received.")
+                    return {
+                        "content": "Error: Could not resume execution due to invalid context.",
+                        "agent_id": self.agent_id,
+                        "status": "error",
+                        "error": "Invalid resumption context"
+                    }
+                    
+                # Extract data from context
+                original_request = context["original_request"]
+                agent_assignments = context["agent_assignments"]
+                relevant_tools = context["relevant_tools"]
+                use_case = context["use_case"] # Note: UseCase might need deserialization if not stored as string
+                generated_plan = context["generated_plan"]
+                request_id = original_request.get("request_id", "unknown_resumed")
+                
+                # Directly proceed to agent processing (Step 6)
+                self.logger.info(f"Resuming Step 6: Processing with agents for request {request_id}")
+                try:
+                    agent_responses = self._process_with_agents(
+                        request=original_request, # Use original request data
+                        agent_assignments=agent_assignments,
+                        relevant_tools=relevant_tools,
+                        use_case=use_case,
+                        generated_plan=generated_plan
+                    )
+                    self.logger.info(f"Resumed processing with {len(agent_responses)} agents")
+                except Exception as e:
+                    # ... (handle agent processing error, identical to non-resumed case)
+                    self.logger.error(f"Error processing with agents during resumption: {str(e)}")
+                    import traceback
+                    self.logger.error(traceback.format_exc())
+                    metrics_service.end_request_tracking(request_id=request_id, success=False, error=f"Error processing with agents: {str(e)}")
+                    return {
+                        "content": f"An error occurred while processing your request with specialized agents after approval: {str(e)}",
+                        "agent_id": self.agent_id,
+                        "status": "error",
+                        "error": str(e)
+                    }
+                
+                # Proceed to aggregation (Step 7)
+                self.logger.info(f"Resuming Step 7: Aggregating responses for request {request_id}")
+                start_time = time.time()
+                try:
+                    aggregated_response = self._aggregate_responses(agent_responses, original_request)
+                    self.logger.info("Successfully aggregated responses after resumption")
+                    # ... (Track aggregator usage, end request tracking, add metadata - identical to non-resumed case)
+                    metrics_service.track_agent_usage(request_id=request_id, agent_id="response_aggregator", duration_ms=int((time.time() - start_time) * 1000), success=True)
+                    metrics_service.end_request_tracking(request_id=request_id, success=True if "error" not in aggregated_response else False, error=aggregated_response.get("error"))
+                    if "metadata" not in aggregated_response: aggregated_response["metadata"] = {}
+                    aggregated_response["metadata"]["request_id"] = request_id
+                    aggregated_response["metadata"]["agents_used"] = [a["agent_id"] for a in agent_responses]
+                    aggregated_response["metadata"]["tools_used"] = relevant_tools
+                    if generated_plan: aggregated_response["metadata"]["generated_plan"] = generated_plan
+                    aggregated_response["metadata"]["resumed_from_approval"] = True # Indicate resumption
+                    return aggregated_response
+                except Exception as e:
+                    # ... (Handle aggregation error, identical to non-resumed case)
+                    self.logger.error(f"Error aggregating responses during resumption: {str(e)}")
+                    import traceback
+                    self.logger.error(traceback.format_exc())
+                    metrics_service.track_agent_usage(request_id=request_id, agent_id="response_aggregator", duration_ms=int((time.time() - start_time) * 1000), success=False, metadata={"error": str(e)})
+                    metrics_service.end_request_tracking(request_id=request_id, success=False, error=f"Error aggregating responses: {str(e)}")
+                    return {
+                        "content": f"An error occurred while aggregating responses after approval: {str(e)}",
+                        "agent_id": self.agent_id,
+                        "status": "error",
+                        "error": str(e)
+                    }
+            # --- End Check for Resumption Context ---
+            
+            # Ensure request is properly formatted (if not resuming)
             if not isinstance(request, dict):
                 self.logger.warning(f"Request is not a dictionary: {type(request)}")
                 request = {"prompt": str(request), "request_id": request["request_id"]}
-                
-            # Make sure prompt exists in request
-            if "prompt" not in request:
-                self.logger.warning("No prompt in request, using empty string")
-                request["prompt"] = ""
+            # ... rest of initial checks ...
                 
             self.logger.info(f"Processing request: {request.get('prompt', '')[:50]}...")
             
-            # Step 0: Determine the use case for this request
-            use_case = self._determine_use_case(request)
-            if use_case:
-                self.logger.info(f"Determined use case: {use_case.name}")
-                # Add use case to request for agents
-                request["use_case"] = use_case.name
+            # Step 1: Classify the request intent using the RequestAnalyzer
+            request_intent = "UNKNOWN"
+            try:
+                self.logger.info("Classifying request intent...")
+                request_intent = self.request_analyzer.classify_request_intent(request)
+                self.logger.info(f"Request classified as: {request_intent}")
                 
-                # Select appropriate model based on use case
-                try:
-                    # Get system prompt for this use case
-                    system_prompt = self.model_selector.get_system_prompt(use_case)
-                    request["system_prompt"] = system_prompt
+                # Track intent classification
+                metrics_service.track_agent_usage(
+                    request_id=request["request_id"],
+                    agent_id="request_analyzer",
+                    metadata={"intent_classification": request_intent}
+                )
+            except Exception as e:
+                self.logger.error(f"Error classifying request intent: {str(e)}")
+                import traceback
+                self.logger.error(traceback.format_exc())
+                # Default to TASK if we can't classify
+                request_intent = "TASK"
+            
+            # Step 2: Handle the request based on its intent
+            if request_intent == "META":
+                self.logger.info("Handling META query about the system...")
+                result = self._handle_meta_query(request)
+                
+                # Track meta-query handling
+                metrics_service.track_agent_usage(
+                    request_id=request["request_id"],
+                    agent_id=self.agent_id,
+                    metadata={"meta_query_handled": True}
+                )
+                
+                # End request tracking
+                metrics_service.end_request_tracking(
+                    request_id=request["request_id"],
+                    success=True if result.get("status") != "error" else False,
+                    error=result.get("error")
+                )
+                return result
+                
+            elif request_intent == "QUESTION":
+                self.logger.info("Handling QUESTION directly with LLM...")
+                
+                # Determine the use case for model selection
+                use_case = self._determine_use_case(request)
+                if use_case:
+                    self.logger.info(f"Determined use case for question: {use_case.name}")
                     
-                    # Get the best model for this use case
-                    model = self.model_selector.select_model(use_case)
-                    if model:
-                        self.logger.info(f"Selected model for request: {model.value}")
-                        request["model"] = model.value
+                    # Add use case to request for proper handling
+                    request["use_case"] = use_case.name
+                    
+                    # Get system prompt for this use case
+                    try:
+                        # Select appropriate model and system prompt
+                        system_prompt = self.model_selector.get_system_prompt(use_case)
+                        request["system_prompt"] = system_prompt
                         
-                        # Track model selection
-                        metrics_service.track_model_usage(
-                            request_id=request["request_id"],
-                            model_id=model.value,
-                            metadata={"use_case": use_case.name}
-                        )
-                        
-                        # If we have an AI instance and no specialized agents will handle this,
-                        # update the model directly on our AI instance
-                        if not self.ai_instance:
-                            self.logger.info("Creating new AI instance with selected model")
+                        model = self.model_selector.select_model(use_case)
+                        if model:
+                            self.logger.info(f"Selected model for question: {model.value}")
+                            request["model"] = model.value
+                            
+                            # Track model selection
+                            metrics_service.track_model_usage(
+                                request_id=request["request_id"],
+                                model_id=model.value,
+                                metadata={"use_case": use_case.name}
+                            )
+                            
+                            # Update our AI instance with the selected model/prompt
                             self.ai_instance = AI(
                                 model=model.value,
                                 system_prompt=system_prompt,
                                 logger=self.logger
                             )
-                except Exception as e:
-                    self.logger.warning(f"Error selecting model for use case {use_case}: {str(e)}")
-            
-            # Step 1: Find relevant tools for the request
-            start_time = time.time()
-            try:
-                relevant_tools = self._find_relevant_tools(request)
-                self.logger.info(f"Found {len(relevant_tools)} relevant tools")
+                    except Exception as e:
+                        self.logger.warning(f"Error configuring model for question: {str(e)}")
                 
-                # Track tool finder agent usage
-                if self.tool_finder_agent:
+                # Handle the question directly with our AI instance
+                try:
+                    # For direct questions, let's use a simpler, more focused response structure
+                    direct_result = super().process_request(request)
+                    
+                    # Track direct handling
                     metrics_service.track_agent_usage(
                         request_id=request["request_id"],
-                        agent_id="tool_finder",
-                        duration_ms=int((time.time() - start_time) * 1000),
-                        success=True
+                        agent_id=self.agent_id,
+                        metadata={"direct_question_handled": True}
                     )
-            except Exception as e:
-                self.logger.error(f"Error finding relevant tools: {str(e)}")
-                import traceback
-                self.logger.error(traceback.format_exc())
-                relevant_tools = []
+                    
+                    # End request tracking
+                    metrics_service.end_request_tracking(
+                        request_id=request["request_id"],
+                        success=True if "error" not in direct_result else False,
+                        error=direct_result.get("error")
+                    )
+                    
+                    return direct_result
+                except Exception as e:
+                    self.logger.error(f"Error handling question directly: {str(e)}")
+                    import traceback
+                    self.logger.error(traceback.format_exc())
+                    
+                    # End request tracking with error
+                    metrics_service.end_request_tracking(
+                        request_id=request["request_id"],
+                        success=False,
+                        error=f"Error handling question: {str(e)}"
+                    )
+                    
+                    return {
+                        "content": f"An error occurred while answering your question: {str(e)}",
+                        "agent_id": self.agent_id,
+                        "status": "error",
+                        "error": str(e)
+                    }
+            
+            else:  # TASK or UNKNOWN (default to TASK)
+                self.logger.info("Handling as a TASK requiring specialized processing...")
+                generated_plan = None # Initialize plan variable
+
+                # Step 3: Determine use case for specialized task handling
+                use_case = self._determine_use_case(request)
+                if use_case:
+                    self.logger.info(f"Determined use case: {use_case.name}")
+                    # Add use case to request for agents
+                    request["use_case"] = use_case.name
+                    
+                    # Select appropriate model based on use case
+                    try:
+                        # Get system prompt for this use case
+                        system_prompt = self.model_selector.get_system_prompt(use_case)
+                        request["system_prompt"] = system_prompt
+                        
+                        # Get the best model for this use case
+                        model = self.model_selector.select_model(use_case)
+                        if model:
+                            self.logger.info(f"Selected model for request: {model.value}")
+                            request["model"] = model.value
+                            
+                            # Track model selection
+                            metrics_service.track_model_usage(
+                                request_id=request["request_id"],
+                                model_id=model.value,
+                                metadata={"use_case": use_case.name}
+                            )
+                            
+                            # If we have an AI instance and no specialized agents will handle this,
+                            # update the model directly on our AI instance
+                            if not self.ai_instance:
+                                self.logger.info("Creating new AI instance with selected model")
+                                self.ai_instance = AI(
+                                    model=model.value,
+                                    system_prompt=system_prompt,
+                                    logger=self.logger
+                                )
+                    except Exception as e:
+                        self.logger.warning(f"Error selecting model for use case {use_case}: {str(e)}")
                 
-                # Track tool finder failure
-                if self.tool_finder_agent:
+                # Step 4: Find relevant tools for the request
+                start_time = time.time()
+                try:
+                    relevant_tools = self._find_relevant_tools(request)
+                    self.logger.info(f"Found {len(relevant_tools)} relevant tools")
+                    
+                    # Track tool finder agent usage
+                    if self.tool_finder_agent:
+                        metrics_service.track_agent_usage(
+                            request_id=request["request_id"],
+                            agent_id="tool_finder",
+                            duration_ms=int((time.time() - start_time) * 1000),
+                            success=True
+                        )
+                except Exception as e:
+                    self.logger.error(f"Error finding relevant tools: {str(e)}")
+                    import traceback
+                    self.logger.error(traceback.format_exc())
+                    relevant_tools = []
+                    
+                    # Track tool finder failure
+                    if self.tool_finder_agent:
+                        metrics_service.track_agent_usage(
+                            request_id=request["request_id"],
+                            agent_id="tool_finder",
+                            duration_ms=int((time.time() - start_time) * 1000),
+                            success=False,
+                            metadata={"error": str(e)}
+                        )
+                
+                # Step 5: Get agent assignments for the task
+                start_time = time.time()
+                try:
+                    agent_assignments = self.request_analyzer.get_agent_assignments(
+                        request=request,
+                        available_agents=self.agent_factory.registry.get_all_agents() if self.agent_factory else [],
+                        agent_descriptions=self.config.get_agent_descriptions() if self.config else {}
+                    )
+                    self.logger.info(f"Analyzed request, found {len(agent_assignments)} agent assignments")
+                    
+                    # Track request analyzer usage
                     metrics_service.track_agent_usage(
                         request_id=request["request_id"],
-                        agent_id="tool_finder",
+                        agent_id="request_analyzer",
+                        duration_ms=int((time.time() - start_time) * 1000),
+                        success=True,
+                        metadata={"num_agents_found": len(agent_assignments)}
+                    )
+                except Exception as e:
+                    self.logger.error(f"Error analyzing request: {str(e)}")
+                    import traceback
+                    self.logger.error(traceback.format_exc())
+                    agent_assignments = []
+                    
+                    # Track request analyzer failure
+                    metrics_service.track_agent_usage(
+                        request_id=request["request_id"],
+                        agent_id="request_analyzer",
                         duration_ms=int((time.time() - start_time) * 1000),
                         success=False,
                         metadata={"error": str(e)}
                     )
-            
-            # Step 2: Analyze request to determine appropriate agents
-            start_time = time.time()
-            try:
-                agent_assignments = self._analyze_request(request)
-                self.logger.info(f"Analyzed request, found {len(agent_assignments)} agent assignments")
                 
-                # Track request analyzer usage
-                metrics_service.track_agent_usage(
-                    request_id=request["request_id"],
-                    agent_id="request_analyzer",
-                    duration_ms=int((time.time() - start_time) * 1000),
-                    success=True,
-                    metadata={"num_agents_found": len(agent_assignments)}
-                )
-            except Exception as e:
-                self.logger.error(f"Error analyzing request: {str(e)}")
-                import traceback
-                self.logger.error(traceback.format_exc())
-                agent_assignments = []
+                # If no agents identified, handle directly
+                if not agent_assignments:
+                    self.logger.info("No specialized agents identified for task, handling directly")
+                    
+                    # Track direct handling by orchestrator
+                    metrics_service.track_agent_usage(
+                        request_id=request["request_id"],
+                        agent_id=self.agent_id,
+                        confidence=1.0,
+                        metadata={"direct_handling": True}
+                    )
+                    
+                    # Use base agent's process_request for direct handling
+                    result = super().process_request(request)
+                    
+                    # End request tracking
+                    metrics_service.end_request_tracking(
+                        request_id=request["request_id"],
+                        success=True if "error" not in result else False,
+                        error=result.get("error")
+                    )
+                    
+                    return result
                 
-                # Track request analyzer failure
-                metrics_service.track_agent_usage(
-                    request_id=request["request_id"],
-                    agent_id="request_analyzer",
-                    duration_ms=int((time.time() - start_time) * 1000),
-                    success=False,
-                    metadata={"error": str(e)}
-                )
-            
-            # If no agents identified, handle directly
-            if not agent_assignments:
-                self.logger.info("No specialized agents identified for request, handling directly")
+                # --- Plan Generation Step ---
+                self.logger.info("Complex task detected, generating plan...")
+                plan_generation_successful = False
+                try:
+                    if self.ai_instance and self._prompt_template:
+                        # Prepare context for plan generation prompt
+                        assigned_agents_str = ", ".join([f"{agent_id} (conf: {conf:.2f})" for agent_id, conf in agent_assignments])
+                        relevant_tools_str = ", ".join(relevant_tools) if relevant_tools else "None"
+                        use_case_name = use_case.name if use_case else "UNKNOWN"
+
+                        # Assumes a 'plan_generation' template exists
+                        plan_prompt, _ = self._prompt_template.render_prompt(
+                            template_id="plan_generation",
+                            variables={
+                                "user_prompt": request.get("prompt", ""),
+                                "determined_use_case": use_case_name,
+                                "assigned_agents_str": assigned_agents_str,
+                                "relevant_tools_str": relevant_tools_str
+                            }
+                        )
+
+                        self.logger.debug("Requesting plan generation from LLM...")
+                        generated_plan = self.ai_instance.request(plan_prompt)
+                        self.logger.info(f"Generated Plan:\n{generated_plan}")
+                        # Optionally: Add plan generation to metrics
+                        metrics_service.track_agent_usage(
+                             request_id=request["request_id"],
+                             agent_id=self.agent_id, # Or a specific "planner" ID
+                             metadata={"plan_generated": True, "plan_content": generated_plan[:200]} # Truncate plan for metadata
+                        )
+
+                        if generated_plan: # Check if plan was actually generated
+                           plan_generation_successful = True 
+                           self.logger.info(f"Generated Plan:\n{generated_plan}")
+                           # ... (metrics tracking for plan generation) ...
+                        else:
+                           self.logger.warning("Plan generation attempt did not produce a plan.")
+
+                    else:
+                        self.logger.warning("AI instance or PromptTemplate not available for plan generation.")
+
+                except ValueError as e: # Handles missing template
+                    self.logger.error(f"Failed to render plan generation prompt: {e}")
+                except Exception as e:
+                    self.logger.error(f"Error during plan generation: {str(e)}")
+                    import traceback
+                    self.logger.error(traceback.format_exc())
+                # --- End Plan Generation Step ---
                 
-                # Track direct handling by orchestrator
-                metrics_service.track_agent_usage(
-                    request_id=request["request_id"],
-                    agent_id=self.agent_id,
-                    confidence=1.0,
-                    metadata={"direct_handling": True}
-                )
-                
-                result = super().process_request(request)
-                
-                # End request tracking
-                metrics_service.end_request_tracking(
-                    request_id=request["request_id"],
-                    success=True if "error" not in result else False,
-                    error=result.get("error")
-                )
-                
-                return result
-            
-            # Step 3: Process with identified agents
-            try:
-                agent_responses = self._process_with_agents(request, agent_assignments, relevant_tools, use_case)
-                self.logger.info(f"Processed with {len(agent_responses)} agents")
-            except Exception as e:
-                self.logger.error(f"Error processing with agents: {str(e)}")
-                import traceback
-                self.logger.error(traceback.format_exc())
-                
-                # End request tracking with error
-                metrics_service.end_request_tracking(
-                    request_id=request["request_id"],
-                    success=False,
-                    error=f"Error processing with agents: {str(e)}"
-                )
-                
-                return {
-                    "content": f"An error occurred while processing your request with specialized agents: {str(e)}",
-                    "agent_id": self.agent_id,
-                    "status": "error",
-                    "error": str(e)
-                }
-            
-            # Step 4: Aggregate responses
-            start_time = time.time()
-            try:
-                aggregated_response = self._aggregate_responses(agent_responses, request)
-                self.logger.info("Successfully aggregated responses")
-                
-                # Track response aggregator usage
-                metrics_service.track_agent_usage(
-                    request_id=request["request_id"],
-                    agent_id="response_aggregator",
-                    duration_ms=int((time.time() - start_time) * 1000),
-                    success=True
-                )
-                
-                # End request tracking
-                metrics_service.end_request_tracking(
-                    request_id=request["request_id"],
-                    success=True if "error" not in aggregated_response else False,
-                    error=aggregated_response.get("error")
-                )
-                
-                # Add metrics data to the response
-                if "metadata" not in aggregated_response:
-                    aggregated_response["metadata"] = {}
-                
-                aggregated_response["metadata"]["request_id"] = request["request_id"]
-                aggregated_response["metadata"]["agents_used"] = [a["agent_id"] for a in agent_responses]
-                aggregated_response["metadata"]["tools_used"] = relevant_tools
-                
-                return aggregated_response
-            except Exception as e:
-                self.logger.error(f"Error aggregating responses: {str(e)}")
-                import traceback
-                self.logger.error(traceback.format_exc())
-                
-                # Track response aggregator failure
-                metrics_service.track_agent_usage(
-                    request_id=request["request_id"],
-                    agent_id="response_aggregator",
-                    duration_ms=int((time.time() - start_time) * 1000),
-                    success=False,
-                    metadata={"error": str(e)}
-                )
-                
-                # End request tracking with error
-                metrics_service.end_request_tracking(
-                    request_id=request["request_id"],
-                    success=False,
-                    error=f"Error aggregating responses: {str(e)}"
-                )
-                
-                return {
-                    "content": f"An error occurred while aggregating responses: {str(e)}",
-                    "agent_id": self.agent_id,
-                    "status": "error",
-                    "error": str(e)
-                }
-            
+                # --- Return for Approval Step ---
+                if plan_generation_successful:
+                    self.logger.info("Plan generated, returning for user approval.")
+                    
+                    # Store context needed for resumption
+                    # Note: UseCase might need to be stored as string (use_case.name)
+                    resumption_context = {
+                        "original_request": request, # Store the initial request
+                        "agent_assignments": agent_assignments,
+                        "relevant_tools": relevant_tools,
+                        "use_case": use_case.name if use_case else None, # Store UseCase name
+                        "generated_plan": generated_plan
+                    }
+                    
+                    # Stop request tracking here for now, will be resumed later
+                    # Or adjust tracking logic to handle pending states
+                    metrics_service.track_request_status(
+                        request_id=request["request_id"],
+                        status="awaiting_approval"
+                    ) # Assuming metrics service has such a method
+
+                    return {
+                        "content": f"Please review the following plan:\n\n{generated_plan}",
+                        "agent_id": self.agent_id,
+                        "status": "awaiting_approval", # Special status
+                        "metadata": {
+                            "request_id": request["request_id"],
+                            "resumption_context": resumption_context # Pass context back
+                        }
+                    }
+                else:
+                     # If plan generation failed or wasn't attempted, proceed directly
+                     self.logger.warning("Plan generation failed or skipped, proceeding without approval.")
+                     # Fall through to Step 6 directly
+                # --- End Return for Approval Step ---
+
+                # Step 6: Process with identified agents (Now only runs if plan approval wasn't needed/failed)
+                try:
+                    agent_responses = self._process_with_agents(
+                        request=request,
+                        agent_assignments=agent_assignments,
+                        relevant_tools=relevant_tools,
+                        use_case=use_case,
+                        generated_plan=generated_plan # Plan might be None here
+                    )
+                    self.logger.info(f"Processed with {len(agent_responses)} agents (no approval required)")
+                except Exception as e:
+                    # Restore original error handling for agent processing when no approval needed
+                    self.logger.error(f"Error processing with agents (no approval): {str(e)}")
+                    import traceback
+                    self.logger.error(traceback.format_exc())
+                    metrics_service.end_request_tracking(
+                        request_id=request["request_id"],
+                        success=False,
+                        error=f"Error processing with agents: {str(e)}"
+                    )
+                    return {
+                        "content": f"An error occurred while processing your request with specialized agents: {str(e)}",
+                        "agent_id": self.agent_id,
+                        "status": "error",
+                        "error": str(e)
+                    }
+
+                # Step 7: Aggregate responses (Now only runs if plan approval wasn't needed/failed)
+                start_time = time.time()
+                try:
+                    aggregated_response = self._aggregate_responses(agent_responses, request)
+                    self.logger.info("Successfully aggregated responses (no approval required)")
+                    # Track aggregator usage
+                    metrics_service.track_agent_usage(
+                        request_id=request["request_id"],
+                        agent_id="response_aggregator",
+                        duration_ms=int((time.time() - start_time) * 1000),
+                        success=True
+                    )
+                    # End request tracking
+                    metrics_service.end_request_tracking(
+                        request_id=request["request_id"],
+                        success=True if "error" not in aggregated_response else False,
+                        error=aggregated_response.get("error")
+                    )
+                    # Add metrics data to the response
+                    if "metadata" not in aggregated_response:
+                        aggregated_response["metadata"] = {}
+                    aggregated_response["metadata"]["request_id"] = request["request_id"]
+                    aggregated_response["metadata"]["agents_used"] = [a["agent_id"] for a in agent_responses]
+                    aggregated_response["metadata"]["tools_used"] = relevant_tools
+                    if generated_plan: # Include plan if it existed but approval failed/skipped
+                        aggregated_response["metadata"]["generated_plan"] = generated_plan
+                    return aggregated_response
+                except Exception as e:
+                    # Restore original error handling for aggregation when no approval needed
+                    self.logger.error(f"Error aggregating responses (no approval): {str(e)}")
+                    import traceback
+                    self.logger.error(traceback.format_exc())
+                    metrics_service.track_agent_usage(
+                        request_id=request["request_id"],
+                        agent_id="response_aggregator",
+                        duration_ms=int((time.time() - start_time) * 1000),
+                        success=False,
+                        metadata={"error": str(e)}
+                    )
+                    metrics_service.end_request_tracking(
+                        request_id=request["request_id"],
+                        success=False,
+                        error=f"Error aggregating responses: {str(e)}"
+                    )
+                    return {
+                        "content": f"An error occurred while aggregating responses: {str(e)}",
+                        "agent_id": self.agent_id,
+                        "status": "error",
+                        "error": str(e)
+                    }
+
         except Exception as e:
             error_response = ErrorHandler.handle_error(
                 AIAgentError(f"Error orchestrating request: {str(e)}", agent_id="orchestrator"),
@@ -352,9 +690,122 @@ class Orchestrator(BaseAgent):
                 "error": str(e)
             }
     
+    def _handle_meta_query(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle a request identified as a meta-query about the system.
+        
+        Args:
+            request: The request object
+            
+        Returns:
+            Response dictionary
+        """
+        if not self.ai_instance:
+             return {
+                "content": "I cannot process meta-queries at the moment as my internal AI instance is not available.",
+                "agent_id": self.agent_id,
+                "status": "error",
+                "error": "AI instance not available in Orchestrator"
+            }
+            
+        user_query = request.get("prompt", "")
+        
+        try:
+            # 1. Gather relevant system information (Agents, Tools, etc.)
+            agents_info = self._get_available_agents_info()
+            tools_info = self._get_available_tools_info()
+            
+            # Prepare context for the AI
+            system_context = f"Available Agents:\n{agents_info}\n\nAvailable Tools:\n{tools_info}\n\nGeneral Process: The system analyzes requests, identifies relevant agents/tools, processes the request (potentially using multiple specialized agents), and aggregates the results."
+            # Add more context as needed (e.g., config details, process explanation)
+
+            # 2. Use AI to generate the response based on the query and context
+            #    Use a template if available
+            template_vars = {
+                "user_query": user_query,
+                "system_context": system_context
+            }
+            
+            # Use PromptTemplate directly, remove fallback
+            response_prompt, _ = self._prompt_template.render_prompt(
+                template_id="answer_meta_query",
+                variables=template_vars
+            )
+            # Let render_prompt raise error if template is missing
+
+            self.logger.debug("Sending meta-query answer generation request to AI.")
+            response_content = self.ai_instance.request(response_prompt)
+            
+            return {
+                "content": response_content,
+                "agent_id": self.agent_id,
+                "status": "success",
+                "metadata": {
+                    "meta_query_handled": True,
+                    "context_provided": { # Optionally include what context was given
+                         "agents": agents_info != "No agent information available.",
+                         "tools": tools_info != "No tool information available."
+                    }
+                }
+            }
+
+        except Exception as e:
+            self.logger.error(f"Error handling meta-query: {str(e)}")
+            import traceback
+            self.logger.error(traceback.format_exc())
+            return {
+                "content": f"An error occurred while trying to answer your question about the system: {str(e)}",
+                "agent_id": self.agent_id,
+                "status": "error",
+                "error": f"Error handling meta-query: {str(e)}"
+            }
+            
+    def _get_available_agents_info(self) -> str:
+        """Retrieve a formatted string of available agents and descriptions."""
+        if self.agent_factory and hasattr(self.agent_factory, 'registry'):
+            try:
+                available_agents = self.agent_factory.registry.get_all_agents()
+                agent_descriptions = self.config.get_agent_descriptions() if self.config else {}
+                
+                if not available_agents: return "No specialized agents are currently registered."
+                
+                info_lines = []
+                for agent_id in available_agents:
+                    # Exclude orchestrator, request_analyzer, etc. from user-facing list? Or keep them? Let's keep for now.
+                    description = agent_descriptions.get(agent_id, "No description available.")
+                    info_lines.append(f"- {agent_id}: {description}")
+                return "\n".join(info_lines)
+            except Exception as e:
+                self.logger.error(f"Failed to get agent info: {e}")
+                return "Could not retrieve agent information."
+        return "No agent information available."
+
+    def _get_available_tools_info(self) -> str:
+        """Retrieve a formatted string of available tools and descriptions."""
+        # This depends heavily on how tools are registered and described.
+        # Assuming ToolFinderAgent might have access or a central ToolRegistry exists.
+        if self.tool_finder_agent and hasattr(self.tool_finder_agent, 'tool_registry'):
+             try:
+                 tool_data = self.tool_finder_agent.tool_registry.get_tool_schemas() # Assuming this method exists
+                 if not tool_data: return "No tools are currently registered."
+                 
+                 info_lines = []
+                 for tool_name, schema in tool_data.items():
+                      description = schema.get('description', 'No description available.')
+                      info_lines.append(f"- {tool_name}: {description}")
+                 return "\n".join(info_lines)
+             except Exception as e:
+                 self.logger.error(f"Failed to get tool info: {e}")
+                 return "Could not retrieve tool information."
+        elif hasattr(self, 'tool_registry'): # Maybe orchestrator has direct access?
+             # Similar logic using self.tool_registry
+             pass 
+        return "No tool information available." # Fallback
+
     def _determine_use_case(self, request: Dict[str, Any]) -> Optional[UseCase]:
         """
-        Determine the use case for this request using heuristics.
+        Determine the use case for this request using an LLM classifier.
+        Relies on the 'use_case_classifier' prompt template in PromptTemplate.
         
         Args:
             request: The request object
@@ -362,70 +813,64 @@ class Orchestrator(BaseAgent):
         Returns:
             UseCase enum or None if unable to determine
         """
-        prompt = request.get("prompt", "").lower()
+        prompt = request.get("prompt", "")
         
-        # Check for explicitly requested use case
+        # 1. Check for explicitly requested use case first
         if "use_case" in request and isinstance(request["use_case"], str):
             try:
-                return UseCase.from_string(request["use_case"])
+                explicit_use_case = UseCase.from_string(request["use_case"])
+                self.logger.info(f"Using explicitly provided use case: {explicit_use_case.name}")
+                return explicit_use_case
             except ValueError:
-                self.logger.warning(f"Invalid use case specified: {request['use_case']}")
-        
-        # Check for code-related keywords
-        code_keywords = ["code", "function", "programming", "algorithm", "implementation", 
-                         "debug", "refactor", "javascript", "python", "java", "typescript",
-                         "c++", "rust", "go", "coding"]
-        
-        # Check for Solidity-specific keywords
-        solidity_keywords = ["solidity", "smart contract", "blockchain", "ethereum", "web3", 
-                             "token", "defi", "nft", "erc20", "erc721", "gas optimization"]
-        
-        # Check for translation keywords
-        translation_keywords = ["translate", "translation", "convert to", "change to language",
-                               "english to", "spanish to", "french to", "german to", "chinese to",
-                               "japanese to", "korean to", "russian to", "arabic to"]
-        
-        # Check for summarization keywords
-        summarization_keywords = ["summarize", "summary", "tldr", "summary of", "key points",
-                                 "shorten this", "brief overview", "main ideas"]
-        
-        # Check for data analysis keywords
-        data_analysis_keywords = ["analyze data", "data analysis", "statistics", "correlation",
-                                 "insights from", "trends in", "data interpretation", "chart", 
-                                 "graph", "visualization"]
-        
-        # Check for web analysis keywords
-        web_analysis_keywords = ["analyze website", "webpage analysis", "site review",
-                                "web content", "html analysis", "css review", "web performance"]
-        
-        # Check for content generation keywords
-        content_generation_keywords = ["create content", "generate text", "write a", "creative",
-                                      "story", "blog post", "article", "content creation"]
-        
-        # Check for image generation keywords (if supported)
-        image_generation_keywords = ["generate image", "create image", "draw", "picture of",
-                                    "illustration", "visualization of", "image of"]
-        
-        # Detect use case based on keywords
-        if any(keyword in prompt for keyword in solidity_keywords):
-            return UseCase.SOLIDITY_CODING
-        elif any(keyword in prompt for keyword in code_keywords):
-            return UseCase.CODING
-        elif any(keyword in prompt for keyword in translation_keywords):
-            return UseCase.TRANSLATION
-        elif any(keyword in prompt for keyword in summarization_keywords):
-            return UseCase.SUMMARIZATION
-        elif any(keyword in prompt for keyword in data_analysis_keywords):
-            return UseCase.DATA_ANALYSIS
-        elif any(keyword in prompt for keyword in web_analysis_keywords):
-            return UseCase.WEB_ANALYSIS
-        elif any(keyword in prompt for keyword in content_generation_keywords):
-            return UseCase.CONTENT_GENERATION
-        elif any(keyword in prompt for keyword in image_generation_keywords):
-            return UseCase.IMAGE_GENERATION
+                self.logger.warning(f"Invalid use case specified in request: {request['use_case']}, attempting LLM classification.")
+
+        # 2. Use LLM for classification if not explicitly provided
+        if not self.ai_instance:
+            self.logger.warning("No AI instance available for use case classification. Defaulting to CHAT.")
+            return UseCase.CHAT
             
-        # Default to CHAT if no specific use case detected
-        return UseCase.CHAT
+        if not self._prompt_template:
+            self.logger.warning("No PromptTemplate available for use case classification. Defaulting to CHAT.")
+            return UseCase.CHAT
+
+        try:
+            # Prepare the classification prompt
+            # Assumes a template 'use_case_classifier' exists.
+            # This template should list valid UseCases and ask the LLM to choose one.
+            available_use_cases = [uc.name for uc in UseCase] # Get list of valid UseCase names
+            
+            classification_prompt, _ = self._prompt_template.render_prompt(
+                template_id="use_case_classifier",
+                variables={
+                    "user_prompt": prompt,
+                    "available_use_cases": ", ".join(available_use_cases) 
+                }
+            )
+            
+            self.logger.info("Attempting LLM-based use case classification...")
+            llm_response = self.ai_instance.request(classification_prompt)
+            
+            # Parse the response - expect just the UseCase name string
+            # Add cleaning/stripping as needed based on LLM behavior
+            classified_use_case_str = llm_response.strip().upper()
+            
+            try:
+                determined_use_case = UseCase.from_string(classified_use_case_str)
+                self.logger.info(f"LLM classified use case as: {determined_use_case.name}")
+                return determined_use_case
+            except ValueError:
+                self.logger.warning(f"LLM returned an invalid UseCase name: '{classified_use_case_str}'. Defaulting to CHAT.")
+                return UseCase.CHAT
+
+        except ValueError as e: # Handles missing template from render_prompt
+            self.logger.error(f"Failed to render use case classification prompt: {e}. Defaulting to CHAT.")
+            return UseCase.CHAT
+        except Exception as e:
+            self.logger.error(f"Error during LLM use case classification: {e}")
+            import traceback
+            self.logger.error(traceback.format_exc())
+            # Default to CHAT on error
+            return UseCase.CHAT
     
     def _find_relevant_tools(self, request: Dict[str, Any]) -> List[str]:
         """
@@ -478,71 +923,49 @@ class Orchestrator(BaseAgent):
             self.logger.error(traceback.format_exc())
             return []
     
-    def _analyze_request(self, request: Dict[str, Any]) -> List[Tuple[str, float]]:
-        """
-        Analyze the request to determine appropriate agents.
-        
-        Args:
-            request: The request object
-            
-        Returns:
-            List of (agent_id, confidence) tuples
-        """
-        if not self.agent_factory:
-            self.logger.warning("No agent factory available, cannot analyze request")
-            return []
-        
-        # Get list of available agents
-        available_agents = self.agent_factory.registry.get_all_agents() if self.agent_factory else []
-        
-        # Get agent descriptions from the config manager
-        agent_descriptions = self.config.get_agent_descriptions() if self.config else {}
-        
-        # Use the RequestAnalyzer to analyze the request
-        return self.request_analyzer.analyze_request(
-            request=request,
-            available_agents=available_agents,
-            agent_descriptions=agent_descriptions
-        )
-    
-    def _process_with_agents(self, 
-                            request: Dict[str, Any], 
+    def _process_with_agents(self,
+                            request: Dict[str, Any],
                             agent_assignments: List[Tuple[str, float]],
                             relevant_tools: List[str],
-                            use_case: Optional[UseCase] = None) -> List[Dict[str, Any]]:
+                            use_case: Optional[UseCase] = None,
+                            generated_plan: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Process the request with assigned agents.
-        
+
         Args:
             request: The request object
             agent_assignments: List of (agent_id, confidence) tuples
             relevant_tools: List of relevant tool IDs
             use_case: Optional UseCase identified for the request
-            
+            generated_plan: Optional plan generated by the orchestrator
         Returns:
             List of agent responses
         """
         # Import metrics service
         from ..metrics.request_metrics import RequestMetricsService
         metrics_service = RequestMetricsService()
-        
+
         agent_responses = []
-        
+
         # Limit number of agents to prevent excessive processing
         agent_assignments = agent_assignments[:self.max_parallel_agents]
-        
+
         # Process with each identified agent
         for agent_id, confidence in agent_assignments:
             agent_start_time = time.time()
             success = False
             error_message = None
-            
+
             try:
                 self.logger.info(f"Processing with agent {agent_id} (confidence: {confidence})")
-                
-                # Create a new request with relevant tools
-                enriched_request = self._enrich_request(request, relevant_tools)
-                
+
+                # Create a new request enriched with tools AND the plan
+                enriched_request = self._enrich_request(
+                    request=request,
+                    relevant_tools=relevant_tools,
+                    generated_plan=generated_plan # Pass plan here
+                )
+
                 # Select appropriate model for this agent and use case
                 if use_case:
                     try:
@@ -657,31 +1080,40 @@ class Orchestrator(BaseAgent):
                 )
         
         return agent_responses
-    
-    def _enrich_request(self, request: Dict[str, Any], relevant_tools: List[str]) -> Dict[str, Any]:
+
+    def _enrich_request(self,
+                        request: Dict[str, Any],
+                        relevant_tools: List[str],
+                        generated_plan: Optional[str] = None) -> Dict[str, Any]:
         """
-        Enrich the request with additional context.
-        
+        Enrich the request with additional context, including the generated plan.
+
         Args:
             request: The original request
             relevant_tools: List of relevant tool IDs
-            
+            generated_plan: Optional plan generated by the orchestrator
+
         Returns:
             Enriched request
         """
         # Create a copy to avoid modifying the original
         enriched = dict(request)
-        
+
         # Add relevant tools
         if relevant_tools:
             enriched["relevant_tools"] = relevant_tools
-            
+
         # Add orchestrator context
         if "context" not in enriched:
             enriched["context"] = {}
-            
+
         enriched["context"]["orchestrator_id"] = self.agent_id
-        
+
+        # Add the generated plan to the context if it exists
+        if generated_plan:
+            enriched["context"]["generated_plan"] = generated_plan
+            self.logger.debug(f"Added generated plan to context for agent request.")
+
         return enriched
     
     def _normalize_response(self, response: Any) -> Dict[str, Any]:
@@ -834,25 +1266,3 @@ class Orchestrator(BaseAgent):
         """
         self.model_selector = model_selector
         self.logger.info("Model selector set")
-    
-    def _get_system_prompt(self) -> str:
-        """
-        Get the system prompt for the AI model.
-        Uses the template system if available.
-        
-        Returns:
-            System prompt string
-        """
-        try:
-            # Try to use template
-            prompt, _ = self._prompt_template.render_prompt(
-                template_id="orchestrator"
-            )
-            return prompt
-        except ValueError:
-            # Fallback to hardcoded prompt
-            self.logger.warning("Orchestrator system prompt template not found, using fallback")
-            return """You are the Orchestrator agent, responsible for coordinating the multi-agent system.
-Your task is to handle user requests that don't require specialized agents,
-providing helpful responses based on available tools and your general knowledge.
-"""

@@ -3,7 +3,7 @@
 from typing import Dict, Any, List, Optional, Union, Set
 import uuid
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import time
 import os
 
@@ -65,7 +65,7 @@ class RequestMetricsService:
         if not request_id:
             request_id = str(uuid.uuid4())
             
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(timezone.utc).isoformat()
         
         if "requests" not in self._metrics_data:
             self._metrics_data["requests"] = {}
@@ -103,7 +103,7 @@ class RequestMetricsService:
             return
             
         request_data = self._metrics_data["requests"][request_id]
-        request_data["end_time"] = datetime.utcnow().isoformat()
+        request_data["end_time"] = datetime.now(timezone.utc).isoformat()
         
         # Calculate duration if start_time is available
         if request_data.get("start_time"):
@@ -172,7 +172,7 @@ class RequestMetricsService:
         total_requests = agent_data["total_requests"]
         agent_data["avg_confidence"] = ((current_avg * (total_requests - 1)) + confidence) / total_requests
         
-        agent_data["last_used"] = datetime.utcnow().isoformat()
+        agent_data["last_used"] = datetime.now(timezone.utc).isoformat()
         
         # Save metrics to disk
         self._save_metrics()
@@ -223,7 +223,7 @@ class RequestMetricsService:
             tool_data["total_duration_ms"] += duration_ms
             tool_data["avg_duration_ms"] = tool_data["total_duration_ms"] / tool_data["total_calls"]
             
-        tool_data["last_used"] = datetime.utcnow().isoformat()
+        tool_data["last_used"] = datetime.now(timezone.utc).isoformat()
         
         # Save metrics to disk
         self._save_metrics()
@@ -283,7 +283,7 @@ class RequestMetricsService:
             model_data["total_duration_ms"] += duration_ms
             model_data["avg_duration_ms"] = model_data["total_duration_ms"] / model_data["total_calls"]
             
-        model_data["last_used"] = datetime.utcnow().isoformat()
+        model_data["last_used"] = datetime.now(timezone.utc).isoformat()
         
         # Save metrics to disk
         self._save_metrics()
@@ -304,7 +304,7 @@ class RequestMetricsService:
             Dictionary of agent metrics
         """
         if not end_time:
-            end_time = datetime.utcnow()
+            end_time = datetime.now(timezone.utc)
         if not start_time:
             start_time = end_time - timedelta(days=30)
             
@@ -365,7 +365,7 @@ class RequestMetricsService:
             Dictionary of tool metrics
         """
         if not end_time:
-            end_time = datetime.utcnow()
+            end_time = datetime.now(timezone.utc)
         if not start_time:
             start_time = end_time - timedelta(days=30)
             

@@ -75,14 +75,15 @@ def test_configuration():
     # Show thinking setting
     logger.info(f"Show thinking: {config.show_thinking}")
     
-    return True
-
+    # Use assert statement instead of returning True
+    assert config is not None
+    
 def main():
     """Run the configuration test."""
     logger.info("Testing configuration system")
     
     success = test_configuration()
-    if success:
+    if success is None:  # Test functions returning None is the expected behavior
         logger.info("✅ Configuration system test passed")
     else:
         logger.error("❌ Configuration system test failed")

@@ -29,9 +29,11 @@ class ProviderFactory:
     
     @classmethod
     def create(
-        cls, 
-        provider_type: str, 
+        cls,
+        provider_type: str,
         model_id: str,
+        provider_config: Dict[str, Any],
+        model_config: Dict[str, Any],
         logger: Optional[LoggerInterface] = None
     ) -> BaseProvider:
         """
@@ -40,6 +42,8 @@ class ProviderFactory:
         Args:
             provider_type: Type of provider (e.g., 'openai', 'anthropic')
             model_id: Model identifier
+            provider_config: Configuration dictionary for the provider
+            model_config: Configuration dictionary for the specific model
             logger: Logger instance
             
         Returns:
@@ -59,6 +63,8 @@ class ProviderFactory:
         # Create the provider instance
         return provider_class(
             model_id=model_id,
+            provider_config=provider_config,
+            model_config=model_config,
             logger=logger
         )
     

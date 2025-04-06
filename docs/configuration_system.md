@@ -20,7 +20,7 @@ The configuration system consists of the following main components:
 The system uses two main configuration files:
 
 1. `config.yml`: Contains base configurations for models and use cases.
-2. `agent_config.yml`: Contains agent-specific configurations.
+2. `agents.yml`: Contains agent-specific configurations.
 
 These files are located in the `src/config` directory and serve as default configurations. Users can override these defaults by providing their own configuration files.
 
@@ -29,7 +29,7 @@ These files are located in the `src/config` directory and serve as default confi
 The system comes with default configuration files that provide a good starting point for most use cases. These files are:
 
 - `src/config/config.yml`: Contains default model and use case configurations.
-- `src/config/agent_config.yml`: Contains default agent configurations.
+- `src/config/agents.yml`: Contains default agent configurations.
 
 ### Overriding Default Configurations
 
@@ -41,7 +41,7 @@ from src.config.config_factory import ConfigFactory
 # Initialize with custom config files
 config_factory = ConfigFactory.get_instance(
     config_path="path/to/custom/config.yml",
-    agent_config_path="path/to/custom/agent_config.yml"
+    agent_config_path="path/to/custom/agents.yml"
 )
 ```
 
@@ -167,3 +167,26 @@ The configuration system provides several benefits:
 ## Example
 
 See `examples/config_system_example.py` for a complete example of how to use the configuration system.
+
+The configuration system manages settings for various components of the AI framework. Key configuration files include:
+
+- `models.yml`: Defines AI model parameters, capabilities, and costs.
+- `agents.yml`: Contains agent-specific configurations.
+- `providers.yml`: Configures API providers (e.g., OpenAI, Anthropic).
+- `use_cases.yml`: Defines settings for different task types (e.g., chat, coding).
+
+- `src/config/models.yml`: Contains base model definitions.
+- `src/config/agents.yml`: Contains default agent configurations.
+- `src/config/providers.yml`: Contains API provider settings.
+- `src/config/use_cases.yml`: Defines default settings for different use cases.
+
+See `UserConfig` class and `UnifiedConfig._apply_user_config` for details.
+
+```bash
+python your_app.py --config-file path/to/user_config.yml
+# OR using environment variables:
+export APP_MODEL="gpt-4o"
+export APP_TEMPERATURE="0.8"
+# OR command line arguments:
+python your_app.py --model gpt-4o --temperature 0.8
+```

@@ -2,7 +2,7 @@
 Request Analyzer component.
 Analyzes user requests to determine appropriate agents and tools.
 """
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, List, Tuple, Optional, Literal
 import json
 import re
 from ..core.tool_enabled_ai import AI
@@ -30,7 +30,7 @@ class RequestAnalyzer:
             unified_config: UnifiedConfig instance
             logger: Logger instance
             model: The model to use for analysis (or None for default)
-            prompt_template: PromptTemplate service (or None to create new)
+            prompt_template: PromptTemplate instance (or None to create default)
         """
         self._config = unified_config or UnifiedConfig.get_instance()
         self._logger = logger or LoggerFactory.create(name="request_analyzer")
@@ -39,22 +39,93 @@ class RequestAnalyzer:
         self._agent_config = self._config.get_agent_config("request_analyzer")
         self._confidence_threshold = self._agent_config.get("confidence_threshold", 0.6)
         
-        # Set up prompt template
+        # Set up prompt template service (loads YAML automatically)
         self._prompt_template = prompt_template or PromptTemplate(logger=self._logger)
         
+        # Get system prompt string using PromptTemplate
+        system_prompt_str = None
+        try:
+            # Render the 'request_analyzer' template (assumes no variables needed for system prompt)
+            system_prompt_str, _ = self._prompt_template.render_prompt(
+                 template_id="request_analyzer"
+            ) 
+        except ValueError:
+             # Handle case where system prompt template is missing
+            error_msg = "Request Analyzer system prompt template ('request_analyzer') is missing."
+            self._logger.error(error_msg)
+            # Let's allow it to continue with a fallback for now, but ideally raise error
+            # raise ValueError(error_msg) 
+            system_prompt_str = "You are a Request Analyzer responsible for analyzing user requests." # Basic fallback
+        except Exception as e:
+             error_msg = f"Error loading Request Analyzer system prompt: {e}"
+             self._logger.error(error_msg)
+             system_prompt_str = "You are a Request Analyzer responsible for analyzing user requests." # Basic fallback
+
         # Set up AI instance for analysis
         self._ai = AI(
             model=model or self._agent_config.get("default_model"),
-            system_prompt=self._get_system_prompt(),
-            logger=self._logger
+            system_prompt=system_prompt_str, # Use loaded/fallback prompt
+            logger=self._logger,
+            prompt_template=self._prompt_template # Pass template service to AI base
         )
     
-    def analyze_request(self, 
-                       request: Dict[str, Any], 
-                       available_agents: List[str], 
-                       agent_descriptions: Dict[str, str]) -> List[Tuple[str, float]]:
+    def classify_request_intent(self, request: Dict[str, Any]) -> Literal["META", "TASK", "QUESTION", "UNKNOWN"]:
         """
-        Analyze a request to determine appropriate agents.
+        Classify the user's request intent.
+
+        Args:
+            request: The request object containing the prompt.
+
+        Returns:
+            The classified intent: "META", "TASK", "QUESTION", or "UNKNOWN" on error.
+        """
+        prompt_text = request.get("prompt", "")
+        if not prompt_text:
+            return "UNKNOWN"
+
+        try:
+            # Prepare template variables
+            variables = {
+                "user_prompt": prompt_text
+            }
+            
+            # Use prompt template service directly
+            prompt, usage_id = self._prompt_template.render_prompt(
+                template_id="classify_intent",
+                variables=variables
+            )
+            # If render_prompt raises an error for missing template, let it propagate
+
+            # Get response from AI
+            self._logger.debug(f"Classifying intent for request: {prompt_text[:50]}...")
+            response = self._ai.request(prompt).strip().upper()
+            self._logger.debug(f"Intent classification response: {response}")
+
+            # Validate response
+            if response in ["META", "TASK", "QUESTION"]:
+                return response
+            else:
+                self._logger.warning(f"Unexpected intent classification response: {response}")
+                # Attempt a fallback interpretation (e.g., if it contains the word)
+                if "META" in response: return "META"
+                if "TASK" in response: return "TASK"
+                if "QUESTION" in response: return "QUESTION"
+                return "UNKNOWN" # Could not reliably classify
+
+        except Exception as e:
+            error_response = ErrorHandler.handle_error(
+                AIAgentError(f"Failed to classify request intent: {str(e)}", agent_id="request_analyzer"),
+                self._logger
+            )
+            self._logger.error(f"Intent classification error: {error_response['message']}")
+            return "UNKNOWN"
+
+    def get_agent_assignments(self, 
+                              request: Dict[str, Any], 
+                              available_agents: List[str], 
+                              agent_descriptions: Dict[str, str]) -> List[Tuple[str, float]]:
+        """
+        Analyze a request (assumed to be a TASK) to determine appropriate agents.
         
         Args:
             request: The request object
@@ -78,29 +149,16 @@ class RequestAnalyzer:
                 "confidence_threshold": self._confidence_threshold
             }
             
-            # Use template to generate prompt
-            try:
-                prompt, usage_id = self._prompt_template.render_prompt(
-                    template_id="analyze_request",
-                    variables=variables
-                )
-            except ValueError:
-                # Fallback if template not found
-                self._logger.warning("Template 'analyze_request' not found, using fallback")
-                prompt = self._create_analysis_prompt(request, available_agents, agent_descriptions)
-                usage_id = None
-            
+            # Use prompt template service directly
+            prompt, usage_id = self._prompt_template.render_prompt(
+                template_id="analyze_request",
+                variables=variables
+            )
+            # If render_prompt raises an error for missing template, let it propagate
+
             # Get response from AI
             self._logger.info(f"Analyzing request: {request.get('prompt', '')[:50]}...")
             response = self._ai.request(prompt)
-            
-            # Record metrics if we used a template
-            if usage_id:
-                metrics = {
-                    "response_length": len(response),
-                    "model": self._ai.get_model_info().get("model_id", "unknown")
-                }
-                self._prompt_template.record_prompt_performance(usage_id, metrics)
             
             # Parse response
             agents = self._parse_agent_assignments(response)
@@ -152,29 +210,16 @@ class RequestAnalyzer:
                 "tool_list": tool_list
             }
             
-            # Use template to generate prompt
-            try:
-                prompt, usage_id = self._prompt_template.render_prompt(
-                    template_id="analyze_tools",
-                    variables=variables
-                )
-            except ValueError:
-                # Fallback if template not found
-                self._logger.warning("Template 'analyze_tools' not found, using fallback")
-                prompt = self._create_tool_analysis_prompt(request, available_tools, tool_descriptions)
-                usage_id = None
+            # Use prompt template service directly
+            prompt, usage_id = self._prompt_template.render_prompt(
+                template_id="analyze_tools",
+                variables=variables
+            )
+            # If render_prompt raises an error for missing template, let it propagate
             
             # Get response from AI
             self._logger.info(f"Analyzing tools for request: {request.get('prompt', '')[:50]}...")
             response = self._ai.request(prompt)
-            
-            # Record metrics if we used a template
-            if usage_id:
-                metrics = {
-                    "response_length": len(response),
-                    "model": self._ai.get_model_info().get("model_id", "unknown")
-                }
-                self._prompt_template.record_prompt_performance(usage_id, metrics)
             
             # Parse response
             tools = self._parse_tool_assignments(response)
@@ -223,68 +268,6 @@ class RequestAnalyzer:
             description = tool_descriptions.get(tool_id, f"Tool: {tool_id}")
             tool_list += f"- {tool_id}: {description}\n"
         return tool_list
-    
-    def _create_analysis_prompt(self, 
-                               request: Dict[str, Any], 
-                               available_agents: List[str], 
-                               agent_descriptions: Dict[str, str]) -> str:
-        """
-        Create a prompt for analyzing the request.
-        
-        Args:
-            request: The request object
-            available_agents: List of available agent IDs
-            agent_descriptions: Map of agent IDs to descriptions
-            
-        Returns:
-            Prompt for analysis
-        """
-        # Format agent list for prompt
-        agent_list = self._format_agent_list(available_agents, agent_descriptions)
-        
-        prompt = f"""Analyze this user request and determine which specialized agents should handle it:
-        
-Request: {request.get('prompt', '')}
-
-Available agents:
-{agent_list}
-
-Return a JSON list of [agent_id, confidence] pairs, where confidence is 0.0-1.0.
-Only include agents with confidence > {self._confidence_threshold}. If no agents are appropriate, return [].
-"""
-        
-        return prompt
-    
-    def _create_tool_analysis_prompt(self, 
-                                    request: Dict[str, Any], 
-                                    available_tools: List[str], 
-                                    tool_descriptions: Dict[str, str]) -> str:
-        """
-        Create a prompt for analyzing which tools should be used.
-        
-        Args:
-            request: The request object
-            available_tools: List of available tool IDs
-            tool_descriptions: Map of tool IDs to descriptions
-            
-        Returns:
-            Prompt for tool analysis
-        """
-        # Format tool list for prompt
-        tool_list = self._format_tool_list(available_tools, tool_descriptions)
-        
-        prompt = f"""Analyze this user request and determine which tools would be helpful:
-        
-Request: {request.get('prompt', '')}
-
-Available tools:
-{tool_list}
-
-Return a JSON list of tool IDs that would be helpful for this request.
-If no tools are needed, return [].
-"""
-        
-        return prompt
     
     def _parse_agent_assignments(self, response: str) -> List[Tuple[str, float]]:
         """
@@ -353,27 +336,4 @@ If no tools are needed, return [].
                 return []
         except Exception as e:
             self._logger.error(f"Error parsing tool assignments: {str(e)}")
-            return []
-    
-    def _get_system_prompt(self) -> str:
-        """
-        Get the system prompt for the AI model.
-        Uses the template system if available.
-        
-        Returns:
-            System prompt string
-        """
-        try:
-            # Try to use template
-            prompt, _ = self._prompt_template.render_prompt(
-                template_id="request_analyzer"
-            )
-            return prompt
-        except ValueError:
-            # Fallback to hardcoded prompt
-            self._logger.warning("Request Analyzer system prompt template not found, using fallback")
-            return """You are a Request Analyzer responsible for analyzing user requests.
-Your task is to determine which specialized agents or tools should handle user requests.
-Analyze the main intent and required capabilities to make accurate assignments.
-Only recommend agents or tools that are highly relevant to the user's request.
-""" 
+            return [] 

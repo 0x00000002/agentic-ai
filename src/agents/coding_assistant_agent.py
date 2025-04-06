@@ -44,7 +44,6 @@ class CodingAssistantAgent(BaseAgent):
             ai_instance=ai_instance,
             unified_config=unified_config,
             logger=logger,
-            agent_id="coding_assistant",
             **kwargs
         )
         
