@@ -28,8 +28,9 @@ class Coordinator(BaseAgent):
                  logger: Optional[LoggerInterface] = None,
                  **kwargs):
 
-        # Use 'coordinator' as agent_id for config/logging
-        super().__init__(agent_id="coordinator", unified_config=unified_config, logger=logger, **kwargs)
+        # Use 'coordinator' as agent_id for config/logging - agent_id is passed via kwargs
+        # The agent_id used here will be whatever was passed in kwargs by the factory
+        super().__init__(unified_config=unified_config, logger=logger, **kwargs)
 
         # --- Dependencies (Inject or Create Defaults) ---
         # ALWAYS create a standard logger for dependencies to ensure exc_info support

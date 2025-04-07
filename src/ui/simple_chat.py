@@ -1,17 +1,27 @@
 """
 Simple Chat UI for the Agentic AI Framework
 
-This module provides a simple chat interface using Gradio for interacting with the orchestrator.
+This module provides a simple chat interface using Gradio for interacting with the coordinator.
 """
+import os
+import sys
 import gradio as gr
 import uuid
 from typing import List, Tuple, Dict, Any, Optional
 import logging
-import time
 
-from ..agents.coordinator import Coordinator
+# Add the parent directory to sys.path to import the package
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+from src.agents.coordinator import Coordinator
 from src.config.user_config import UserConfig
 from src.utils.logger import LoggerFactory
+from src.config import configure, get_config, UseCasePreset
+from src.agents.agent_factory import AgentFactory
+from src.agents.agent_registry import AgentRegistry
+from src.core.tool_enabled_ai import ToolEnabledAI
 
 # Configure logging
 # logging.basicConfig(
@@ -26,7 +36,7 @@ LoggerFactory.enable_real_loggers()
 
 class SimpleChatUI:
     """
-    A simple chat interface for interacting with the orchestrator.
+    A simple chat interface for interacting with the coordinator.
     Uses Gradio to create a web-based chat interface.
     """
     
@@ -35,7 +45,7 @@ class SimpleChatUI:
         Initialize the chat UI.
         
         Args:
-            orchestrator: The orchestrator instance to use for processing requests
+            coordinator: The coordinator instance to use for processing requests
             title: The title of the chat interface
         """
         self.coordinator = coordinator
@@ -58,7 +68,7 @@ class SimpleChatUI:
             
         self.logger.info(f"Processing message: {message[:50]}...")
         
-        # Create a request for the orchestrator
+        # Create a request for the coordinator
         request = {
             "prompt": message,
             "request_id": str(uuid.uuid4()),
@@ -145,56 +155,51 @@ class SimpleChatUI:
         interface = self.build_interface()
         interface.launch(**kwargs)
 
-# --- Add the following execution block ---
-if __name__ == "__main__":
-    from ..agents.coordinator import Coordinator
-    from ..agents.agent_factory import AgentFactory # Assuming AgentFactory exists and is needed
-    from ..agents.agent_registry import AgentRegistry # Assuming AgentRegistry exists
-    from ..config.unified_config import UnifiedConfig # Assuming UnifiedConfig is used
-    from ..utils.logger import LoggerFactory # Assuming LoggerFactory is used
-
-    logger.info("Initializing Agentic AI Framework components...")
+def run_simple_chat():
+    """Run a simple chat UI with default configuration."""
+    # Configure the framework
+    configure(
+        model="claude-3-haiku",  # Use a smaller model by default
+        use_case=UseCasePreset.CHAT,
+        temperature=0.7,
+        show_thinking=True
+    )
     
-    try:
-        # Basic initialization (adjust paths/config as needed)
-        # Load configuration
-        config = UnifiedConfig.get_instance() # Or load from a specific path if needed
-        
-        # Create a logger factory
-        logger_factory = LoggerFactory()
-        
-        # Create an agent registry
-        agent_registry = AgentRegistry()
-        
-        # Create an agent factory (assuming default implementation)
-        agent_factory = AgentFactory(registry=agent_registry, unified_config=config, logger=logger_factory.create("agent_factory"))
-        
-        # --- Register any specific agents your framework uses ---
-        # Example: 
-        # from ..agents.coding_agent import CodingAgent 
-        # agent_factory.register_agent("coding_agent", CodingAgent)
-        # ---------------------------------------------------------
+    # Get configuration
+    config = get_config()
+    
+    # Create a logger
+    chat_logger = LoggerFactory.create("simple_chat")
+    
+    # Create an AI instance
+    ai_instance = ToolEnabledAI(
+        model=config.get_default_model(),
+        system_prompt="You are a helpful assistant.",
+        logger=chat_logger
+    )
+    
+    # Create an agent registry
+    registry = AgentRegistry()
+    
+    # Create an agent factory
+    agent_factory = AgentFactory(registry=registry, unified_config=config, logger=chat_logger)
+    
+    # Create a coordinator agent
+    coordinator = agent_factory.create("coordinator", ai_instance=ai_instance)
+    
+    # Create and launch the chat UI
+    chat_ui = SimpleChatUI(coordinator=coordinator, title="Agentic AI Chat")
+    chat_ui.launch(
+        server_name="0.0.0.0",  # Allow external connections
+        server_port=7860,       # Default Gradio port
+        share=True              # Create a public URL
+    )
 
-        # Create the Coordinator 
-        # It will internally create PromptTemplate instances which load YAMLs
-        coordinator = Coordinator(
-            agent_factory=agent_factory,
-            unified_config=config,
-            logger=logger_factory.create("coordinator")
-            # Removed prompt_manager=... No longer needed here
-            # Add other components like tool_finder, model_selector if needed
-            # Note: Default ToolFinderAgent/RequestAnalyzer/ResponseAggregator created
-            # inside Orchestrator will now correctly use PromptTemplate
-        )
-        
-        logger.info("Coordinator initialized successfully.")
-        
-        # Create and launch the UI
-        ui = SimpleChatUI(coordinator=coordinator)
-        logger.info("Launching Simple Chat UI...")
-        ui.launch(server_name="0.0.0.0") # Launch on all interfaces
-
-    except ImportError as ie:
-         logger.error(f"Import error during initialization: {ie}. Please ensure all necessary components exist and paths are correct.")
-    except Exception as e:
-        logger.error(f"Failed to initialize or launch the application: {e}", exc_info=True) 
+# Direct execution
+if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    logger.info("Starting Simple Chat UI application...")
+    run_simple_chat() 

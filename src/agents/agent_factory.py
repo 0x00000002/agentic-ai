@@ -65,9 +65,9 @@ class AgentFactory(AgentFactoryInterface):
             
             # Initialize AI instance if needed
             ai_instance = kwargs.get('ai_instance')
-            if not ai_instance and agent_type != "orchestrator":
-                # Only create AI instance if not provided and not orchestrator
-                from ..core.tool_enabled_ai import AI
+            if not ai_instance and agent_type != "coordinator":
+                # Only create AI instance if not provided and not coordinator
+                from ..core.tool_enabled_ai import ToolEnabledAI
                 
                 # Get the appropriate model and system prompt
                 agent_config = self.config.get_agent_config(agent_type) or {}
@@ -77,7 +77,7 @@ class AgentFactory(AgentFactoryInterface):
                 # Use the provided model if available, otherwise use default
                 selected_model = model or default_model
                 
-                ai_instance = AI(
+                ai_instance = ToolEnabledAI(
                     model=selected_model,
                     system_prompt=system_prompt,
                     logger=self.logger
@@ -92,23 +92,16 @@ class AgentFactory(AgentFactoryInterface):
             logger_to_use = agent_creation_kwargs.pop('logger', self.logger)
             # ---------------------------------------------------------------------
 
-            if agent_type == "orchestrator" and 'agent_id' not in agent_creation_kwargs:
-                # Orchestrator branch
-                agent_instance = agent_class(
-                    unified_config=config_to_use, # Use determined config
-                    logger=logger_to_use,         # Use determined logger
-                    **agent_creation_kwargs   # Pass remaining args
-                )
-            else:
-                # For other agents, pass the agent_type as agent_id
-                agent_instance = agent_class(
-                    unified_config=config_to_use, # Use determined config
-                    logger=logger_to_use,         # Use determined logger
-                    agent_id=agent_type,
-                    **agent_creation_kwargs   # Pass remaining args
-                )
+            # agent_id should be passed in kwargs by the caller (e.g., simple_chat.py)
+            # or determined within the specific agent's __init__ (like Coordinator does now)
+            # BaseAgent __init__ handles setting self.agent_id based on the 'agent_id' kwarg
+            agent_instance = agent_class(
+                unified_config=config_to_use, # Use determined config
+                logger=logger_to_use,         # Use determined logger
+                **agent_creation_kwargs   # Pass remaining args
+            )
             
-            self.logger.info(f"Created agent: {agent_type}")
+            self.logger.info(f"Created agent: {agent_type} with ID: {agent_instance.agent_id}")
             return agent_instance
             
         except Exception as e:
@@ -167,8 +160,8 @@ class AgentFactory(AgentFactoryInterface):
                 # Check if AI is provided for tool finder
                 tool_finder_ai = kwargs.get('tool_finder_ai')
                 if not tool_finder_ai:
-                    from ..core.tool_enabled_ai import AI
-                    tool_finder_ai = AI(
+                    from ..core.tool_enabled_ai import ToolEnabledAI
+                    tool_finder_ai = ToolEnabledAI(
                         unified_config=self.config,
                         logger=self.logger
                     )
@@ -212,7 +205,7 @@ class AgentFactory(AgentFactoryInterface):
             # Check if AI is provided
             ai_instance = kwargs.get('ai_instance')
             if not ai_instance:
-                from ..core.tool_enabled_ai import AI
+                from ..core.tool_enabled_ai import ToolEnabledAI
                 
                 # Get configuration values
                 agent_config = self.config.get_agent_config("tool_finder") or {}
@@ -222,7 +215,7 @@ class AgentFactory(AgentFactoryInterface):
                 # Use model from kwargs if provided
                 model = kwargs.pop('model', default_model)
                 
-                ai_instance = AI(
+                ai_instance = ToolEnabledAI(
                     model=model,
                     system_prompt=system_prompt,
                     logger=self.logger

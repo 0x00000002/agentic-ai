@@ -38,8 +38,12 @@ class ParameterManager:
         # Initialize parameters in priority order (defaults < model config)
         self.default_parameters = {} if default_parameters is None else default_parameters.copy()
         
-        # Store model parameters separately to allow merging in the right order
-        self.model_parameters = {} if model_parameters is None else model_parameters.copy()
+        # Store model parameters separately, ensuring it's a dict
+        if isinstance(model_parameters, dict):
+            self.model_parameters = model_parameters.copy()
+        else:
+            self.logger.warning(f"Received non-dict model_parameters (type: {type(model_parameters)}). Initializing as empty dict.")
+            self.model_parameters = {}
         
         # Combine defaults and model parameters for base parameters
         self.parameters = self.default_parameters.copy()

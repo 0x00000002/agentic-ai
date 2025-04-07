@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 # Import metrics components
 from src.metrics.request_metrics import RequestMetricsService
 from src.metrics.dashboard import MetricsDashboard
+from src.utils.logger import LoggerFactory
 
 
 def simulate_agent_activity(metrics, request_id, agent_id, success_rate=0.9):
@@ -136,20 +137,23 @@ def simulate_request(metrics, prompt, agents, tools, model):
 
 def main():
     """Run the metrics example."""
+    # Configure logger
+    logger = LoggerFactory.create("metrics_example")
+    
     # Initialize metrics service
-    metrics = RequestMetricsService()
+    metrics = RequestMetricsService(logger=logger)
     
     # Define some example agents, tools, and models
-    agents = ["orchestrator", "coding_assistant", "request_analyzer", "response_aggregator"]
-    tools = ["code_search", "file_reader", "code_writer", "terminal", "web_search"]
-    models = ["gpt-4", "gpt-3.5-turbo", "claude-3-sonnet"]
+    agents = ["coordinator", "tool_finder", "solidity_expert", "response_formatter"]
+    tools = ["code_search", "file_reader", "code_writer", "web_search", "solidity_compiler"]
+    models = ["claude-3-5-sonnet", "gpt-4o", "phi4", "llamacpp://llama3-8b"]
     
     # Example prompts
     prompts = [
-        "How do I create a React component?",
-        "Explain the metrics tracking system",
-        "Write a Python function to calculate Fibonacci numbers",
-        "Find all files in the project containing 'metrics'",
+        "How do I implement a staking contract in Solidity?",
+        "Explain the metrics tracking system in Agentic-AI",
+        "Write a Solidity function to distribute rewards based on user token balances",
+        "Find all files in the project containing 'metrics' and explain their purpose",
         "Generate documentation for the RequestMetricsService class"
     ]
     
@@ -185,14 +189,15 @@ def main():
     if completed_requests:
         sample_request = random.choice(completed_requests)
         print(f"\nSample request details ({sample_request}):")
-        request_data = metrics._metrics_data["requests"].get(sample_request, {})
-        print(f"Duration: {request_data.get('duration_ms', 0)} ms")
-        print(f"Agents used: {request_data.get('agents_used', [])}")
-        print(f"Tools used: {request_data.get('tools_used', [])}")
-        print(f"Models used: {request_data.get('models_used', [])}")
+        request_data = metrics.get_request_data(sample_request)
+        if request_data:
+            print(f"Duration: {request_data.get('duration_ms', 0)} ms")
+            print(f"Agents used: {request_data.get('agents_used', [])}")
+            print(f"Tools used: {request_data.get('tools_used', [])}")
+            print(f"Models used: {request_data.get('models_used', [])}")
     
     # Initialize dashboard
-    dashboard = MetricsDashboard(metrics)
+    dashboard = MetricsDashboard(metrics_service=metrics, logger=logger)
     
     # Generate a performance report
     print("\nGenerating performance report...")
@@ -209,11 +214,17 @@ def main():
         for tool in report["top_performing_tools"]:
             print(f"  {tool['tool_id']}: {tool['success_rate']:.2f} success rate")
     
+    # Save metrics to file for persistence
+    metrics_file = os.path.join("data", "metrics", f"metrics_{datetime.now().strftime('%Y%m%d%H%M%S')}.json")
+    os.makedirs(os.path.dirname(metrics_file), exist_ok=True)
+    metrics.save_to_file(metrics_file)
+    print(f"\nMetrics saved to: {metrics_file}")
+    
     print("\nExample completed. You can now run the metrics CLI to explore the data:")
-    print("  python src/metrics/metrics_cli.py summary")
-    print("  python src/metrics/metrics_cli.py agents")
-    print("  python src/metrics/metrics_cli.py tools")
-    print(f"  python src/metrics/metrics_cli.py request {sample_request if completed_requests else 'REQUEST_ID'}")
+    print("  python -m src.metrics.cli summary")
+    print("  python -m src.metrics.cli agents")
+    print("  python -m src.metrics.cli tools")
+    print(f"  python -m src.metrics.cli request {sample_request if completed_requests else 'REQUEST_ID'}")
 
 
 if __name__ == "__main__":

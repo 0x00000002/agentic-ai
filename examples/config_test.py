@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Simple test script for the new configuration system.
+Simple test script for the unified configuration system.
 """
 import os
 import sys
@@ -19,11 +19,15 @@ logger = logging.getLogger("config_test")
 
 def test_configuration():
     """Test the configuration system."""
-    from src.config import configure, get_config, get_available_models, Model, UseCasePreset
+    from src.config import configure, get_config, UseCasePreset
+    from src.config.unified_config import UnifiedConfig
+    
+    # Get configuration instance
+    config = get_config()
     
     # List available models
     logger.info("Available models:")
-    for model in get_available_models():
+    for model in config.get_model_names():
         logger.info(f"- {model}")
     
     # Configure with a specific model and use case
@@ -35,7 +39,7 @@ def test_configuration():
         show_thinking=True
     )
     
-    # Get the configuration instance
+    # Get the configuration instance again (should be the same instance due to singleton)
     config = get_config()
     
     # Show the configuration
@@ -43,9 +47,9 @@ def test_configuration():
     
     # Get model configuration
     model_config = config.get_model_config()
-    logger.info(f"Model details: {model_config.get('name')} ({model_config.get('provider')})")
-    logger.info(f"Model quality: {model_config.get('quality')}")
-    logger.info(f"Model speed: {model_config.get('speed')}")
+    logger.info(f"Model details: {model_config.get('name', 'Unnamed')} ({model_config.get('provider', 'Unknown')})")
+    logger.info(f"Model quality: {model_config.get('quality', 'Unknown')}")
+    logger.info(f"Model privacy: {model_config.get('privacy', 'Unknown')}")
     
     # Get use case configuration
     use_case_config = config.get_use_case_config()
@@ -65,22 +69,38 @@ def test_configuration():
     system_prompt = config.get_system_prompt()
     logger.info(f"New system prompt: {system_prompt}")
     
-    # Test with custom kwargs
-    logger.info("\nConfiguring with custom kwargs")
-    configure(
-        max_tokens=2000,
-        custom_setting="value"
-    )
+    # Get user overrides
+    logger.info(f"User overrides: {config.user_overrides}")
+    
+    # Test tool configuration access
+    logger.info("\nAccessing tool configuration")
+    tool_config = config.get_tool_config()
+    logger.info(f"Tool configuration available: {bool(tool_config)}")
+    
+    # Test agent configuration access
+    logger.info("\nAccessing agent configuration")
+    agent_config = config.get_agent_config("coordinator")
+    logger.info(f"Coordinator agent config: {agent_config}")
+    
+    # Test configuration reload
+    logger.info("\nTesting configuration reload")
+    config.reload()
+    logger.info(f"Configuration reloaded successfully. Default model: {config.get_default_model()}")
     
     # Show thinking setting
     logger.info(f"Show thinking: {config.show_thinking}")
     
-    # Use assert statement instead of returning True
-    assert config is not None
+    # Test singleton behavior
+    logger.info("\nTesting singleton behavior")
+    another_config = UnifiedConfig.get_instance()
+    assert config is another_config
+    logger.info("Singleton pattern verified (same instance returned)")
+    
+    return None  # Success
     
 def main():
     """Run the configuration test."""
-    logger.info("Testing configuration system")
+    logger.info("Testing unified configuration system")
     
     success = test_configuration()
     if success is None:  # Test functions returning None is the expected behavior

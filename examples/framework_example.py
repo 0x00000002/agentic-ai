@@ -12,8 +12,16 @@ import os
 import sys
 import logging
 import time
+import warnings
 from pathlib import Path
 import uuid
+
+# Suppress the specific NotOpenSSLWarning from urllib3
+warnings.filterwarnings(
+    'ignore',
+    message="urllib3 v2 only supports OpenSSL 1.1.1+",
+    category=Warning
+)
 
 # Add the parent directory to sys.path to import the package
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -39,7 +47,6 @@ def example_basic_framework_usage():
     """Example of basic framework usage with configuration and agent creation."""
     from src.config import configure, get_config, UseCasePreset
     from src.agents.agent_factory import AgentFactory
-    from src.agents.coordinator import Coordinator
     from src.agents.agent_registry import AgentRegistry
     from src.core.tool_enabled_ai import ToolEnabledAI
     
@@ -72,8 +79,8 @@ def example_basic_framework_usage():
     logger.info("Creating agent factory")
     agent_factory = AgentFactory(registry=registry)
     
-    # Create an orchestrator agent with AI instance
-    logger.info("Creating orchestrator agent")
+    # Create a coordinator agent with AI instance
+    logger.info("Creating coordinator agent")
     coordinator = agent_factory.create("coordinator", ai_instance=ai_instance)
     
     # Process a request
@@ -104,9 +111,9 @@ def example_tool_usage():
     """Example of using tools with the framework."""
     from src.config import configure, get_config, UseCasePreset
     from src.agents.agent_factory import AgentFactory
-    from src.agents.coordinator import Coordinator
-    from src.tools.tool_registry import ToolRegistry
     from src.agents.agent_registry import AgentRegistry
+    from src.tools.tool_registry import ToolRegistry
+    from src.tools.tool_manager import ToolManager
     from src.core.tool_enabled_ai import ToolEnabledAI
     
     # Configure the framework
@@ -118,21 +125,26 @@ def example_tool_usage():
         show_thinking=True
     )
     
-    # Get the tool registry
-    logger.info("Getting tool registry")
-    tool_registry = ToolRegistry()
+    # Get configuration
+    config = get_config()
+    
+    # Create tool registry and manager
+    logger.info("Setting up tool registry and manager")
+    tool_registry = ToolRegistry(logger=logger)
+    tool_manager = ToolManager(unified_config=config, logger=logger, tool_registry=tool_registry)
     
     # List available tools
     logger.info("Available tools:")
-    for tool_name, tool_info in tool_registry.get_all_tools().items():
-        logger.info(f"- {tool_name}: {tool_info.get('description', 'No description')}")
+    for tool_name, tool_def in tool_registry.get_all_tool_definitions().items():
+        logger.info(f"- {tool_name}: {tool_def.description}")
     
-    # Create an AI instance
+    # Create an AI instance with tool manager
     logger.info("Creating AI instance")
     ai_instance = ToolEnabledAI(
         model="claude-3-5-sonnet",
         system_prompt="You are a helpful assistant specialized in coding.",
-        logger=logger
+        logger=logger,
+        tool_manager=tool_manager
     )
     
     # Create an agent registry
@@ -143,9 +155,9 @@ def example_tool_usage():
     logger.info("Creating agent factory")
     agent_factory = AgentFactory(registry=registry)
     
-    # Create an orchestrator agent with AI instance
-    logger.info("Creating orchestrator agent")
-    coordinator = agent_factory.create("coordinator", ai_instance=ai_instance)
+    # Create a coordinator agent with AI instance
+    logger.info("Creating coordinator agent")
+    coordinator = agent_factory.create("coordinator", ai_instance=ai_instance, tool_manager=tool_manager)
     
     # Process a request that will likely use tools
     logger.info("Processing a request that will use tools")
@@ -204,11 +216,11 @@ def example_ui_interaction():
     logger.info("Creating agent factory")
     agent_factory = AgentFactory(registry=registry)
     
-    # Create an orchestrator agent with AI instance
-    logger.info("Creating orchestrator agent")
+    # Create a coordinator agent with AI instance
+    logger.info("Creating coordinator agent")
     coordinator = agent_factory.create("coordinator", ai_instance=ai_instance)
     
-    # Create a simple chat UI with the orchestrator
+    # Create a simple chat UI with the coordinator
     logger.info("Creating simple chat UI")
     chat_ui = SimpleChatUI(coordinator=coordinator, title="Agentic AI Framework Example")
     
@@ -251,75 +263,97 @@ def example_custom_agent():
     logger.info("Configuring framework for custom agent")
     configure(
         model="claude-3-5-sonnet",
-        use_case=UseCasePreset.CODING,
+        use_case=UseCasePreset.SOLIDITY_CODING,
         temperature=0.7,
         show_thinking=True
     )
     
     # Define a custom agent class
     class SolidityExpertAgent(BaseAgent):
-        """A custom agent specialized in Solidity development."""
+        """A specialized agent for Solidity smart contract development."""
         
-        def __init__(self, ai_instance=None, config=None, logger=None):
-            super().__init__(ai_instance=ai_instance, config=config, logger=logger)
-            self.name = "solidity_expert"
-            self.description = "An agent specialized in Solidity smart contract development"
-            self.system_prompt = "You are an expert Solidity developer with deep knowledge of blockchain security, gas optimization, and EVM."
+        def __init__(self, ai_instance=None, tool_manager=None, unified_config=None, logger=None, agent_id=None):
+            """Initialize the Solidity expert agent."""
+            # Pass all parameters to the parent class
+            super().__init__(
+                ai_instance=ai_instance,
+                tool_manager=tool_manager,
+                unified_config=unified_config,
+                logger=logger,
+                agent_id=agent_id or "solidity_expert"
+            )
         
         def process_request(self, request):
-            """Process a request and return a response."""
+            """Process a request for Solidity expertise."""
+            # Extract the user prompt
             prompt = request.get("prompt", "")
             conversation_history = request.get("conversation_history", [])
             
-            # Add Solidity-specific context to the prompt
-            enhanced_prompt = f"As a Solidity expert, please help with the following: {prompt}"
+            # Add Solidity expertise to the prompt
+            enhanced_prompt = f"""
+            As a Solidity expert, please respond to this request: 
             
-            # Create a new request with the enhanced prompt
-            enhanced_request = {
-                "prompt": enhanced_prompt,
-                "conversation_history": conversation_history
-            }
+            {prompt}
             
-            # Use the base agent's process_request method
-            return super().process_request(enhanced_request)
+            Focus on best practices, security considerations, and gas optimization.
+            """
+            
+            # Log the enhanced prompt
+            self.logger.debug(f"Enhanced prompt for Solidity expert: {enhanced_prompt}")
+            
+            # Process with the AI instance
+            if self.ai_instance:
+                # Use the 'request' method instead of 'process'
+                response = self.ai_instance.request(
+                    enhanced_prompt, 
+                    # Note: BaseAI.request doesn't explicitly take conversation_history
+                    # It uses its internal ConversationManager
+                )
+                # The response from BaseAI.request is usually a string (content)
+                # Wrap it in the standard agent response format
+                return {
+                    "content": response,
+                    "agent_id": self.agent_id,
+                    "status": "success"
+                }
+            else:
+                return {"error": "No AI instance available for processing"}
+    
+    # Get configuration
+    config = get_config()
     
     # Create an AI instance
     logger.info("Creating AI instance")
     ai_instance = ToolEnabledAI(
         model="claude-3-5-sonnet",
-        system_prompt="You are an expert Solidity developer with deep knowledge of blockchain security, gas optimization, and EVM.",
+        system_prompt="You are a helpful assistant specialized in Solidity smart contract development.",
         logger=logger
     )
     
-    # Create and register the custom agent
+    # Create an agent registry
     logger.info("Creating agent registry")
     registry = AgentRegistry()
-    
-    # Register core agents
-    logger.info("Registering core agents")
-    register_core_agents(registry, logger)
     
     # Register the custom agent
     logger.info("Registering custom Solidity expert agent")
     registry.register("solidity_expert", SolidityExpertAgent)
     
-    # Create an agent factory with the custom registry
-    logger.info("Creating agent factory with custom registry")
+    # Register core agents as well
+    # Note: AgentRegistry __init__ already calls register_core_agents
+    # register_core_agents(registry) # This call might be redundant
+    
+    # Create an agent factory
+    logger.info("Creating agent factory")
     agent_factory = AgentFactory(registry=registry)
     
-    # Create the custom agent with AI instance
-    logger.info("Creating custom Solidity expert agent")
+    # Create the custom agent
+    logger.info("Creating Solidity expert agent")
     solidity_agent = agent_factory.create("solidity_expert", ai_instance=ai_instance)
     
-    # Check if agent creation was successful
-    if solidity_agent is None:
-        logger.error("Failed to create Solidity expert agent")
-        return None
-    
-    # Process a request with the custom agent
+    # Process a request
     logger.info("Processing a request with the custom agent")
     request = {
-        "prompt": "What are the best practices for gas optimization in Solidity?",
+        "prompt": "What are the security considerations for implementing a staking contract?",
         "conversation_history": []
     }
     
@@ -341,56 +375,70 @@ def example_custom_agent():
     return solidity_agent
 
 def simple_chat():
-    print("--- Simple Chat Example ---")
-    ai = ToolEnabledAI()
-    response = ai.request("What is the capital of Spain?")
+    """Run a simple chat example."""
+    from src.config import configure
+    configure(model="phi3-mini", use_case="chat")
+    from src.ui.simple_chat import run_simple_chat
+    run_simple_chat()
 
 def chat_with_local_model():
-    print("--- Chat with Local Model Example ---")
-    ai = ToolEnabledAI(model="phi4")
-    response = ai.request("Explain the concept of recursion in programming.")
+    """Run a chat with a local model."""
+    from src.config import configure
+    configure(model="llamacpp://llama3-8b", use_case="chat", system_prompt="You are a helpful AI assistant.")
+    from src.ui.simple_chat import run_simple_chat
+    run_simple_chat()
 
 def chat_with_override():
-    print("--- Chat with User Override Example ---")
-    user_cfg = UserConfig(model="gpt-4o-mini")
-    ai = ToolEnabledAI(model="gpt-4o-mini")
-    response = ai.request("Give me 3 ideas for a fantasy novel.")
+    """Run a chat with temperature override."""
+    from src.config import configure
+    configure(model="claude-3-haiku", use_case="chat", temperature=0.9, show_thinking=True)
+    from src.ui.simple_chat import run_simple_chat
+    run_simple_chat()
 
 def chat_with_tools():
-    print("--- Chat with Tools Example ---")
-    ai = ToolEnabledAI(auto_tool_finding=False)
-    
-    ai.register_tool("list_directory", list_files)
+    """Run a chat with tools enabled."""
+    from src.config import configure
+    configure(model="claude-3-5-sonnet", use_case="coding")
+    from src.ui.tool_chat import run_tool_chat
+    run_tool_chat()
 
 def run_examples():
-    """Run all framework examples."""
-    logger.info("Running framework examples")
-    
-    print("\n=== Basic Framework Usage ===")
+    """Run all examples."""
+    print("\n=== Basic Framework Usage ===\n")
     example_basic_framework_usage()
     
-    print("\n=== Tool Usage ===")
+    print("\n=== Tool Usage ===\n")
     example_tool_usage()
     
-    print("\n=== UI Interaction ===")
-    example_ui_interaction()
-    
-    print("\n=== Custom Agent ===")
+    print("\n=== Custom Agent ===\n")
     example_custom_agent()
     
-    print("\n=== Simple Chat Example ===")
-    simple_chat()
-    
-    print("\n=== Chat with Local Model Example ===")
-    chat_with_local_model()
-    
-    print("\n=== Chat with User Override Example ===")
-    chat_with_override()
-    
-    print("\n=== Chat with Tools Example ===")
-    chat_with_tools()
-    
-    logger.info("All framework examples completed successfully")
+    print("\n=== UI Interaction (Simulated) ===\n")
+    example_ui_interaction()
 
 if __name__ == "__main__":
-    run_examples() 
+    if len(sys.argv) > 1:
+        # Run a specific example
+        example_name = sys.argv[1]
+        if example_name == "basic":
+            example_basic_framework_usage()
+        elif example_name == "tools":
+            example_tool_usage()
+        elif example_name == "ui":
+            example_ui_interaction()
+        elif example_name == "custom":
+            example_custom_agent()
+        elif example_name == "chat":
+            simple_chat()
+        elif example_name == "local":
+            chat_with_local_model()
+        elif example_name == "override":
+            chat_with_override()
+        elif example_name == "tool_chat":
+            chat_with_tools()
+        else:
+            print(f"Unknown example: {example_name}")
+            print("Available examples: basic, tools, ui, custom, chat, local, override, tool_chat")
+    else:
+        # Run all examples
+        run_examples() 

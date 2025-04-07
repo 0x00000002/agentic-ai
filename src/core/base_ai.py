@@ -160,12 +160,19 @@ class AIBase(AIInterface):
             # Get response from provider
             response = self._provider.request(self._conversation_manager.get_messages(), **options)
             
-            # Ensure response is properly formatted (should be a dict with 'content' key)
-            if isinstance(response, str):
-                response = {'content': response, 'tool_calls': []}
-            
-            # Get the content from the response
-            content = response.get('content', '')
+            # --- Corrected Response Handling ---
+            content = ""
+            if hasattr(response, 'content'): # Check if it has a content attribute
+                content = response.content
+            elif isinstance(response, dict): # Handle if it's unexpectedly a dict
+                content = response.get('content', '')
+                self._logger.warning("Provider returned a dict instead of ProviderResponse object.")
+            elif isinstance(response, str): # Handle if it's unexpectedly a string
+                content = response
+                self._logger.warning("Provider returned a string instead of ProviderResponse object.")
+            else:
+                self._logger.error(f"Received unexpected response type from provider: {type(response)}")
+            # ----------------------------------
             
             # Add assistant message with thoughts handling
             self._conversation_manager.add_message(
@@ -214,12 +221,19 @@ class AIBase(AIInterface):
             # Stream the response
             response = self._provider.stream(self._conversation_manager.get_messages(), **options)
             
-            # Ensure response is properly formatted (should be a dict with 'content' key)
-            if isinstance(response, str):
-                response = {'content': response, 'tool_calls': []}
-                
-            # Get the content from the response
-            content = response.get('content', '')
+            # --- Corrected Response Handling ---
+            content = ""
+            if hasattr(response, 'content'): # Check if it has a content attribute
+                content = response.content
+            elif isinstance(response, dict): # Handle if it's unexpectedly a dict
+                content = response.get('content', '')
+                self._logger.warning("Provider returned a dict instead of ProviderResponse object during streaming.")
+            elif isinstance(response, str): # Handle if it's unexpectedly a string
+                content = response
+                self._logger.warning("Provider returned a string instead of ProviderResponse object during streaming.")
+            else:
+                self._logger.error(f"Received unexpected response type from provider during streaming: {type(response)}")
+            # ----------------------------------
             
             # Add assistant message with thoughts handling
             self._conversation_manager.add_message(

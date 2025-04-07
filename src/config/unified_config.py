@@ -150,39 +150,110 @@ class UnifiedConfig(metaclass=SingletonMeta):
     def _apply_user_config(self, user_config: UserConfig) -> None:
         """
         Internal implementation of apply_user_config.
+        Merges user overrides into the main configuration structure.
         
         Args:
             user_config: User configuration instance
         """
-        # Load from external file if specified
+        # Load from external file first (recursive call)
         if user_config.config_file and user_config.config_file.exists():
             self._logger.debug(f"Loading user configuration from file: {user_config.config_file}")
             try:
                 file_config = UserConfig.from_file(user_config.config_file)
-                self._apply_user_config(file_config)
+                self._apply_user_config(file_config) # Apply file config first
             except Exception as e:
                 self._logger.error(f"Failed to load user configuration from file: {str(e)}")
         
-        # Apply specific overrides
-        config_dict = user_config.to_dict()
+        # Get overrides from the current user_config object
+        overrides = user_config.to_dict()
         
-        # Handle model override
-        if "model" in config_dict:
-            override_model_key = config_dict["model"]
-            available_models = self.get_all_models().keys()
-            if override_model_key in available_models:
-                self._default_model = override_model_key
-                self._logger.debug(f"User override for default model: {self._default_model}")
+        # Store raw overrides for simple property access (like show_thinking)
+        self._user_overrides.update(overrides)
+        
+        # --- Intelligent Merging ---
+        target_model_id = overrides.get("model") or self._default_model
+        
+        # Merge top-level settings that affect the framework
+        if "show_thinking" in overrides:
+            self._show_thinking = overrides["show_thinking"]
+            self._logger.debug(f"Applied show_thinking override: {self._show_thinking}")
+        
+        if "model" in overrides:
+            # Check if the model exists before setting it as default
+            available_models = self._config.get("models", {}).get("models", {}).keys()
+            if overrides["model"] in available_models:
+                self._default_model = overrides["model"]
+                self._logger.debug(f"Applied default model override: {self._default_model}")
             else:
-                self._logger.warning(f"User override model '{override_model_key}' not found in available models. Ignoring override.")
+                self._logger.warning(f"User override model '{overrides['model']}' not found. Ignoring default model override.")
         
-        # Handle show_thinking override
-        if "show_thinking" in config_dict:
-            self._show_thinking = config_dict["show_thinking"]
-            self._logger.debug(f"User override for show_thinking: {self._show_thinking}")
+        # Merge parameters into the specific model's config
+        if target_model_id in self._config.get("models", {}).get("models", {}):
+            model_cfg = self._config["models"]["models"][target_model_id]
+            if "parameters" not in model_cfg:
+                model_cfg["parameters"] = {}
+            
+            # --- Create/Update runtime_parameters --- 
+            # Initialize if it doesn't exist
+            if "runtime_parameters" not in model_cfg:
+                model_cfg["runtime_parameters"] = {}
+            
+            # 1. Set default temperature from model's top level (if not already set)
+            if 'temperature' not in model_cfg["runtime_parameters"] and 'temperature' in model_cfg:
+                model_cfg["runtime_parameters"]["temperature"] = model_cfg['temperature']
+            
+            # 2. Apply user override for temperature
+            if "temperature" in overrides:
+                model_cfg["runtime_parameters"]["temperature"] = overrides["temperature"]
+                self._logger.debug(f"Applied temperature override ({overrides['temperature']}) to model '{target_model_id}' runtime parameters")
+            
+            # Add other potential parameter overrides here (e.g., max_tokens, top_p)
+            # Example:
+            # if "max_tokens" in overrides:
+            #     model_cfg["runtime_parameters"]["max_tokens"] = overrides["max_tokens"]
+            #     self._logger.debug(f"Merged max_tokens override ({overrides['max_tokens']}) into model '{target_model_id}'")
         
-        # Store all overrides for later use
-        self._user_overrides = config_dict
+        else:
+            if "model" in overrides: # Only warn if a specific model was requested
+                self._logger.warning(f"Cannot apply parameter overrides: Target model '{target_model_id}' not found in configuration.")
+        
+        # Merge system prompt override (could be global or model-specific if needed)
+        if "system_prompt" in overrides:
+            # For now, assume it's a global override?
+            # Or potentially merge into model_cfg["system_prompt"] ?
+            # Let's store it in _user_overrides for now, accessed via get_system_prompt()
+            self._logger.debug("Stored system_prompt override.")
+            pass # Already stored in self._user_overrides
+        
+        # Handle Use Case Preset (applies quality/speed defaults)
+        if "use_case" in overrides and overrides["use_case"]:
+            self._apply_use_case(overrides["use_case"], target_model_id)
+    
+    def _apply_use_case(self, use_case: Union[str, Any], target_model_id: str) -> None:
+        """
+        Applies configuration settings based on a use case preset.
+        Placeholder implementation.
+
+        Args:
+            use_case: The use case identifier or preset object.
+            target_model_id: The model being configured.
+        """
+        use_case_name = str(use_case) # Simple conversion for now
+        self._logger.debug(f"Applying use case '{use_case_name}' settings for model '{target_model_id}' (Placeholder)")
+        # TODO: Implement actual logic to merge use case defaults 
+        # (e.g., quality, speed) into the model or global config if needed.
+        use_cases_config = self._config.get("use_cases", {}).get("use_cases", {})
+        if use_case_name in use_cases_config:
+            uc_config = use_cases_config[use_case_name]
+            # Example: Merge quality/speed into the model's parameters if not already set
+            # model_cfg = self._config["models"]["models"][target_model_id]
+            # if "parameters" not in model_cfg: model_cfg["parameters"] = {}
+            # if "quality" not in model_cfg["parameters"]:
+            #     model_cfg["parameters"]["quality"] = uc_config.get("quality")
+            # ... etc ... 
+            pass # Keep it simple for now
+        else:
+            self._logger.warning(f"Use case '{use_case_name}' not found in use_cases.yml")
     
     def get_provider_config(self, provider: str) -> Dict[str, Any]:
         """
@@ -204,13 +275,13 @@ class UnifiedConfig(metaclass=SingletonMeta):
     
     def get_model_config(self, model_id: Optional[str] = None) -> Dict[str, Any]:
         """
-        Get configuration for a specific model.
+        Get the fully merged configuration for a specific model.
         
         Args:
             model_id: Model ID or None for default model
             
         Returns:
-            Model configuration
+            Model configuration (already merged with overrides)
             
         Raises:
             AIConfigError: If model configuration is not found
@@ -221,17 +292,13 @@ class UnifiedConfig(metaclass=SingletonMeta):
         
         models = self._config.get("models", {}).get("models", {})
         if model_id not in models:
+            # Log the specific model ID that was not found
+            self._logger.error(f"Configuration for model '{model_id}' not found. Available models: {list(models.keys())}")
             raise AIConfigError(f"Model configuration not found: {model_id}", config_name="models")
         
-        # Start with base model config
-        model_config = dict(models[model_id])
-        
-        # Apply temperature override if specified and for this specific model
-        if self._user_overrides.get('model') == model_id and 'temperature' in self._user_overrides:
-            model_config['temperature'] = self._user_overrides['temperature']
-            self._logger.debug(f"Applied user temperature override for model {model_id}: {model_config['temperature']}")
-        
-        return model_config
+        # Return the configuration directly - merging happens in _apply_user_config
+        # Return a copy to prevent modification of the internal state
+        return dict(models[model_id])
     
     def get_all_models(self) -> Dict[str, Dict[str, Any]]:
         """

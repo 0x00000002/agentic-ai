@@ -30,6 +30,7 @@ def register_core_agents(registry, logger: Optional[LoggerInterface] = None):
     # _register_tool_finder_agent(registry, logger) # Removed - ToolFinderAgent deleted
     _register_coordinator_agent(registry, logger) # Renamed from orchestrator
     _register_listener_agent(registry, logger)
+    _register_chat_agent(registry, logger) # Add registration for ChatAgent
     
     if logger:
         agent_types = registry.get_agent_types()
@@ -62,6 +63,22 @@ def _register_listener_agent(registry, logger=None):
     except Exception as e:
         if logger:
             logger.error(f"Failed to register ListenerAgent: {str(e)}")
+
+
+def _register_chat_agent(registry, logger=None):
+    """Register the ChatAgent."""
+    try:
+        from .chat_agent import ChatAgent  # Assuming the file is chat_agent.py
+        if not registry.has_agent_type("chat_agent"):
+            registry.register("chat_agent", ChatAgent)
+            if logger:
+                logger.info("Registered ChatAgent")
+    except ImportError:
+        if logger:
+            logger.warning("ChatAgent not found, skipping registration.") # Log if file doesn't exist
+    except Exception as e:
+        if logger:
+            logger.error(f"Failed to register ChatAgent: {str(e)}")
 
 
 def register_extension_agents(registry, logger=None):

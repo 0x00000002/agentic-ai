@@ -67,11 +67,12 @@ class BaseProvider(ProviderInterface):
         
         # Create parameter manager with default parameters
         default_params = {}
-        model_params = self.model_config.get("parameters", {})
+        # Get runtime parameters (temp, etc.) merged by UnifiedConfig
+        model_runtime_params = self.model_config.get("runtime_parameters", {}) 
         allowed_params = set()
         param_mapping = {}
         
-        # Allow subclasses to provide these through class attributes
+        # Allow subclasses to provide provider-specific defaults/allowed/mapping
         if hasattr(self.__class__, "DEFAULT_PARAMETERS"):
             default_params = self.__class__.DEFAULT_PARAMETERS.copy()
         if hasattr(self.__class__, "ALLOWED_PARAMETERS"):
@@ -81,7 +82,7 @@ class BaseProvider(ProviderInterface):
             
         self.parameter_manager = ParameterManager(
             default_parameters=default_params,
-            model_parameters=model_params,
+            model_parameters=model_runtime_params, # Use the runtime parameters dict
             allowed_parameters=allowed_params,
             parameter_mapping=param_mapping,
             logger=self.logger

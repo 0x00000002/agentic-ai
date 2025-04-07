@@ -34,8 +34,22 @@ class AnthropicProvider(BaseProvider, ToolCapableProviderInterface):
         "system": "system",
         "user": "user",
         "assistant": "assistant",
-        "tool": "assistant"  # Anthropic has no tool role
+        # Role for tool results, user message containing tool_result content blocks
+        "tool": "user" 
     }
+    
+    # --- Add Class Attributes for Parameter Management ---
+    # Parameters allowed by the Anthropic API
+    ALLOWED_PARAMETERS = {
+        "temperature", "max_tokens", "top_p", "top_k", "stop_sequences"
+    }
+    
+    # Default parameters for Anthropic API
+    DEFAULT_PARAMETERS = {
+        "temperature": 0.7,
+        "max_tokens": 4096  # Default fallback
+    }
+    # --------------------------------------------------
     
     def __init__(self, 
                  model_id: str,
@@ -56,26 +70,7 @@ class AnthropicProvider(BaseProvider, ToolCapableProviderInterface):
             
         super().__init__(model_id, provider_config, model_config, logger)
         
-        # Initialize model parameters from self.model_config
-        self.parameters = {}
-        # Anthropic uses max_tokens, temperature, top_p, top_k
-        anthropic_params = ["temperature", "max_tokens", "top_p", "top_k", "stop_sequences"]
-        
-        # Use output_limit from config for max_tokens if present
-        if 'output_limit' in model_config:
-            self.parameters['max_tokens'] = model_config['output_limit']
-            
-        for key in anthropic_params:
-            # Don't overwrite max_tokens if output_limit was used
-            if key in model_config and not (key == 'max_tokens' and 'max_tokens' in self.parameters):
-                self.parameters[key] = model_config[key]
-        
-        # Provide Anthropic defaults if not specified
-        self.parameters.setdefault('temperature', 0.7)
-        self.parameters.setdefault('max_tokens', 4096) # Default
-        
         self.logger.info(f"Initialized Anthropic provider with model {model_id}")
-        self.logger.debug(f"Anthropic Parameters set: {self.parameters}")
     
     def _initialize_credentials(self) -> None:
         """Initialize Anthropic API credentials."""

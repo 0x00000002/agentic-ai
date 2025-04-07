@@ -69,8 +69,10 @@ class TestOpenAIProvider:
         assert hasattr(openai_provider, "credential_manager")
         assert hasattr(openai_provider, "tool_manager")
         
-        # Check that parameter manager uses model parameters
-        assert openai_provider.parameter_manager.model_parameters == model_config["parameters"]
+        # Check that parameter manager uses runtime parameters from model config
+        # Since the mock model_config doesn't have 'runtime_parameters', it defaults to {}
+        expected_model_params = model_config.get("runtime_parameters", {})
+        assert openai_provider.parameter_manager.get_model_parameters() == expected_model_params
         
         # Check that credential manager has the provider config
         assert openai_provider.credential_manager.provider_config == provider_config
