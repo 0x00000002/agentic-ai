@@ -9,6 +9,7 @@ import gradio as gr
 import uuid
 from typing import List, Tuple, Dict, Any, Optional
 import logging
+import numpy as np
 
 # Add the parent directory to sys.path to import the package
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
@@ -51,20 +52,24 @@ class SimpleChatUI:
         self.coordinator = coordinator
         self.title = title
         self.logger = logger
+        self.is_transcribing = False
         
-    def process_message(self, message: str, history: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+    def process_message(self, message: str, history: List[Tuple[str, str]]) -> Tuple[List[Tuple[str, str]], str]:
         """
-        Process a user message and return the updated chat history.
+        Process a user message and return the updated chat history and an empty string
+        to clear the input field.
         
         Args:
             message: The user message
             history: The chat history
             
         Returns:
-            Updated chat history
+            A tuple containing:
+             - Updated chat history
+             - An empty string to clear the message input box
         """
         if not message:
-            return history
+            return history, "" # Return unchanged history and empty string for clearing
             
         self.logger.info(f"Processing message: {message[:50]}...")
         
@@ -93,7 +98,78 @@ class SimpleChatUI:
             self.logger.error(f"Error processing message: {str(e)}")
             history.append((message, f"Error: {str(e)}"))
             
-        return history
+        # Return updated history and empty string to clear the input
+        return history, ""
+    
+    def process_audio(self, language: str, audio_input: Optional[str], history: List[Tuple[str, str]]) -> Tuple[str, List[Tuple[str, str]], str, None]:
+        """
+        Process an audio input, send it for transcription, update the message box,
+        and clear the audio input component.
+
+        Args:
+            language: The language selected in the dropdown ("English", "Русский").
+            audio_input: The file path to the recorded audio (from gr.Audio).
+            history: The current chat history (unused in transcription).
+
+        Returns:
+            A tuple containing:
+            - Updated message text (transcribed audio).
+            - Unchanged history.
+            - Status message (e.g., "Transcribing...").
+            - None to clear the audio input component.
+        """
+        lang_code_map = {"English": "en", "Русский": "ru"}
+        lang_code = lang_code_map.get(language, "en") # Default to English if mapping fails
+        self.logger.info(f"Selected language: {language}, using code: {lang_code}")
+
+        if self.is_transcribing or audio_input is None:
+            # Prevent processing if already transcribing or input is None (e.g., initial load)
+            # Return current state or default empty state
+            return "", history, "Ready", None 
+
+        self.is_transcribing = True
+        self.logger.info(f"Processing audio file: {audio_input}")
+        status_update = "Transcribing..."
+
+        # Create a transcription request for the coordinator
+        request = {
+            "type": "audio_transcription", # Specific type for coordinator routing
+            "audio_path": audio_input,
+            "language": lang_code,
+            "request_id": str(uuid.uuid4()),
+            "conversation_history": [] # History not needed for transcription
+        }
+
+        transcribed_text = ""
+        try:
+            # Send request to coordinator
+            response = self.coordinator.process_request(request)
+
+            # Extract transcribed text
+            if isinstance(response, dict):
+                transcribed_text = response.get("content", "")
+                if response.get("status") == "error":
+                    status_update = f"Error: {response.get('error', 'Transcription failed')}"
+                    self.logger.error(f"Transcription error: {response.get('error', 'Unknown')}")
+                else:
+                    status_update = "Transcription complete. Press Send."
+                    self.logger.info(f"Transcription received: {transcribed_text[:50]}...")
+            else:
+                # Fallback if response format is unexpected
+                transcribed_text = str(response)
+                status_update = "Transcription complete (unexpected format). Press Send."
+                self.logger.warning(f"Unexpected transcription response format: {type(response)}")
+
+        except Exception as e:
+            self.logger.error(f"Error during transcription request: {str(e)}", exc_info=True)
+            status_update = f"Error: {str(e)}"
+        
+        finally:
+            self.is_transcribing = False # Reset transcription lock
+
+        # Return the transcribed text to populate the message box,
+        # the unchanged history, the status update, and None to clear audio.
+        return transcribed_text, history, status_update, None
     
     def build_interface(self) -> gr.Blocks:
         """
@@ -111,6 +187,19 @@ class SimpleChatUI:
             )
             
             with gr.Row():
+                lang_dropdown = gr.Dropdown(
+                    label="Language", 
+                    choices=["English", "Русский"], 
+                    value="English" # Default value
+                )
+                audio_in = gr.Audio(
+                    sources=["microphone"], 
+                    type="filepath", # Get file path for ListenerAgent
+                    label="Record Audio Message" 
+                )
+                audio_status = gr.Textbox(label="Audio Status", value="Ready", interactive=False)
+            
+            with gr.Row():
                 msg = gr.Textbox(
                     label="Your Message",
                     placeholder="Type your message here...",
@@ -124,24 +213,22 @@ class SimpleChatUI:
             submit.click(
                 self.process_message,
                 inputs=[msg, chatbot],
-                outputs=chatbot
-            ).then(
-                lambda: "",
-                None,
-                msg
+                outputs=[chatbot, msg] # Update outputs to clear msg
             )
             
             msg.submit(
                 self.process_message,
                 inputs=[msg, chatbot],
-                outputs=chatbot
-            ).then(
-                lambda: "",
-                None,
-                msg
+                outputs=[chatbot, msg] # Update outputs to clear msg
             )
             
             clear.click(lambda: [], None, chatbot)
+            
+            audio_in.stop_recording(
+                self.process_audio,
+                inputs=[lang_dropdown, audio_in, chatbot], 
+                outputs=[msg, chatbot, audio_status, audio_in] 
+            )
             
         return interface
     

@@ -95,8 +95,11 @@ class ListenerAgent(BaseAgent):
                 # Process numpy array audio data
                 text, metadata = self._process_audio_numpy(request['audio'], request.get('sample_rate', 16000))
             elif 'audio_path' in request and isinstance(request['audio_path'], str):
+                # Extract language code from request
+                language = request.get("language", None) # None means auto-detect for whisper
+                self.logger.debug(f"Language hint from request: {language}")
                 # Process audio file path
-                text, metadata = self._process_audio_file(request['audio_path'])
+                text, metadata = self._process_audio_file(request['audio_path'], language=language)
             else:
                 raise AIAgentError(
                     "Invalid audio input format. Provide either 'audio' numpy array or 'audio_path' string.",
@@ -163,12 +166,13 @@ class ListenerAgent(BaseAgent):
                 except Exception as e:
                     self.logger.warning(f"Failed to delete temporary file {temp_path}: {str(e)}")
     
-    def _process_audio_file(self, audio_path: str) -> Tuple[str, Dict[str, Any]]:
+    def _process_audio_file(self, audio_path: str, language: Optional[str] = None) -> Tuple[str, Dict[str, Any]]:
         """
         Process audio from a file path.
         
         Args:
             audio_path: Path to the audio file
+            language: Optional language code hint (e.g., "en", "ru"). If None, auto-detect is used.
             
         Returns:
             Tuple of (transcribed_text, metadata)
@@ -195,13 +199,13 @@ class ListenerAgent(BaseAgent):
             # Use the multimedia provider interface
             return self._transcribe_with_multimedia_provider(audio_path, metadata)
         elif self.has_whisper:
-            # Use local Whisper model
-            return self._transcribe_with_local_whisper(audio_path, metadata)
+            # Use local Whisper model, passing the language hint
+            return self._transcribe_with_local_whisper(audio_path, metadata, language=language)
         else:
             # Fallback to basic transcription
             self.logger.warning("No speech recognition libraries available. Using AI to generate mock response.")
             prompt = "Simulate transcribing an audio recording of someone asking about the weather."
-            mock_text = self.ai.request(prompt)
+            mock_text = self.ai_instance.request(prompt)
             metadata["note"] = "Mock transcription (no speech recognition libraries available)"
             return mock_text, metadata
     
@@ -244,7 +248,7 @@ class ListenerAgent(BaseAgent):
             
             # Fallback to simulated transcription
             prompt = "Transcribe audio of someone asking a simple question. Generate a realistic transcription."
-            transcription = self.ai.request(prompt)
+            transcription = self.ai_instance.request(prompt)
             
             metadata["note"] = f"Simulated transcription (provider failed: {error_response['message']})"
             metadata["error"] = error_response['message']
@@ -256,32 +260,41 @@ class ListenerAgent(BaseAgent):
             
             # Fallback to simulated transcription
             prompt = "Transcribe audio of someone asking a simple question. Generate a realistic transcription."
-            transcription = self.ai.request(prompt)
+            transcription = self.ai_instance.request(prompt)
             
             metadata["note"] = f"Simulated transcription (provider failed: {error_response['message']})"
             metadata["error"] = error_response['message']
             return transcription, metadata
     
-    def _transcribe_with_local_whisper(self, audio_path: str, metadata: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
+    def _transcribe_with_local_whisper(self, audio_path: str, metadata: Dict[str, Any], language: Optional[str] = None) -> Tuple[str, Dict[str, Any]]:
         """
         Transcribe audio using local Whisper model.
         
         Args:
             audio_path: Path to the audio file
             metadata: Initial metadata dictionary
+            language: Optional language code hint (e.g., "en", "ru"). If None, auto-detect.
             
         Returns:
             Tuple of (transcribed_text, updated_metadata)
         """
         self.logger.info("Transcribing with local Whisper model")
-        
+        if language:
+             self.logger.info(f"Using language hint: {language}")
+        else:
+             self.logger.info("No language hint provided, using auto-detect.")
+
         try:
-            # Load audio and transcribe
-            result = self.whisper_model.transcribe(audio_path)
+            # Prepare transcribe options
+            transcribe_options = {}
+            if language:
+                transcribe_options["language"] = language
+
+            # Load audio and transcribe, passing options
+            result = self.whisper_model.transcribe(audio_path, **transcribe_options)
             
             transcription = result["text"]
-            if "language" in result:
-                metadata["detected_language"] = result["language"]
+            metadata["detected_language"] = result.get("language", language or "unknown")
             
             self.logger.info(f"Local transcription successful: {transcription[:50]}...")
             return transcription, metadata

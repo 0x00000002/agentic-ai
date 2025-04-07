@@ -68,6 +68,15 @@ class Coordinator(BaseAgent):
         self.logger.debug(f"Received request: {request}")
 
         try:
+            # --- PRE-CHECK: Handle specific request types first ---
+            request_type = request.get("type")
+            if request_type == "audio_transcription":
+                self.logger.info("Identified audio transcription request type.")
+                return self._handle_audio_transcription_request(request)
+            
+            # --- If not a specific type, proceed with intent classification ---
+            self.logger.info("Request type not specified or not audio, proceeding with intent classification.")
+            
             # --- 1. Classify Intent ---
             # Use a fresh call to RequestAnalyzer - avoid shared state issues
             # Pass the *original* request for classification
@@ -249,6 +258,55 @@ class Coordinator(BaseAgent):
             err_logger = LoggerFactory.create("coordinator_task_error")
             err_logger.error(f"Critical error handling TASK request: {e}", exc_info=True) # RESTORED exc_info
             return self._create_error_response(f"Failed during task handling pipeline: {e}")
+
+    # --- Add Audio Transcription Handler ---
+    def _handle_audio_transcription_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Handles audio transcription requests by delegating to the ListenerAgent."""
+        self.logger.info(f"Delegating audio transcription request to listener agent.")
+        if not self.agent_factory:
+            return self._create_error_response("Agent factory not configured, cannot delegate audio request.")
+        
+        listener_agent_id = "listener" # The registered ID for ListenerAgent
+        # --- Extract language code from request, default if missing ---
+        language_code = request.get("language", None) # Get language, default to None (for auto-detect)
+        self.logger.info(f"Language code for transcription: {language_code}")
+        # --- End Extract ---
+
+        try:
+            # Pass self.ai_instance explicitly to the factory create method
+            agent = self.agent_factory.create(listener_agent_id, ai_instance=self.ai_instance)
+            if not agent:
+                 return self._create_error_response(f"Could not create agent '{listener_agent_id}' for transcription.")
+
+            # Process request using the listener agent
+            # The ListenerAgent expects 'audio_path' and now optionally 'language'
+            # Create a copy to potentially pass modified data, though just passing original should be fine here
+            request_copy = request.copy()
+            # No need to explicitly add language_code here, as it's already in the original request
+            agent_response = agent.process_request(request_copy)
+
+            # Ensure response is a dict (basic normalization)
+            if not isinstance(agent_response, dict):
+                 agent_response = {"content": str(agent_response), "status": "success"}
+            
+            # Add coordinator metadata
+            if "metadata" not in agent_response: agent_response["metadata"] = {}
+            agent_response["metadata"]["delegated_to"] = listener_agent_id
+            agent_response["metadata"]["delegation_reason"] = "AUDIO_TRANSCRIPTION"
+            # --- Add requested language to metadata ---
+            if language_code:
+                agent_response["metadata"]["requested_language"] = language_code
+            # --- End Add ---
+            agent_response["metadata"]["coordinator_id"] = self.agent_id # Add coordinator id
+
+            return agent_response
+
+        except Exception as e:
+            # Log with traceback
+            err_logger = LoggerFactory.create("coordinator_audio_delegate_error")
+            err_logger.error(f"Error delegating audio request to agent '{listener_agent_id}': {e}", exc_info=True)
+            return self._create_error_response(f"Failed during audio transcription handling by '{listener_agent_id}': {e}")
+    # --- End Add ---
 
     # --- Helper Methods (Copied from original, verify imports/dependencies) ---
 
