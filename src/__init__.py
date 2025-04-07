@@ -39,6 +39,7 @@ __all__ = [
     "AIBase",
     "ModelSelector", # Uncommented - Now uses ConfigFactory
     "UseCase",
+    "AIInterface",
     "ProviderInterface",
 
     # Config
@@ -60,6 +61,7 @@ __all__ = [
     "ToolManager",
     "ToolDefinition",
     "ToolResult",
+    "ToolCall",
 
     # Utils
     "LoggerFactory",

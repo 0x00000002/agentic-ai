@@ -14,16 +14,41 @@ nav:
   - Home: index.md
   - Getting Started: getting-started.md
   - Architecture: architecture.md
-  - Examples: examples.md
+  - Core Concepts:
+      - Error Handling: error_handling.md
+      - Utilities: utils.md
+  - Configuration:
+      - System Overview: configuration_system.md
+      - Configuration Files: config/README.md
+  - Agents:
+      - Descriptions: agent_descriptions.md
+      - Agent System Architecture: agents/architecture.md
+      - Tool Finder Agent: tool_finder_agent.md
+      - Specifications: agents/agent_specifications.md
+      - Implementation Plan: agents/implementation_plan.md
+      - Implementation Standards: agents/implementation_standards.md
   - Tools:
-    - Overview: tools/overview.md
-    - Auto Tool Finding: tools/auto_tool_finding.md
+      - Overview: tools/overview.md
+      - Auto Tool Finding: tools/auto_tool_finding.md
   - Prompts:
-    - Management: prompts/management.md
+      - Management: prompts/management.md
+      - Prompting Guide: PROMPTS.md
   - Providers:
-    - Overview: providers/overview.md
+      - Overview: providers/overview.md
   - Conversations:
-    - Overview: conversations/overview.md
+      - Overview: conversations/overview.md
+  - Metrics:
+      - System Overview: metrics_system.md
+  - UI:
+      - Gradio Interface: ui/gradio_interface.md
+  - Examples:
+      - Overview: examples.md
+      - Configuration: examples/configuration_example.md
+  - Development:
+      - Testing Providers: development/testing_providers.md
+      - Testing Strategy: development/testing_strategy.md
+      - Contributing: CONTRIBUTING.md
+  - Tutorials: tutorials.md
 
 markdown_extensions:
   - pymdownx.highlight

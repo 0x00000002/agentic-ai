@@ -336,4 +336,4 @@ class BaseProvider(ProviderInterface):
             Streamed response as a string
         """
         # This is a base implementation - providers should override this
-        return "This is a base implementation. Override in provider classes." 
+        raise NotImplementedError(f"Subclasses must implement stream") 

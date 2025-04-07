@@ -2,9 +2,7 @@
 
 A modular framework for building AI applications with tool integration capabilities.
 
-## HTML documentation
-
-[Documentation HTML website](./site/index.html)
+[![Documentation](https://img.shields.io/badge/docs-latest-blue)](https://0x00000002.github.io/agentic-ai/)
 
 ## Overview
 

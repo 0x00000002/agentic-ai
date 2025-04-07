@@ -73,8 +73,8 @@ class GeminiProvider(BaseProvider, ToolCapableProviderInterface):
                  model_name=self.model_id,
                  generation_config=self.generation_config
             )
-            self._logger.info(f"Successfully initialized Gemini model {self.model_id}")
-            self._logger.debug(f"Gemini Generation Config: {self.generation_config}")
+            self.logger.info(f"Successfully initialized Gemini model {self.model_id}")
+            self.logger.debug(f"Gemini Generation Config: {self.generation_config}")
         except Exception as e:
             self.logger.error(f"Failed to initialize Gemini model: {str(e)}")
             raise AICredentialsError(f"Failed to initialize Gemini model: {str(e)}")
@@ -87,7 +87,7 @@ class GeminiProvider(BaseProvider, ToolCapableProviderInterface):
             raise AICredentialsError("No Gemini API key found.")
         try:
             genai.configure(api_key=api_key)
-            self._logger.info("Gemini API key configured successfully.")
+            self.logger.info("Gemini API key configured successfully.")
         except Exception as e:
              self.logger.error(f"Failed to configure Gemini API key: {e}")
              # Assume configuration errors are related to credentials/auth setup
@@ -146,7 +146,7 @@ class GeminiProvider(BaseProvider, ToolCapableProviderInterface):
                  if parts:
                      message_data["parts"] = parts
                  else:
-                      self._logger.debug(f"Assistant message with tool calls but no text content. Skipping for Gemini history.")
+                      self.logger.debug(f"Assistant message with tool calls but no text content. Skipping for Gemini history.")
                       continue # Skip adding empty assistant message
             elif role == "tool":
                  # Format tool result using 'function' role
@@ -212,7 +212,7 @@ class GeminiProvider(BaseProvider, ToolCapableProviderInterface):
                        # Potentially set tool_config based on gemini_tools and tool_choice
                        # Example (adjust based on actual API needs):
                        # tool_config = genai.types.ToolConfig(function_calling_config=...) 
-                       self._logger.debug(f"Formatted tools for Gemini: {gemini_tools}")
+                       self.logger.debug(f"Formatted tools for Gemini: {gemini_tools}")
                        # Placeholder: Gemini models usually use genai.GenerativeModel(tools=...) 
                        # We might need to re-initialize the model or handle this differently.
                        # For now, payload doesn't include tools directly, assume handled at model level.
@@ -459,7 +459,7 @@ class GeminiProvider(BaseProvider, ToolCapableProviderInterface):
                  # return "".join([chunk.text for chunk in response if chunk.text])
                  raise NotImplementedError("Streaming with history not fully refactored for Gemini.")
         except Exception as e:
-            self._logger.error(f"Gemini streaming failed: {str(e)}")
+            self.logger.error(f"Gemini streaming failed: {str(e)}")
             raise AIRequestError(f"Failed to stream Gemini response: {str(e)}", provider="gemini", original_error=e)
 
     def add_tool_message(self, messages: List[Dict[str, Any]], 
@@ -526,7 +526,7 @@ class GeminiProvider(BaseProvider, ToolCapableProviderInterface):
                     
                     # Append to the last user message
                     last_user_msg["content"] = f"{last_user_msg['content']}\n\n{tool_desc}"
-                    self._logger.debug("Enhanced user message with tool instructions")
+                    self.logger.debug("Enhanced user message with tool instructions")
             
             # Handle string input by converting to messages format
             if isinstance(messages, str):
@@ -571,8 +571,8 @@ class GeminiProvider(BaseProvider, ToolCapableProviderInterface):
                                 id=f"tool-{tool_name}"
                             )
                             
-                            self._logger.info(f"Detected tool call in Gemini response: {tool_name}")
-                            self._logger.debug(f"Tool parameters: {params}")
+                            self.logger.info(f"Detected tool call in Gemini response: {tool_name}")
+                            self.logger.debug(f"Tool parameters: {params}")
                             # Return with the tool call
                             return {
                                 "content": content,
@@ -604,24 +604,24 @@ class GeminiProvider(BaseProvider, ToolCapableProviderInterface):
                                         id=f"tool-{tool_name}"
                                     )
                                     
-                                    self._logger.info(f"Detected tool call in Gemini response: {tool_name}")
-                                    self._logger.debug(f"Tool parameters: {params}")
+                                    self.logger.info(f"Detected tool call in Gemini response: {tool_name}")
+                                    self.logger.debug(f"Tool parameters: {params}")
                                     # Return with the tool call
                                     return {
                                         "content": content,
                                         "tool_calls": [tool_call]
                                     }
                             except Exception as json_err:
-                                self._logger.debug(f"Failed to parse JSON chunk: {json_err}")
+                                self.logger.debug(f"Failed to parse JSON chunk: {json_err}")
                                 continue
                 except Exception as e:
-                    self._logger.warning(f"Failed to parse potential tool calls: {str(e)}")
+                    self.logger.warning(f"Failed to parse potential tool calls: {str(e)}")
             
             # No tool calls detected, return just the content
             return self.standardize_response(content)
             
         except Exception as e:
-            self._logger.error(f"Gemini request failed: {str(e)}")
+            self.logger.error(f"Gemini request failed: {str(e)}")
             raise AIRequestError(
                 f"Failed to make Gemini request: {str(e)}",
                 provider="gemini",

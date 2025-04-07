@@ -32,8 +32,8 @@ class BaseAgent:
         self.ai_instance = ai_instance
         self.tool_manager = tool_manager
         self.config = unified_config or UnifiedConfig.get_instance()
-        self.logger = logger or LoggerFactory.create(name=f"agent.{agent_id}")
         self.agent_id = agent_id or "base_agent"
+        self.logger = logger or LoggerFactory.create(name=f"agent.{self.agent_id}")
         
         # Get agent-specific configuration
         self.agent_config = self.config.get_agent_config(self.agent_id) or {}
@@ -52,10 +52,23 @@ class BaseAgent:
         """
         self.logger.info(f"Processing request with {self.agent_id} agent")
         
-        # Check for model override in the request
-        model_override = request.get("model")
-        system_prompt_override = request.get("system_prompt")
-        
+        # Handle string input first
+        if isinstance(request, str):
+            prompt = request
+            model_override = None
+            system_prompt_override = None
+        elif isinstance(request, dict):
+            prompt = request.get("prompt", str(request)) # Default to str(dict) if no prompt
+            # Check for model override in the request
+            model_override = request.get("model")
+            system_prompt_override = request.get("system_prompt")
+        else:
+             # Handle other unexpected types gracefully
+             prompt = str(request)
+             model_override = None
+             system_prompt_override = None
+             self.logger.warning(f"Received request of unexpected type: {type(request)}. Treating as string.")
+
         original_ai_instance = self.ai_instance # Store original instance
         restored = False
 

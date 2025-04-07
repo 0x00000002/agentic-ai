@@ -58,68 +58,97 @@ class PromptManager:
             self._load_data()
     
     def _save_data(self) -> None:
-        """Save templates and versions to disk."""
+        """Save versions and metrics data to disk."""
         if not self._storage_dir:
             return
             
-        templates_file = os.path.join(self._storage_dir, "templates.json")
+        # Remove templates.json saving
+        # templates_file = os.path.join(self._storage_dir, "templates.json")
         versions_file = os.path.join(self._storage_dir, "versions.json")
         metrics_file = os.path.join(self._storage_dir, "metrics.json")
         
-        # Save templates
-        templates_data = {t_id: template.to_dict() for t_id, template in self._templates.items()}
-        with open(templates_file, 'w') as f:
-            json.dump(templates_data, f, indent=2)
+        # Save templates - REMOVED
+        # templates_data = {t_id: template.to_dict() for t_id, template in self._templates.items()}
+        # with open(templates_file, 'w') as f:
+        #     json.dump(templates_data, f, indent=2)
         
-        # Save versions
+        # Save versions (Assuming PromptVersion.to_dict() exists and is correct)
         versions_data = {}
         for t_id, versions in self._versions.items():
             versions_data[t_id] = [v.to_dict() for v in versions]
-        with open(versions_file, 'w') as f:
-            json.dump(versions_data, f, indent=2)
         
+        # Handle potential errors during version serialization if needed
+        try:
+            with open(versions_file, 'w') as f:
+                json.dump(versions_data, f, indent=2)
+        except TypeError as e:
+            self._logger.error(f"Failed to serialize versions to JSON: {e}")
+            # Decide how to handle: skip saving versions, raise error, etc.
+            
         # Save metrics
         self._metrics.save_to_file(metrics_file)
         
-        self._logger.info(f"Saved prompt data to {self._storage_dir}")
+        self._logger.info(f"Saved prompt versions and metrics to {self._storage_dir}")
     
     def _load_data(self) -> None:
-        """Load templates and versions from disk."""
+        """Load versions and metrics data from disk."""
         if not self._storage_dir:
             return
             
-        templates_file = os.path.join(self._storage_dir, "templates.json")
+        # Remove templates.json handling
+        # templates_file = os.path.join(self._storage_dir, "templates.json") 
         versions_file = os.path.join(self._storage_dir, "versions.json")
         metrics_file = os.path.join(self._storage_dir, "metrics.json")
         
-        # Load templates
-        if os.path.exists(templates_file):
-            with open(templates_file, 'r') as f:
-                templates_data = json.load(f)
-                
-            for t_id, template_data in templates_data.items():
-                self._templates[t_id] = PromptTemplate.from_dict(template_data)
+        # Load templates - REMOVED
+        # if os.path.exists(templates_file):
+        #     try:
+        #         with open(templates_file, 'r') as f:
+        #             templates_data = json.load(f)
+        #         for t_id, template_data in templates_data.items():
+                     # Incorrect: PromptTemplate doesn't have from_dict
+        #             # self._templates[t_id] = PromptTemplate.from_dict(template_data) 
+        #             # Placeholder: Templates should be loaded by PromptTemplate instance itself
+        #             self._logger.warning(f"Skipping loading template '{t_id}' from templates.json (deprecated)")
+        #     except Exception as e:
+        #         self._logger.error(f"Failed to load templates from {templates_file}: {e}")
+
+        # Reset internal state that should not be loaded here
+        self._templates = {} 
+        self._active_versions = {} # Reset, will be repopulated below
+        self._versions = {} # Reset, will be repopulated below
         
-        # Load versions
+        # Load versions (Assuming PromptVersion.from_dict() exists and is correct)
         if os.path.exists(versions_file):
-            with open(versions_file, 'r') as f:
-                versions_data = json.load(f)
-                
-            for t_id, version_list in versions_data.items():
-                self._versions[t_id] = []
-                for version_data in version_list:
-                    version = PromptVersion.from_dict(version_data)
-                    self._versions[t_id].append(version)
+            try:
+                with open(versions_file, 'r') as f:
+                    versions_data = json.load(f)
                     
-                    # Set as active if marked
-                    if version.is_active:
-                        self._active_versions[t_id] = version
+                for t_id, version_list in versions_data.items():
+                    self._versions[t_id] = []
+                    for version_data in version_list:
+                        try:
+                            version = PromptVersion.from_dict(version_data)
+                            self._versions[t_id].append(version)
+                            
+                            # Set as active if marked
+                            if version.is_active:
+                                # Simple assignment (might need logic for multiple actives)
+                                self._active_versions[t_id] = version 
+                        except Exception as e:
+                             self._logger.error(f"Failed to load version data for template {t_id}: {version_data}. Error: {e}")
+            except Exception as e:
+                self._logger.error(f"Failed to load or parse versions from {versions_file}: {e}")
         
         # Load metrics
         if os.path.exists(metrics_file):
-            self._metrics = PromptMetrics.load_from_file(metrics_file)
+            try:
+                # Assuming PromptMetrics.load_from_file is the correct way
+                self._metrics = PromptMetrics.load_from_file(metrics_file) 
+            except Exception as e:
+                 self._logger.error(f"Failed to load metrics from {metrics_file}: {e}")
             
-        self._logger.info(f"Loaded prompt data from {self._storage_dir}")
+        self._logger.info(f"Loaded prompt versions and metrics from {self._storage_dir}")
     
     def create_template(self, 
                        name: str,
@@ -211,25 +240,32 @@ class PromptManager:
                        name: Optional[str] = None,
                        description: Optional[str] = None) -> bool:
         """
-        Update a template's metadata (not the content).
+        Update a template's metadata reference within the manager.
+        NOTE: This method currently DOES NOT update the underlying template source file (YAML).
+        Metadata changes must be made directly to the source files.
+        This method mainly serves to log the intent and potentially trigger auto-save 
+        for related manager state (like versions) if needed in the future.
         
         Args:
-            template_id: Template ID
-            name: New name (or None to keep current)
-            description: New description (or None to keep current)
+            template_id: Template ID to check existence for.
+            name: New name (informational only).
+            description: New description (informational only).
             
         Returns:
-            True if successful, False if template not found
+            True if template ID exists in the manager's internal cache, False otherwise.
         """
-        template = self.get_template(template_id)
+        template = self.get_template(template_id) # Checks if ID exists in self._templates
         if not template:
+            self._logger.warning(f"Attempted to update non-existent template ID: {template_id}")
             return False
             
-        template.update(name=name, description=description)
+        # Log the intent to update.
+        self._logger.info(f"Metadata update requested for template: {template_id} (Name: {name}, Desc: {description}) - Note: Underlying template source NOT modified by this action.")
+
+        # The actual template object (likely loaded from YAML by PromptTemplate) is not updated here.
+        # template.update(name=name, description=description) # This line is incorrect and removed.
         
-        self._logger.info(f"Updated template: {template_id}")
-        
-        # Auto-save if enabled
+        # Auto-save if enabled (might save versions/metrics if they changed elsewhere)
         if self._auto_save:
             self._save_data()
             

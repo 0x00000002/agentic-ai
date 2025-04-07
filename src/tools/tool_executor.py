@@ -97,7 +97,7 @@ class ToolExecutor:
                     
                     # Successful execution
                     return ToolResult(
-                        status=ToolExecutionStatus.SUCCESS,
+                        success=True,
                         result=result,
                         error=None
                     )
@@ -119,7 +119,7 @@ class ToolExecutor:
         # If we get here, all retries failed
         self._logger.error(f"Tool {tool_name} execution failed after {self.max_retries+1} attempts")
         return ToolResult(
-            status=ToolExecutionStatus.ERROR,
+            success=False,
             result=None,
             error=last_error or "Unknown error"
         ) 

@@ -18,27 +18,36 @@ Agentic-AI is a modular framework for building AI applications with tool integra
 
 The AI core provides the foundation for interacting with language models:
 
-- **AIBase**: Base implementation of the AI interface
-- **AI**: Extended implementation with tool integration capabilities
-- **Providers**: Abstraction layer for different AI providers (OpenAI, Anthropic, etc.)
-- **Interfaces**: Clear contracts for component interactions
+- **AIBase**: Base implementation of the AI interface.
+- **ToolEnabledAI**: Extended implementation of `AIBase` with tool integration capabilities.
+- **Providers**: Abstraction layer for different AI providers (`BaseProvider`, `OpenAIProvider`, etc.).
+- **ProviderFactory**: Creates provider instances based on configuration.
+- **Interfaces**: Clear contracts for component interactions (e.g., `AIInterface`, `ProviderInterface`).
 
 ### Multi-Agent System
 
 The multi-agent system enables specialized processing of user requests:
 
-- **Orchestrator**: Coordinates the workflow between specialized agents
-- **RequestAnalyzer**: Analyzes requests to determine appropriate agents and tools
-- **ResponseAggregator**: Combines responses from multiple agents
-- **BaseAgent**: Common functionality for all agents
-- **ToolFinderAgent**: Identifies relevant tools for user requests
+- **Coordinator**: Coordinates the workflow between specialized agents (current implementation).
+- **RequestAnalyzer**: Analyzes requests to determine appropriate agents and tools.
+- **ResponseAggregator**: Combines responses from multiple agents.
+- **BaseAgent**: Common functionality for all agents.
+
+### Tool Subsystem
+
+Handles tool definition, management, and execution:
+
+- **ToolManager**: Coordinates tool registration, discovery (via registry), and execution.
+- **ToolRegistry**: Manages tool definitions and provider-specific formatting.
+- **ToolExecutor**: Executes tool functions with timeout and retries.
+- **Models**: Pydantic models for `ToolDefinition`, `ToolCall`, `ToolResult`.
 
 ### Configuration Management
 
 Configuration is modularized for better maintainability:
 
-- **ConfigFactory**: Central point for accessing configuration
-- **Modular Config Files**: Separate files for models, providers, agents, and use cases
+- **UnifiedConfig**: Central singleton class for accessing merged configuration data.
+- **Modular Config Files**: Separate files for models, providers, agents, tools, etc.
 
 ### Error Handling
 
@@ -49,13 +58,17 @@ The error handling system provides consistent error management:
 
 ## Dependency Management
 
-The `AppContainer` class centralizes component creation and wiring:
+Dependencies between components are primarily managed through:
 
-- **Singleton Management**: Controls lifecycle of singleton components
-- **Factory Methods**: Creates properly configured component instances
-- **Dependency Resolution**: Automatically resolves dependencies between components
+- **Dependency Injection**: Components like `Coordinator` and `ToolEnabledAI` receive dependencies (e.g., `ToolManager`, `ProviderInterface`) via their constructors.
+- **Factories**: Specific factories like `ProviderFactory` are used to create instances of components (e.g., providers) based on configuration.
+- **Singleton Access**: Core configuration (`UnifiedConfig`) and logging (`LoggerFactory`) often use singleton patterns for easy access.
+
+This approach promotes loose coupling and testability.
 
 ## Component Relationships
+
+(Diagram needs update to reflect current structure, including ToolManager, ToolEnabledAI, Coordinator, ProviderFactory, UnifiedConfig)
 
 ```
 ┌──────────────────┐     ┌───────────────────┐     ┌───────────────────┐
@@ -88,79 +101,73 @@ The `AppContainer` class centralizes component creation and wiring:
 
 ## Key Architectural Improvements
 
-### 1. Refactored Orchestrator
+### 1. Refactored Coordinator / Orchestration
 
-The Orchestrator has been split into three focused components:
+The orchestration logic, now primarily in the `Coordinator` agent, is supported by focused components:
 
-- **Orchestrator**: Coordinates the overall workflow
-- **RequestAnalyzer**: Specifically handles request analysis
-- **ResponseAggregator**: Handles response aggregation
+- **Coordinator**: Coordinates the overall workflow (delegating or handling directly).
+- **RequestAnalyzer**: Handles request intent classification.
+- **ResponseAggregator**: (If used) Handles response aggregation.
 
-This separation improves maintainability by reducing class complexity and following the Single Responsibility Principle.
+This separation improves maintainability.
 
 ### 2. Modularized Configuration
 
-Configuration has been separated into domain-specific files:
-
-- **models.yml**: Model definitions and parameters
-- **providers.yml**: Provider settings
-- **agents.yml**: Agent configurations
-- **use_cases.yml**: Use case specific settings
-
-This makes configuration more manageable and easier to maintain.
+Configuration remains separated into domain-specific files (models, providers, agents, tools, etc.) managed by the central `UnifiedConfig`.
 
 ### 3. Standardized Error Handling
 
-A consistent error handling approach has been implemented:
+A consistent error handling approach using a hierarchy based on `AIFrameworkError` and specific exceptions like `AIProviderError`, `AIAuthenticationError`, `AIToolError`, etc., improves error visibility and debugging.
 
-- **AIFrameworkError**: Base exception type for all framework errors
-- **ErrorHandler**: Centralized error processing and formatting
-- **Error Response Format**: Standardized error response structure
+### 4. Standardized Provider Interface
 
-This improves error visibility and provides better context for debugging.
+The `BaseProvider` class enforces a standard structure (`_prepare_request_payload`, `_make_api_request`, `_convert_response`) for all provider implementations (OpenAI, Anthropic, Gemini, Ollama), simplifying integration and interaction logic in core AI classes. Providers now return a standardized `ProviderResponse` object.
 
-### 4. Dependency Injection Container
+### 5. Simplified Tool Subsystem
 
-The new `AppContainer` class centralizes component creation and wiring:
+The tool system has been streamlined:
 
-- **Explicit Dependencies**: Clear visibility of component dependencies
-- **Lifecycle Management**: Controls singleton vs. factory instances
-- **Simplified Testing**: Easier to mock components for testing
+- `ToolManager` coordinates execution via `ToolExecutor` and registration/formatting via `ToolRegistry`.
+- Redundant components (`AIToolFinder`, `tool_prompt_builder.py`, `tool_call.py`) were removed.
+- `ToolEnabledAI` handles the tool-calling loop using the standardized provider responses and `ToolManager`.
 
-### 5. Enhanced Documentation
+### 6. Dependency Injection and Factories
 
-Improved documentation throughout the codebase:
-
-- **Detailed Comments**: Clear explanations of component purpose and behavior
-- **Architecture Documentation**: High-level explanation of system design
-- **Type Annotations**: Better type safety and IDE support
+Explicit dependency injection and factories (like `ProviderFactory`) are used instead of a single container, promoting clearer dependency flows.
 
 ## Usage Example
 
 ```python
-from src.core.dependency_container import AppContainer
+from src.core import ToolEnabledAI
+from src.agents import Coordinator
+from src.config import configure
+# from your_tools_module import get_weather # Example tool function
 
-# Get a fully configured AI instance
-ai = AppContainer.create_ai(model="claude-3-haiku")
+# Configure if needed (optional, uses defaults otherwise)
+# configure(model="gpt-4o")
 
-# Register a tool
-ai.register_tool(
-    tool_name="get_weather",
-    tool_function=get_weather,
-    description="Get current weather for a location"
-)
+# Create a ToolEnabledAI instance
+ai = ToolEnabledAI(model="gpt-4o") # Or any other configured model
 
-# Make a request
-response = ai.request("What's the weather like in Paris today?")
-print(response)
+# Tools are typically registered via ToolManager or configuration,
+# but if manual registration on ToolEnabledAI's manager is needed:
+# tool_def = ToolDefinition(...) # Define your tool
+# ai._tool_manager.register_tool("get_weather", tool_def)
 
-# Get a fully configured orchestrator for multi-agent processing
-orchestrator = AppContainer.create_orchestrator()
+# Make a request that might use tools
+# Use process_prompt for automatic tool handling
+response_content = ai.process_prompt("What's the weather like in Paris today?")
+print(response_content)
 
-# Process a request with the orchestrator
-response = orchestrator.process_request({
+# Create a Coordinator instance (uses default dependencies)
+coordinator = Coordinator()
+
+# Process a request with the coordinator
+response = coordinator.process_request({
     "prompt": "Translate this text to French and analyze the sentiment",
     "context": {"source_language": "en"}
 })
-print(response["content"])
+
+# Print the final content from the coordinator's response
+print(response.get("content"))
 ```

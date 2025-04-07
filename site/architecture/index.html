@@ -12,11 +12,13 @@
         <meta name="author" content="Agentic-AI Team">
       
       
+        <link rel="canonical" href="https://0x00000002.github.io/agentic-ai/architecture/">
+      
       
         <link rel="prev" href="../getting-started/">
       
       
-        <link rel="next" href="../examples/">
+        <link rel="next" href="../error_handling/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -66,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#architecture" class="md-skip">
+        <a href="#agentic-ai-architecture" class="md-skip">
           Skip to content
         </a>
       
@@ -154,7 +156,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/your-username/agentic-ai" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/0x00000002/agentic-ai" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
@@ -243,17 +245,58 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../examples/" class="md-tabs__link">
+    
+    
+      <li class="md-tabs__item">
+        <a href="../error_handling/" class="md-tabs__link">
+          
+  
+  
+  Core Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
         
   
   
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../configuration_system/" class="md-tabs__link">
+          
+  
+  
+  Configuration
+
+        </a>
+      </li>
     
   
-  Examples
 
-      </a>
-    </li>
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../agent_descriptions/" class="md-tabs__link">
+          
+  
+  
+  Agents
+
+        </a>
+      </li>
+    
   
 
       
@@ -337,6 +380,105 @@
   
 
       
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../metrics_system/" class="md-tabs__link">
+          
+  
+  
+  Metrics
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../ui/gradio_interface/" class="md-tabs__link">
+          
+  
+  
+  UI
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../examples/" class="md-tabs__link">
+          
+  
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../development/testing_providers/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../tutorials/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Tutorials
+
+      </a>
+    </li>
+  
+
+      
     </ul>
   </div>
 </nav>
@@ -371,7 +513,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/your-username/agentic-ai" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/0x00000002/agentic-ai" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
@@ -485,6 +627,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#core-components" class="md-nav__link">
     <span class="md-ellipsis">
       Core Components
@@ -504,45 +655,36 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#providers" class="md-nav__link">
+  <a href="#multi-agent-system" class="md-nav__link">
     <span class="md-ellipsis">
-      Providers
+      Multi-Agent System
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#tool-management" class="md-nav__link">
+  <a href="#tool-subsystem" class="md-nav__link">
     <span class="md-ellipsis">
-      Tool Management
+      Tool Subsystem
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#conversation-management" class="md-nav__link">
+  <a href="#configuration-management" class="md-nav__link">
     <span class="md-ellipsis">
-      Conversation Management
+      Configuration Management
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#prompt-management" class="md-nav__link">
+  <a href="#error-handling" class="md-nav__link">
     <span class="md-ellipsis">
-      Prompt Management
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Configuration
+      Error Handling
     </span>
   </a>
   
@@ -554,9 +696,96 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dependency-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dependency Management
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#component-relationships" class="md-nav__link">
     <span class="md-ellipsis">
       Component Relationships
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-architectural-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Architectural Improvements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Architectural Improvements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-refactored-coordinator-orchestration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Refactored Coordinator / Orchestration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-modularized-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Modularized Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-standardized-error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Standardized Error Handling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-standardized-provider-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Standardized Provider Interface
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-simplified-tool-subsystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Simplified Tool Subsystem
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-dependency-injection-and-factories" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Dependency Injection and Factories
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage Example
     </span>
   </a>
   
@@ -576,18 +805,92 @@
   
   
   
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Core Concepts
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Core Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
-      <a href="../examples/" class="md-nav__link">
+      <a href="../error_handling/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Examples
+    Error Handling
     
   </span>
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Utilities
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -620,7 +923,7 @@
   
   
   <span class="md-ellipsis">
-    Tools
+    Configuration
     
   </span>
   
@@ -630,6 +933,290 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Configuration
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Configuration Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Agents
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Agents
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agent_descriptions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Descriptions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Agent System Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tool_finder_agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tool Finder Agent
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/agent_specifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Specifications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/implementation_plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/implementation_standards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Implementation Standards
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tools
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             Tools
           </label>
@@ -708,10 +1295,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
             
   
   
@@ -724,8 +1311,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             Prompts
           </label>
@@ -744,6 +1331,29 @@
   
   <span class="md-ellipsis">
     Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROMPTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Prompting Guide
     
   </span>
   
@@ -781,10 +1391,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
             
   
   
@@ -797,8 +1407,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             Providers
           </label>
@@ -854,10 +1464,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
         
           
-          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
             
   
   
@@ -870,8 +1480,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_8">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             Conversations
           </label>
@@ -907,6 +1517,389 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Metrics
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            Metrics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    UI
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            UI
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ui/gradio_interface/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Gradio Interface
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/configuration_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Development
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            Development
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/testing_providers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing Providers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/testing_strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing Strategy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRIBUTING.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -926,73 +1919,149 @@
   
 
 
-<h1 id="architecture">Architecture</h1>
+<h1 id="agentic-ai-architecture">Agentic-AI Architecture</h1>
+<p>This document describes the architecture of the Agentic-AI framework, focusing on the core design principles and component relationships.</p>
+<h2 id="overview">Overview</h2>
+<p>Agentic-AI is a modular framework for building AI applications with tool integration capabilities. The architecture follows solid software engineering principles including:</p>
+<ul>
+<li><strong>Separation of Concerns</strong>: Each component has a clear, focused responsibility</li>
+<li><strong>Dependency Injection</strong>: Components receive their dependencies rather than creating them</li>
+<li><strong>Interface-Based Design</strong>: Components interact through well-defined interfaces</li>
+<li><strong>Error Handling</strong>: Standardized error handling across the framework</li>
+<li><strong>Configuration Management</strong>: Modular, externalized configuration</li>
+</ul>
 <h2 id="core-components">Core Components</h2>
-<p>The Agentic-AI framework is built on several key components:</p>
 <h3 id="ai-core">AI Core</h3>
+<p>The AI core provides the foundation for interacting with language models:</p>
 <ul>
-<li><strong>AIBase</strong>: Base class implementing common functionality for all AI instances</li>
-<li><strong>AI</strong>: Extension of AIBase with tool-calling capabilities</li>
-<li><strong>AsyncAI</strong>: Asynchronous implementation for non-blocking operations</li>
+<li><strong>AIBase</strong>: Base implementation of the AI interface.</li>
+<li><strong>ToolEnabledAI</strong>: Extended implementation of <code>AIBase</code> with tool integration capabilities.</li>
+<li><strong>Providers</strong>: Abstraction layer for different AI providers (<code>BaseProvider</code>, <code>OpenAIProvider</code>, etc.).</li>
+<li><strong>ProviderFactory</strong>: Creates provider instances based on configuration.</li>
+<li><strong>Interfaces</strong>: Clear contracts for component interactions (e.g., <code>AIInterface</code>, <code>ProviderInterface</code>).</li>
 </ul>
-<h3 id="providers">Providers</h3>
+<h3 id="multi-agent-system">Multi-Agent System</h3>
+<p>The multi-agent system enables specialized processing of user requests:</p>
 <ul>
-<li><strong>BaseProvider</strong>: Abstract base class for all model providers</li>
-<li><strong>Provider Implementations</strong>: Specific implementations for OpenAI, Anthropic, Google, and Ollama</li>
-<li><strong>ProviderFactory</strong>: Creates appropriate provider instances based on model ID</li>
+<li><strong>Coordinator</strong>: Coordinates the workflow between specialized agents (current implementation).</li>
+<li><strong>RequestAnalyzer</strong>: Analyzes requests to determine appropriate agents and tools.</li>
+<li><strong>ResponseAggregator</strong>: Combines responses from multiple agents.</li>
+<li><strong>BaseAgent</strong>: Common functionality for all agents.</li>
 </ul>
-<h3 id="tool-management">Tool Management</h3>
+<h3 id="tool-subsystem">Tool Subsystem</h3>
+<p>Handles tool definition, management, and execution:</p>
 <ul>
-<li><strong>ToolManager</strong>: Central service for registering and executing tools</li>
-<li><strong>AIToolFinder</strong>: Uses AI to select relevant tools based on user input</li>
-<li><strong>ToolRegistry</strong>: Stores tool definitions and metadata</li>
-<li><strong>ToolExecutor</strong>: Executes tools safely with proper error handling</li>
+<li><strong>ToolManager</strong>: Coordinates tool registration, discovery (via registry), and execution.</li>
+<li><strong>ToolRegistry</strong>: Manages tool definitions and provider-specific formatting.</li>
+<li><strong>ToolExecutor</strong>: Executes tool functions with timeout and retries.</li>
+<li><strong>Models</strong>: Pydantic models for <code>ToolDefinition</code>, <code>ToolCall</code>, <code>ToolResult</code>.</li>
 </ul>
-<h3 id="conversation-management">Conversation Management</h3>
+<h3 id="configuration-management">Configuration Management</h3>
+<p>Configuration is modularized for better maintainability:</p>
 <ul>
-<li><strong>ConversationManager</strong>: Maintains conversation history and context</li>
-<li><strong>ResponseParser</strong>: Processes AI responses to extract content and thoughts</li>
+<li><strong>UnifiedConfig</strong>: Central singleton class for accessing merged configuration data.</li>
+<li><strong>Modular Config Files</strong>: Separate files for models, providers, agents, tools, etc.</li>
 </ul>
-<h3 id="prompt-management">Prompt Management</h3>
+<h3 id="error-handling">Error Handling</h3>
+<p>The error handling system provides consistent error management:</p>
 <ul>
-<li><strong>PromptManager</strong>: Manages prompt templates and versions</li>
-<li><strong>PromptTemplate</strong>: Defines a parameterized prompt structure</li>
-<li><strong>PromptVersion</strong>: Represents a specific version of a template</li>
+<li><strong>ErrorHandler</strong>: Centralized error handling with standardized responses</li>
+<li><strong>Exception Hierarchy</strong>: Well-defined exception types for different error scenarios</li>
 </ul>
-<h3 id="configuration">Configuration</h3>
+<h2 id="dependency-management">Dependency Management</h2>
+<p>Dependencies between components are primarily managed through:</p>
 <ul>
-<li><strong>ConfigManager</strong>: Loads and provides access to configuration settings</li>
-<li><strong>Model Definitions</strong>: Enumerations of supported models</li>
+<li><strong>Dependency Injection</strong>: Components like <code>Coordinator</code> and <code>ToolEnabledAI</code> receive dependencies (e.g., <code>ToolManager</code>, <code>ProviderInterface</code>) via their constructors.</li>
+<li><strong>Factories</strong>: Specific factories like <code>ProviderFactory</code> are used to create instances of components (e.g., providers) based on configuration.</li>
+<li><strong>Singleton Access</strong>: Core configuration (<code>UnifiedConfig</code>) and logging (<code>LoggerFactory</code>) often use singleton patterns for easy access.</li>
 </ul>
+<p>This approach promotes loose coupling and testability.</p>
 <h2 id="component-relationships">Component Relationships</h2>
-<div class="highlight"><pre><span></span><code>+-------------+     +-------------------+
-| ConfigManager|&lt;---| Provider Factory  |
-+-------------+     +-------------------+
-       |                   |
-       |                   v
-       |            +------------+
-       |            | Providers  |
-       |            +------------+
-       |                   ^
-       v                   |
-+-------------+     +------------+     +----------------+
-|  AIBase     |&lt;----| AI         |----&gt;| ToolManager   |
-+-------------+     +------------+     +----------------+
-                         |                    |
-                         v                    v
-                    +----------------+  +----------------+
-                    | ConvManager   |  | AIToolFinder  |
-                    +----------------+  +----------------+
-                         |                    |
-                         v                    v
-                    +----------------+  +----------------+
-                    | ResponseParser|  | ToolRegistry  |
-                    +----------------+  +----------------+
-                                           |
-                                           v
-                                     +----------------+
-                                     | ToolExecutor  |
-                                     +----------------+
+<p>(Diagram needs update to reflect current structure, including ToolManager, ToolEnabledAI, Coordinator, ProviderFactory, UnifiedConfig)</p>
+<div class="highlight"><pre><span></span><code>┌──────────────────┐     ┌───────────────────┐     ┌───────────────────┐
+│                  │     │                   │     │                   │
+│  ConfigFactory   │◄────┤   AppContainer    │────►│   ErrorHandler    │
+│                  │     │                   │     │                   │
+└───────┬──────────┘     └───────┬───────────┘     └───────────────────┘
+        │                        │
+        │                        │
+┌───────▼──────────┐     ┌───────▼───────────┐
+│                  │     │                   │
+│  ProviderFactory │     │   AIBase / AI     │
+│                  │     │                   │
+└───────┬──────────┘     └───────┬───────────┘
+        │                        │
+        │                        │
+┌───────▼──────────┐     ┌───────▼───────────┐     ┌───────────────────┐
+│                  │     │                   │     │                   │
+│    Providers     │     │   Orchestrator    │────►│  RequestAnalyzer  │
+│                  │     │                   │     │                   │
+└──────────────────┘     └───────┬───────────┘     └───────────────────┘
+                                 │
+                                 │
+                         ┌───────▼───────────┐     ┌───────────────────┐
+                         │                   │     │                   │
+                         │  Specialized      │────►│ ResponseAggregator│
+                         │  Agents           │     │                   │
+                         └───────────────────┘     └───────────────────┘
+</code></pre></div>
+<h2 id="key-architectural-improvements">Key Architectural Improvements</h2>
+<h3 id="1-refactored-coordinator-orchestration">1. Refactored Coordinator / Orchestration</h3>
+<p>The orchestration logic, now primarily in the <code>Coordinator</code> agent, is supported by focused components:</p>
+<ul>
+<li><strong>Coordinator</strong>: Coordinates the overall workflow (delegating or handling directly).</li>
+<li><strong>RequestAnalyzer</strong>: Handles request intent classification.</li>
+<li><strong>ResponseAggregator</strong>: (If used) Handles response aggregation.</li>
+</ul>
+<p>This separation improves maintainability.</p>
+<h3 id="2-modularized-configuration">2. Modularized Configuration</h3>
+<p>Configuration remains separated into domain-specific files (models, providers, agents, tools, etc.) managed by the central <code>UnifiedConfig</code>.</p>
+<h3 id="3-standardized-error-handling">3. Standardized Error Handling</h3>
+<p>A consistent error handling approach using a hierarchy based on <code>AIFrameworkError</code> and specific exceptions like <code>AIProviderError</code>, <code>AIAuthenticationError</code>, <code>AIToolError</code>, etc., improves error visibility and debugging.</p>
+<h3 id="4-standardized-provider-interface">4. Standardized Provider Interface</h3>
+<p>The <code>BaseProvider</code> class enforces a standard structure (<code>_prepare_request_payload</code>, <code>_make_api_request</code>, <code>_convert_response</code>) for all provider implementations (OpenAI, Anthropic, Gemini, Ollama), simplifying integration and interaction logic in core AI classes. Providers now return a standardized <code>ProviderResponse</code> object.</p>
+<h3 id="5-simplified-tool-subsystem">5. Simplified Tool Subsystem</h3>
+<p>The tool system has been streamlined:</p>
+<ul>
+<li><code>ToolManager</code> coordinates execution via <code>ToolExecutor</code> and registration/formatting via <code>ToolRegistry</code>.</li>
+<li>Redundant components (<code>AIToolFinder</code>, <code>tool_prompt_builder.py</code>, <code>tool_call.py</code>) were removed.</li>
+<li><code>ToolEnabledAI</code> handles the tool-calling loop using the standardized provider responses and <code>ToolManager</code>.</li>
+</ul>
+<h3 id="6-dependency-injection-and-factories">6. Dependency Injection and Factories</h3>
+<p>Explicit dependency injection and factories (like <code>ProviderFactory</code>) are used instead of a single container, promoting clearer dependency flows.</p>
+<h2 id="usage-example">Usage Example</h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolEnabledAI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">Coordinator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">configure</span>
+<span class="c1"># from your_tools_module import get_weather # Example tool function</span>
+
+<span class="c1"># Configure if needed (optional, uses defaults otherwise)</span>
+<span class="c1"># configure(model=&quot;gpt-4o&quot;)</span>
+
+<span class="c1"># Create a ToolEnabledAI instance</span>
+<span class="n">ai</span> <span class="o">=</span> <span class="n">ToolEnabledAI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o&quot;</span><span class="p">)</span> <span class="c1"># Or any other configured model</span>
+
+<span class="c1"># Tools are typically registered via ToolManager or configuration,</span>
+<span class="c1"># but if manual registration on ToolEnabledAI&#39;s manager is needed:</span>
+<span class="c1"># tool_def = ToolDefinition(...) # Define your tool</span>
+<span class="c1"># ai._tool_manager.register_tool(&quot;get_weather&quot;, tool_def)</span>
+
+<span class="c1"># Make a request that might use tools</span>
+<span class="c1"># Use process_prompt for automatic tool handling</span>
+<span class="n">response_content</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">process_prompt</span><span class="p">(</span><span class="s2">&quot;What&#39;s the weather like in Paris today?&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">response_content</span><span class="p">)</span>
+
+<span class="c1"># Create a Coordinator instance (uses default dependencies)</span>
+<span class="n">coordinator</span> <span class="o">=</span> <span class="n">Coordinator</span><span class="p">()</span>
+
+<span class="c1"># Process a request with the coordinator</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">coordinator</span><span class="o">.</span><span class="n">process_request</span><span class="p">({</span>
+    <span class="s2">&quot;prompt&quot;</span><span class="p">:</span> <span class="s2">&quot;Translate this text to French and analyze the sentiment&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;context&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;source_language&quot;</span><span class="p">:</span> <span class="s2">&quot;en&quot;</span><span class="p">}</span>
+<span class="p">})</span>
+
+<span class="c1"># Print the final content from the coordinator&#39;s response</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">))</span>
 </code></pre></div>
 
 

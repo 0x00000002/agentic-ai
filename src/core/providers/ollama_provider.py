@@ -60,10 +60,10 @@ class OllamaProvider(BaseProvider):
         if self.provider_config.get("base_url"):
              self.client_options['host'] = self.provider_config["base_url"]
              self._client = ollama.Client(**self.client_options)
-             self._logger.info(f"Using Ollama host: {self.client_options['host']}")
+             self.logger.info(f"Using Ollama host: {self.client_options['host']}")
         else:
              self._client = ollama.Client() # Use default host
-             self._logger.info("Using default Ollama host.")
+             self.logger.info("Using default Ollama host.")
              
         self.logger.info(f"Initialized Ollama provider for model: {self.model_id}")
         self.logger.debug(f"Ollama Default Options: {self.ollama_options}")
@@ -79,13 +79,13 @@ class OllamaProvider(BaseProvider):
                 formatted.append({"role": role, "content": content})
             elif role == "tool":
                  # How to represent tool results? Append as user message?
-                 self._logger.warning("Cannot natively represent tool messages for Ollama. Appending as user message.")
+                 self.logger.warning("Cannot natively represent tool messages for Ollama. Appending as user message.")
                  formatted.append({
                       "role": "user", 
                       "content": f"[Tool Result for '{msg.get('name', 'unknown')}']: {content}"
                   })
             else:
-                 self._logger.warning(f"Unsupported role '{role}' for Ollama, treating as user.")
+                 self.logger.warning(f"Unsupported role '{role}' for Ollama, treating as user.")
                  formatted.append({"role": "user", "content": content})
         
         return formatted
@@ -123,7 +123,7 @@ class OllamaProvider(BaseProvider):
         
         # Tools are not natively supported, ignore options["tools"]
         if options.get("tools"):
-             self._logger.warning("Ollama provider received 'tools' option, but does not natively support tool calling. Ignoring.")
+             self.logger.warning("Ollama provider received 'tools' option, but does not natively support tool calling. Ignoring.")
 
         self.logger.debug(f"Ollama payload prepared. Messages: {len(payload['messages'])}, Options: {payload['options']}")
         return payload

@@ -111,7 +111,8 @@ class AIBase(AIInterface):
                 self._logger
             )
             self._logger.error(f"Initialization error: {error_response['message']}")
-            raise
+            # Raise AISetupError, chaining the original exception
+            raise AISetupError(f"Failed to initialize AI: {str(e)}", component="AIBase") from e
     
     def _get_default_system_prompt(self) -> str:
         """
@@ -174,13 +175,18 @@ class AIBase(AIInterface):
             return content
             
         except Exception as e:
-            # Use error handler for standardized error handling
+            # Create the specific error type we want to handle/log
+            ai_error = AIProcessingError(f"Request failed: {str(e)}", component="AIBase")
+
+            # Use error handler for standardized error handling, passing the specific error type
             error_response = ErrorHandler.handle_error(
-                AIProcessingError(f"Request failed: {str(e)}", component="AIBase"),
+                ai_error, 
                 self._logger
             )
             self._logger.error(f"Request error: {error_response['message']}")
-            raise
+            
+            # Raise the specific error type, chaining the original exception cause
+            raise ai_error from e
     
     def stream(self, prompt: str, **options) -> str:
         """

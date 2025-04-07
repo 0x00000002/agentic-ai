@@ -10,107 +10,72 @@ Tools allow the AI to perform actions and retrieve information beyond its traini
 
 ## Tool Components
 
-- **ToolManager**: Central service that coordinates all tool operations
-- **AIToolFinder**: AI-powered component that selects relevant tools based on user input
-- **ToolRegistry**: Stores tool definitions and makes them available to the AI
-- **ToolExecutor**: Executes tool calls safely with error handling
-- **ToolPromptBuilder**: Constructs appropriate prompts for tool usage
+- **ToolManager**: Central service that coordinates tool registration (via `ToolRegistry`), execution (via `ToolExecutor`), and retrieval of tool definitions.
+- **ToolRegistry**: Stores tool definitions (`ToolDefinition`), handles provider-specific formatting, and tracks usage statistics.
+- **ToolExecutor**: Executes the actual tool functions safely with timeout and retry logic.
+- **Models** (`src/tools/models.py`): Defines core data structures like `ToolDefinition`, `ToolCall`, and `ToolResult` using Pydantic.
 
 ## Creating and Registering Tools
 
-Tools are Python functions that can be registered with the AI. Each tool needs:
+Tools are Python functions that can be made available to the AI. The core element is the `ToolDefinition` model, which includes:
 
-- A unique name
-- The function implementing the tool's logic
-- A description of what the tool does
-- A schema defining the parameters the tool accepts
+- `name`: A unique name for the tool.
+- `description`: A clear description of what the tool does (used by the LLM).
+- `parameters_schema`: A JSON schema defining the expected input parameters.
+- `function`: The actual Python callable that implements the tool's logic.
+
+Tools are registered with the `ToolManager` (often during application setup or via configuration loading), which uses the `ToolRegistry` internally.
 
 ```python
+from src.tools import ToolManager, ToolDefinition
+# Assume get_weather is defined elsewhere
+# from my_tools import get_weather
+
 def get_weather(location: str) -> str:
     """Get the current weather for a location."""
-    # Implementation
+    # Implementation...
     return f"Weather data for {location}"
 
-ai.register_tool(
-    tool_name="get_weather",
-    tool_function=get_weather,
-    description="Get current weather for a location",
+# Create a ToolDefinition
+weather_tool_def = ToolDefinition(
+    name="get_weather",
+    description="Get the current weather for a specific city or location.",
     parameters_schema={
         "type": "object",
         "properties": {
             "location": {
                 "type": "string",
-                "description": "The city or location"
+                "description": "The city or location (e.g., 'Paris, France')"
             }
         },
         "required": ["location"]
-    }
-)
-```
-
-## Automatic Tool Finding
-
-The AIToolFinder component uses an AI model to determine which tools are relevant for a given user query:
-
-```python
-# Enable auto tool finding when creating the AI
-ai = AI(
-    model=Model.CLAUDE_3_7_SONNET,
-    config_manager=config_manager,
-    logger=logger,
-    auto_find_tools=True
+    },
+    function=get_weather
 )
 
-# Register multiple tools
-ai.register_tool("get_weather", get_weather, "Get weather information")
-ai.register_tool("calculate", calculator, "Perform calculations")
-ai.register_tool("search_web", search_web, "Search the web for information")
+# Get a ToolManager instance (e.g., from dependency injection or create default)
+tool_manager = ToolManager()
 
-# The AI will automatically select the appropriate tool
-response = ai.request("What's the weather like in Paris?")
-```
-
-## Tool Selection Sequence
+# Register the tool definition
+tool_manager.register_tool(weather_tool_def.name, weather_tool_def)
 
 ```
-User Request
-     |
-     v
-AI (Tool-Enabled)
-     |
-     v
-Tool Manager ---> Available Tools
-     |              |
-     v              |
-AIToolFinder <------+
-     |
-     v
-Selected Tools
-     |
-     v
-Tool Executor
-     |
-     v
-Tool Results
-     |
-     v
-Final AI Response
-```
 
-## Creating Custom Tool Strategies
+## Tool Execution Flow
 
-You can create custom tool selection strategies by implementing the `ToolStrategy` interface:
+When `ToolEnabledAI.process_prompt` is called:
 
-```python
-from src.tools.interfaces import ToolStrategy
+1.  `ToolEnabledAI` retrieves available tool definitions from `ToolManager`.
+2.  It passes these definitions (formatted by `ToolRegistry` via the provider) to the underlying AI Provider (e.g., OpenAI, Anthropic) along with the user prompt and conversation history.
+3.  The LLM decides if a tool needs to be called. If so, the provider returns a `ProviderResponse` containing one or more `ToolCall` objects (with name, arguments, ID).
+4.  `ToolEnabledAI` receives the response.
+5.  If `ToolCall` objects are present, `ToolEnabledAI` iterates through them.
+6.  For each `ToolCall`, it invokes its internal `_execute_tool_call(tool_call)` method, which in turn uses `ToolManager.execute_tool(tool_name=..., **arguments)`.
+7.  `ToolManager` uses `ToolExecutor` to run the actual tool function associated with the `tool_name`.
+8.  `ToolExecutor` returns a `ToolResult` (success/failure, result/error) to `ToolManager`, which passes it back to `ToolEnabledAI` via `_execute_tool_call`.
+9.  `ToolEnabledAI` formats the `ToolResult` into the appropriate message format(s) for the specific provider (using the provider's `_add_tool_message` method) and adds these messages to the conversation history.
+10. `ToolEnabledAI` calls the provider _again_ with the updated history (including tool results).
+11. The loop repeats if the provider requests more tool calls (up to a maximum iteration limit).
+12. Once the provider returns a final response without tool calls, `ToolEnabledAI` returns the text content.
 
-class CustomToolStrategy(ToolStrategy):
-    def select_tools(self, user_prompt, available_tools, context=None):
-        # Your custom logic to select tools
-        selected_tools = []
-        # ...
-        return selected_tools
-
-# Use your custom strategy
-tool_manager.set_tool_strategy(CustomToolStrategy())
-```
+This loop allows the AI to use tools iteratively to accomplish tasks.

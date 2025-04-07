@@ -6,7 +6,7 @@ from ..interfaces import ProviderInterface, MultimediaProviderInterface, ToolCap
 from ...utils.logger import LoggerInterface, LoggerFactory
 from ...config import get_config
 from ...exceptions import AIRequestError, AICredentialsError, AIProviderError, AIAuthenticationError, AIRateLimitError, ModelNotFoundError, ContentModerationError, InvalidRequestError
-from ...tools.models import ToolResult, ToolCall
+from ...tools.models import ToolResult, ToolCall, ToolDefinition
 # Import the ProviderResponse model
 from ..models import ProviderResponse, TokenUsage
 from .base_provider import BaseProvider

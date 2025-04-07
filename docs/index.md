@@ -18,7 +18,3 @@ Agentic-AI is a Python library designed to create AI-powered applications that c
 - **Automatic Tool Discovery**: AI-powered selection of relevant tools based on user queries
 - **Prompt Management**: Create, version, and track performance of prompt templates
 - **Conversation Management**: Maintain context across multiple interactions
-
-## HTML documentation
-
-here it is: [Documentation site](./site/index.html)
