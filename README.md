@@ -20,15 +20,29 @@ Agentic-AI is a Python library designed to create AI-powered applications that c
 - **Automatic Tool Discovery**: AI-powered selection of relevant tools based on user queries
 - **Prompt Management**: Create, version, and track performance of prompt templates
 - **Conversation Management**: Maintain context across multiple interactions
+- **Audio Input (via UI)**: Provides a simple chat UI (`src/ui/simple_chat.py`) that supports microphone input for transcribing user requests in multiple languages (currently English and Russian) using `openai-whisper`.
 
 ## Installation
 
+First, ensure you have the necessary **system dependencies**:
+
+- **Python** (version 3.9+)
+- **`ffmpeg`**: Required for audio processing by the `openai-whisper` library.
+  - On macOS: `brew install ffmpeg`
+  - On Debian/Ubuntu: `sudo apt update && sudo apt install ffmpeg`
+  - On other systems: Follow instructions at [https://ffmpeg.org/download.html](https://ffmpeg.org/download.html)
+
+Then, install the Python packages:
+
 ```bash
-# With pip
-pip install -r requirements.txt
+# Install Python dependencies from requirements file (if applicable)
+# pip install -r requirements.txt
+
+# Install the whisper library for audio transcription
+pip install -U openai-whisper
 
 # For development installation
-pip install -e .
+# pip install -e . # (Run this if you need editable install)
 ```
 
 ## Quick Example
@@ -56,6 +70,16 @@ pip install mkdocs mkdocs-material
 
 # Serve the documentation locally
 mkdocs serve
+```
+
+## Simple Chat UI
+
+The framework includes a simple Gradio-based chat interface that demonstrates agent interaction, including the audio input feature.
+
+To run it:
+
+```bash
+python src/ui/simple_chat.py
 ```
 
 ## Development
