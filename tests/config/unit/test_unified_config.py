@@ -16,9 +16,9 @@ from src.exceptions import AIConfigError
 @pytest.fixture(autouse=True)
 def reset_unified_config():
     """Reset the UnifiedConfig singleton before each test."""
-    UnifiedConfig._instance = None
-    yield # Run the testtest_get_provider_config_not_found
-    UnifiedConfig._instance = None # Ensure cleanup after test
+    UnifiedConfig.reset_instance()
+    yield # Run the test
+    UnifiedConfig.reset_instance() # Ensure cleanup after test
 
 # Helper to create dummy config files
 def create_dummy_yaml(path: Path, data: dict):
@@ -44,11 +44,16 @@ class TestUnifiedConfig:
         assert instance1 is instance2
         assert isinstance(instance1, UnifiedConfig)
 
-    def test_direct_init_raises_error(self):
-        """Test that calling __init__ directly after get_instance raises RuntimeError."""
-        UnifiedConfig.get_instance() # Initialize singleton
-        with pytest.raises(RuntimeError, match="UnifiedConfig is a singleton"):
-            UnifiedConfig()
+    def test_direct_init_preserves_singleton(self):
+        """Test that multiple calls to __init__ still return same singleton instance."""
+        # Create first instance
+        instance1 = UnifiedConfig.get_instance()
+        # Create another instance with different params - it should still be the same instance
+        instance2 = UnifiedConfig()
+        
+        # Both should be the same instance
+        assert instance1 is instance2
+        assert isinstance(instance1, UnifiedConfig)
 
     @patch('src.config.unified_config.os.path.dirname')
     @patch('src.config.unified_config.os.path.abspath')

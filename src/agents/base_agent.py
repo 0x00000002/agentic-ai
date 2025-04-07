@@ -38,7 +38,7 @@ class BaseAgent:
         # Get agent-specific configuration
         self.agent_config = self.config.get_agent_config(self.agent_id) or {}
         
-        self.logger.info(f"Initialized {self.agent_id} agent")
+        self.logger.debug(f"Initialized {self.agent_id} agent")
         
     def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -77,25 +77,14 @@ class BaseAgent:
             if model_override and self.ai_instance:
                 original_model_info = self.ai_instance.get_model_info()
                 original_model_api_id = original_model_info.get("model_id")
-
-                # We need the short key to compare - let's find it in the config
-                # This is inefficient, ideally AIBase.get_model_info() would return the short key too
-                original_model_short_key = None
-                all_models = self.config.get_all_models()
-                for key, config_entry in all_models.items(): # Use config_entry to avoid confusion
-                    config_model_id = config_entry.get("model_id")
-                    self.logger.info(f"CHECK MAP: Key='{key}', ConfigID='{config_model_id}', TargetID='{original_model_api_id}'")
-                    if config_model_id == original_model_api_id:
-                        original_model_short_key = key
-                        self.logger.info(f"CHECK MAP: Found matching short key: '{key}'")
-                        break
-
-                # --- Revised Override Logic --- 
+                original_model_short_key = original_model_info.get("short_key")
+                
+                # Simplified override logic - direct comparison of keys
                 if original_model_short_key:
-                    # Short key WAS found for the original model
+                    # Short key is available, use direct comparison
                     if model_override != original_model_short_key:
                         # Override is needed because short keys differ
-                        self.logger.info(f"Overriding model: {original_model_short_key} -> {model_override}")
+                        self.logger.debug(f"Overriding model: {original_model_short_key} -> {model_override}")
                         self.ai_instance = self.ai_instance.__class__(
                             model=model_override,
                             system_prompt=original_ai_instance.get_system_prompt(), 
@@ -104,20 +93,15 @@ class BaseAgent:
                             prompt_template=original_ai_instance._prompt_template 
                         )
                     # else: short keys match, no override needed
-                        
                 else:
-                    # Short key was NOT found for the original model's API ID
-                    # This indicates a potential config issue (e.g., model in use isn't in models.yml)
-                    self.logger.error(f"Could not find matching short key for original model API ID '{original_model_api_id}'. Cannot safely determine if override is needed. Skipping override.")
-                    # We might also consider falling back to the API ID comparison here if that's desired,
-                    # but it risks hiding configuration errors.
-                # --- End Revised Override Logic ---
+                    # Short key is not available, this indicates a potential config issue
+                    self.logger.warning(f"Model info missing short key for API ID '{original_model_api_id}'. Cannot safely determine if override is needed. Skipping override.")
             
             # Apply system prompt override if specified
             if system_prompt_override is not None and self.ai_instance:
                 # Check if it differs from the current system prompt
                 if system_prompt_override != self.ai_instance.get_system_prompt(): 
-                    self.logger.info("Applying system prompt override from request")
+                    self.logger.debug("Applying system prompt override from request")
                     self.ai_instance.set_system_prompt(system_prompt_override)
                 
             # Extract prompt from request
@@ -153,7 +137,7 @@ class BaseAgent:
         finally:
             # Restore original AI instance if it was overridden
             if self.ai_instance is not original_ai_instance:
-                self.logger.info("Restoring original AI instance.")
+                self.logger.debug("Restoring original AI instance.")
                 self.ai_instance = original_ai_instance
                 restored = True
             # Ensure system prompt is reset if it was overridden AND we didn't restore the whole instance    
@@ -161,7 +145,7 @@ class BaseAgent:
                  original_system_prompt = original_ai_instance.get_system_prompt()
                  current_prompt = self.ai_instance.get_system_prompt()
                  if current_prompt != original_system_prompt:
-                    self.logger.info(f"Restoring original system prompt (from '{current_prompt}' to '{original_system_prompt}')")
+                    self.logger.debug(f"Restoring original system prompt (from '{current_prompt}' to '{original_system_prompt}')")
                     self.ai_instance.set_system_prompt(original_system_prompt)
 
         return self._enrich_response(response)

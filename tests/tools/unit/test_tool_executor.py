@@ -37,21 +37,15 @@ class TestToolExecutor:
 
     @pytest.fixture
     def executor(self) -> ToolExecutor:
-        """Provides a ToolExecutor instance."""
-        # ToolExecutor __init__ does not take registry
-        # mock_registry = MagicMock()
-        # return ToolExecutor(registry=mock_registry)
-        return ToolExecutor() # Initialize without registry
-        
-    # Remove this fixture as it's no longer needed if registry isn't passed
-    # @pytest.fixture
-    # def mock_registry(self, executor: ToolExecutor) -> MagicMock:
-    #     """Provides access to the mock registry used by the executor fixture."""
-    #     return executor._registry # Access the mock registry used in the executor
+        """Provides a ToolExecutor instance with test-friendly settings."""
+        # Use much shorter timeouts for testing
+        return ToolExecutor(timeout=1, max_retries=0)  # Disable retries for most tests
 
-    # Modify tests to mock registry lookup externally if needed, 
-    # but execute_tool takes ToolDefinition directly now.
-    
+    @pytest.fixture
+    def retry_executor(self) -> ToolExecutor:
+        """Provides a ToolExecutor instance configured to test retry logic."""
+        return ToolExecutor(timeout=1, max_retries=2)  # Short timeout, 2 retries for testing
+
     # --- Execution Tests --- 
     @pytest.mark.asyncio
     async def test_execute_sync_tool_success(self, executor: ToolExecutor): # Remove mock_registry
@@ -125,8 +119,9 @@ class TestToolExecutor:
     # Consider refactoring ToolExecutor to use asyncio.wait_for or threading if async support needed.
     # For now, test the timeout logic carefully, possibly patching time.sleep or signal.
 
-    @patch('src.tools.tool_executor.signal') # Patch the whole signal module
-    def test_execute_tool_timeout(self, mock_signal, executor: ToolExecutor):
+    @patch('src.tools.tool_executor.signal')
+    @patch('src.tools.tool_executor.time.sleep')  # Patch time.sleep to avoid actual waiting
+    def test_execute_tool_timeout(self, mock_sleep, mock_signal, executor: ToolExecutor):
         """Test tool execution timing out (Sync Test)."""
         # Mock the timeout handler raising the exception
         def alarm_side_effect(duration):
@@ -137,7 +132,7 @@ class TestToolExecutor:
             # Ignore signal.alarm(0)
             
         mock_signal.alarm.side_effect = alarm_side_effect
-        executor.timeout = 1 # Set a nominal timeout
+        # timeout is already set to 1 in the fixture
         
         tool_def = ToolDefinition(name="timeout_tool", description="Test", parameters_schema={}, function=timeout_tool)
         result = executor.execute(tool_def, duration=5) 
@@ -147,14 +142,16 @@ class TestToolExecutor:
         assert "Tool execution timed out" in result.error
         # Use the imported timeout_handler in assertion
         mock_signal.signal.assert_called_with(mock_signal.SIGALRM, timeout_handler)
-        # Assert alarm was set, don't check for alarm(0) which isn't reached
-        # mock_signal.alarm.assert_has_calls([call(executor.timeout), call(0)])
+        # Assert alarm was set
         mock_signal.alarm.assert_any_call(executor.timeout)
+        # Verify sleep wasn't called (since max_retries is 0)
+        mock_sleep.assert_not_called()
 
     @patch('src.tools.tool_executor.signal')
-    def test_execute_tool_no_timeout(self, mock_signal, executor: ToolExecutor):
+    @patch('time.sleep')  # Patch the global time.sleep to avoid actual waiting
+    def test_execute_tool_no_timeout(self, mock_sleep, mock_signal, executor: ToolExecutor):
         """Test tool execution completing before timeout (Sync Test)."""
-        executor.timeout = 5
+        # timeout is already set to 1 in the fixture
         tool_def = ToolDefinition(name="timeout_tool", description="Test", parameters_schema={}, function=timeout_tool)
         
         # Ensure the mock alarm doesn't raise TimeoutError prematurely
@@ -170,5 +167,32 @@ class TestToolExecutor:
         assert result.error is None
         assert result.result == "Finished sleeping"
         mock_signal.alarm.assert_has_calls([call(executor.timeout), call(0)])
+        # Our implementation of time.sleep in the tool itself is still being called,
+        # so we can't assert that sleep wasn't called
 
-    # Add tests for retry logic
+    @patch('src.tools.tool_executor.time.sleep')  # Patch sleep to avoid delays
+    def test_execute_tool_with_retries(self, mock_sleep, retry_executor):
+        """Test that retry logic works properly but doesn't cause delays."""
+        # Create a tool that fails on first two calls, succeeds on third
+        call_count = [0]
+        
+        def flaky_tool():
+            call_count[0] += 1
+            if call_count[0] <= 2:  # Fail first two calls
+                raise ValueError(f"Failing on attempt {call_count[0]}")
+            return "Success on third try"
+        
+        tool_def = ToolDefinition(name="flaky_tool", description="Test", 
+                                 parameters_schema={}, function=flaky_tool)
+        
+        result = retry_executor.execute(tool_def)
+        
+        assert result.success is True
+        assert result.result == "Success on third try"
+        assert call_count[0] == 3  # Should have tried 3 times
+        
+        # Verify sleep was called with exponential backoff
+        mock_sleep.assert_has_calls([
+            call(2),  # 2^1
+            call(4)   # 2^2
+        ])

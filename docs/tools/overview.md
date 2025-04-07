@@ -79,3 +79,30 @@ When `ToolEnabledAI.process_prompt` is called:
 12. Once the provider returns a final response without tool calls, `ToolEnabledAI` returns the text content.
 
 This loop allows the AI to use tools iteratively to accomplish tasks.
+
+## Provider-Specific Tool Call Handling
+
+Different AI providers handle tool calls in slightly different ways. The framework normalizes these differences to provide a consistent experience:
+
+### OpenAI Provider
+
+The OpenAI provider automatically parses tool call arguments from JSON strings into Python dictionaries:
+
+- Tool call arguments returned by the OpenAI API are JSON strings by default
+- The `_convert_response` method automatically parses these strings into Python dictionaries
+- If JSON parsing fails, the raw string is preserved in a `_raw_args` field
+- This automatic parsing makes it easier to work with tool arguments in your code
+
+```python
+# Example of what happens internally when OpenAI returns a tool call
+# Original from OpenAI:
+# tool_call.function.arguments = '{"location": "New York", "unit": "celsius"}'
+
+# After _convert_response processing:
+tool_call.arguments = {
+    "location": "New York",
+    "unit": "celsius"
+}
+```
+
+This ensures that tool calls work consistently across different providers while taking advantage of each provider's specific capabilities.

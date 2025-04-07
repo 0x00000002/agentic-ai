@@ -7,11 +7,11 @@ from typing import Dict, Any, List, Optional, Set, Union, TYPE_CHECKING
 import json
 import time
 
-from src.utils.logger import LoggerFactory
+from src.utils.logger import LoggerFactory, LoggerInterface
 from src.tools.tool_registry import ToolRegistry
 from src.tools.tool_executor import ToolExecutor
 from src.tools.models import ToolDefinition, ToolResult, ToolExecutionStatus
-from src.exceptions import AIToolError
+from src.exceptions import AIToolError, ErrorHandler
 from src.config.unified_config import UnifiedConfig
 
 if TYPE_CHECKING:
@@ -28,7 +28,10 @@ class ToolManager:
     (Removed ToolFinderAgent dependency)
     """
     
-    def __init__(self, unified_config=None, logger=None, tool_registry=None, tool_executor=None):
+    def __init__(self, unified_config: Optional[UnifiedConfig] = None, 
+                 logger: Optional[LoggerInterface] = None, 
+                 tool_registry: Optional[ToolRegistry] = None, 
+                 tool_executor: Optional[ToolExecutor] = None):
         """
         Initialize the tool manager.
         
@@ -85,7 +88,6 @@ class ToolManager:
     def find_tools(self, prompt: str, conversation_history: Optional[List[str]] = None) -> List[str]:
         """
         Find relevant tools for a given prompt using registry recommendations.
-        (Removed AIToolFinder logic)
         
         Args:
             prompt: User prompt to analyze
@@ -96,10 +98,9 @@ class ToolManager:
         """
         self.logger.debug("Finding tools using registry recommendations.")
         # Get the max recommendations from config
-        finder_config = self.tool_config.get("finder_agent", {}) # Keep config section for params
-        max_tools = finder_config.get("max_recommendations", 5) # Default max
+        max_tools = self.tool_config.get("max_recommendations", 5)  # Default max
         try:
-            # Always use the registry's recommendation method now
+            # Use the registry's recommendation method
             recommended_tools = self.tool_registry.get_recommended_tools(prompt, max_tools=max_tools)
             self.logger.info(f"Registry recommended tools: {recommended_tools}")
             return recommended_tools
@@ -123,10 +124,13 @@ class ToolManager:
             tool_definition = self.tool_registry.get_tool(tool_name)
             
             if not tool_definition:
+                error_message = f"Tool not found: {tool_name}"
+                self.logger.error(error_message)
                 return ToolResult(
-                    status=ToolExecutionStatus.ERROR,
-                    error=f"Tool not found: {tool_name}",
-                    result=None
+                    success=False,
+                    error=error_message,
+                    result=None,
+                    tool_name=tool_name
                 )
                 
             # Execute the tool using configs from tool_config if applicable
@@ -154,7 +158,7 @@ class ToolManager:
             # Update usage stats if tracking is enabled
             stats_config = self.tool_config.get("stats", {})
             if stats_config.get("track_usage", True):
-                success = result.status == ToolExecutionStatus.SUCCESS
+                success = result.success
                 self.tool_registry.update_usage_stats(
                     tool_name, 
                     success,
@@ -164,11 +168,16 @@ class ToolManager:
             
             return result
         except Exception as e:
-            self.logger.error(f"Error executing tool {tool_name}: {str(e)}")
+            # Use error handler for standardized error handling
+            tool_error = AIToolError(f"Error executing tool {tool_name}: {str(e)}", tool_name=tool_name)
+            error_response = ErrorHandler.handle_error(tool_error, self.logger)
+            
+            # Return a tool result with the error
             return ToolResult(
-                status=ToolExecutionStatus.ERROR,
-                error=str(e),
-                result=None
+                success=False,
+                error=error_response["message"],
+                result=None,
+                tool_name=tool_name
             )
     
     def get_tool_info(self, tool_name: str) -> Optional[Dict[str, Any]]:

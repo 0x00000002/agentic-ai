@@ -51,20 +51,23 @@ class AIBase(AIInterface):
             # Get unified configuration
             self._config = UnifiedConfig.get_instance()
             
-            # --- Add Detailed Init Logging --- 
+            # --- Detailed Init Logging (moved to DEBUG level) --- 
             model_key = model or self._config.get_default_model()
-            self._logger.info(f"AIBase Init: Requested model key='{model_key}'")
+            self._logger.debug(f"AIBase Init: Requested model key='{model_key}'")
+            
+            # Store the model key for later reference
+            self._model_key = model_key
             
             try:
                 self._model_config = self._config.get_model_config(model_key)
-                self._logger.info(f"AIBase Init: Fetched model config: {self._model_config}")
+                self._logger.debug(f"AIBase Init: Fetched model config: {self._model_config}")
             except Exception as e:
                  self._logger.error(f"AIBase Init: Failed to get model config for '{model_key}': {e}", exc_info=True)
                  raise AISetupError(f"Missing model configuration for '{model_key}'") from e
 
             provider_model_id = self._model_config.get("model_id", model_key)
             provider_name = self._model_config.get("provider") # Get provider, error if missing
-            self._logger.info(f"AIBase Init: Determined provider_name='{provider_name}', provider_model_id='{provider_model_id}'")
+            self._logger.debug(f"AIBase Init: Determined provider_name='{provider_name}', provider_model_id='{provider_model_id}'")
             
             if not provider_name:
                  self._logger.error(f"AIBase Init: Provider name missing in model config for '{model_key}'")
@@ -72,14 +75,14 @@ class AIBase(AIInterface):
 
             try:
                 provider_config = self._config.get_provider_config(provider_name)
-                self._logger.info(f"AIBase Init: Fetched provider config for '{provider_name}': {provider_config}")
+                self._logger.debug(f"AIBase Init: Fetched provider config for '{provider_name}'")
             except AIConfigError as e:
                  self._logger.error(f"AIBase Init: Failed to get provider config for '{provider_name}': {e}", exc_info=True)
                  raise AISetupError(f"Missing provider configuration for '{provider_name}'") from e
 
             self._prompt_template = prompt_template or PromptTemplate(logger=self._logger)
             
-            self._logger.info(f"AIBase Init: Calling ProviderFactory.create(provider_type='{provider_name}', model_id='{provider_model_id}', ...)")
+            self._logger.debug(f"AIBase Init: Creating provider via ProviderFactory for type='{provider_name}', model_id='{provider_model_id}'")
             self._provider = ProviderFactory.create(
                 provider_type=provider_name,
                 model_id=provider_model_id, 
@@ -87,7 +90,7 @@ class AIBase(AIInterface):
                 model_config=self._model_config,
                 logger=self._logger
             )
-            self._logger.info(f"AIBase Init: ProviderFactory returned instance of type: {type(self._provider)}")
+            self._logger.debug(f"AIBase Init: ProviderFactory returned instance of type: {type(self._provider).__name__}")
             # --- End Detailed Init Logging ---
 
             # Set up conversation manager
@@ -149,7 +152,7 @@ class AIBase(AIInterface):
             AIProcessingError: If the request fails
         """
         try:
-            self._logger.info(f"Processing request: {prompt[:50]}...")
+            self._logger.debug(f"Processing request: {prompt[:50]}...")
             
             # Add user message
             self._conversation_manager.add_message(role="user", content=prompt)
@@ -203,7 +206,7 @@ class AIBase(AIInterface):
             AIProcessingError: If streaming fails
         """
         try:
-            self._logger.info(f"Processing streaming request: {prompt[:50]}...")
+            self._logger.debug(f"Processing streaming request: {prompt[:50]}...")
             
             # Add user message
             self._conversation_manager.add_message(role="user", content=prompt)
@@ -244,7 +247,7 @@ class AIBase(AIInterface):
         Clears all messages and restores the system prompt.
         """
         self._conversation_manager.reset()
-        self._logger.info("Conversation history reset")
+        self._logger.debug("Conversation history reset")
         
         # Restore system prompt if it exists
         if self._system_prompt:
@@ -275,7 +278,7 @@ class AIBase(AIInterface):
         """
         self._system_prompt = system_prompt
         self._conversation_manager.set_system_prompt(system_prompt)
-        self._logger.info("System prompt updated")
+        self._logger.debug("System prompt updated")
     
     def get_model_info(self) -> Dict[str, Any]:
         """
@@ -290,5 +293,6 @@ class AIBase(AIInterface):
             "quality": self._model_config.get("quality", ""),
             "speed": self._model_config.get("speed", ""),
             "parameters": self._model_config.get("parameters", {}),
-            "privacy": self._model_config.get("privacy", "")
+            "privacy": self._model_config.get("privacy", ""),
+            "short_key": getattr(self, "_model_key", "")  # Add short key
         }

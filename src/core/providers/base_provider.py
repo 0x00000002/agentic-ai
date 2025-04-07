@@ -1,18 +1,22 @@
 """
 Base provider implementation.
 """
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional, Union, Type
 from ..interfaces import ProviderInterface
 from ...utils.logger import LoggerInterface, LoggerFactory
 from ...exceptions import AIProviderError
 from ...config import get_config
 from ...config import UnifiedConfig
 # Import Tool models for type hinting
-from ...tools.models import ToolCall, ToolDefinition
-# Import ToolRegistry to format tools
-from ...tools.tool_registry import ToolRegistry
+from ...tools.models import ToolCall, ToolDefinition, ToolResult
 # Import the new model
 from ..models import ProviderResponse
+
+# Import helper classes
+from .message_formatter import MessageFormatter
+from .parameter_manager import ParameterManager
+from .credential_manager import CredentialManager
+from .tool_manager import ToolManager
 
 
 class BaseProvider(ProviderInterface):
@@ -34,176 +38,155 @@ class BaseProvider(ProviderInterface):
         """
         # Assign arguments
         self.model_id = model_id
-        self.provider_config = provider_config # Use passed provider-specific config
-        self.model_config = model_config       # Use passed model-specific config
+        self.provider_config = provider_config
+        self.model_config = model_config
         self.logger = logger or LoggerFactory.create(name="base_provider")
-        self.config = UnifiedConfig.get_instance() # Still need global config access
+        self.config = UnifiedConfig.get_instance()
         
-        # Initialize credentials (can use self.provider_config and self.config)
+        # Extract provider name from class name for helper components
+        provider_name = self.__class__.__name__.replace("Provider", "").lower()
+        
+        # Initialize helper components
+        self._initialize_helpers(provider_name)
+        
+        # Initialize credentials through credential manager
         self._initialize_credentials()
         
-        self.logger.info(f"Initialized {self.__class__.__name__} for model {model_id}")
+        self.logger.debug(f"Initialized {self.__class__.__name__} for model {model_id}")
     
-    def _initialize_credentials(self) -> None:
-        """Initialize credentials for the provider. Override in subclasses if needed."""
-        pass
-    
-    def _map_role(self, role: str) -> str:
+    def _initialize_helpers(self, provider_name: str) -> None:
         """
-        Map a standard role to the provider-specific role name.
+        Initialize helper components.
         
         Args:
-            role: Standard role name ("system", "user", "assistant", etc.)
-            
-        Returns:
-            Provider-specific role name
+            provider_name: Provider name for helper components
         """
-        # By default, use the same role names
-        # Subclasses should override this if they use different role names
-        return role
+        # Create message formatter with role mapping from subclass if available
+        role_mapping = getattr(self.__class__, "_ROLE_MAP", None)
+        self.message_formatter = MessageFormatter(role_mapping=role_mapping, logger=self.logger)
+        
+        # Create parameter manager with default parameters
+        default_params = {}
+        model_params = self.model_config.get("parameters", {})
+        allowed_params = set()
+        param_mapping = {}
+        
+        # Allow subclasses to provide these through class attributes
+        if hasattr(self.__class__, "DEFAULT_PARAMETERS"):
+            default_params = self.__class__.DEFAULT_PARAMETERS.copy()
+        if hasattr(self.__class__, "ALLOWED_PARAMETERS"):
+            allowed_params = set(self.__class__.ALLOWED_PARAMETERS)
+        if hasattr(self.__class__, "PARAMETER_MAPPING"):
+            param_mapping = self.__class__.PARAMETER_MAPPING.copy()
+            
+        self.parameter_manager = ParameterManager(
+            default_parameters=default_params,
+            model_parameters=model_params,
+            allowed_parameters=allowed_params,
+            parameter_mapping=param_mapping,
+            logger=self.logger
+        )
+        
+        # Create credential manager
+        self.credential_manager = CredentialManager(
+            provider_name=provider_name, 
+            provider_config=self.provider_config,
+            logger=self.logger,
+            config=self.config
+        )
+        
+        # Create tool manager
+        self.tool_manager = ToolManager(
+            provider_name=provider_name,
+            logger=self.logger
+        )
+    
+    def _initialize_credentials(self) -> None:
+        """Initialize credentials for the provider."""
+        # Use credential manager to load credentials
+        try:
+            self.credential_manager.load_credentials()
+        except Exception as e:
+            self.logger.error(f"Failed to initialize credentials: {e}", exc_info=True)
+            raise
     
     def _format_messages(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        Formats messages, mapping roles and potentially handling provider-specific structures.
-        Subclasses should override if complex formatting (e.g., system prompt placement) is needed.
+        Format messages for the provider API.
         
         Args:
-            messages: List of message dictionaries in standard format.
+            messages: List of message dictionaries in standard format
             
         Returns:
-            Formatted messages suitable for the provider's API.
+            Formatted messages suitable for the provider's API
         """
-        formatted_messages = []
-        for message in messages:
-            role = self._map_role(message.get("role", "user"))
-            content = message.get("content", "")
-            
-            # Basic structure
-            formatted_message = {
-                "role": role,
-                "content": content
-            }
-            
-            # Include other relevant fields (like name for tool messages)
-            if "name" in message and role == self._map_role("tool"):
-                 formatted_message["name"] = message["name"]
-            if "tool_calls" in message and role == self._map_role("assistant"):
-                 formatted_message["tool_calls"] = message["tool_calls"]
-                 
-            # Allow subclasses to add/modify fields if necessary
-            formatted_messages.append(self._post_process_formatted_message(formatted_message, message))
-            
-        return formatted_messages
-
-    def _post_process_formatted_message(self, formatted_message: Dict[str, Any], original_message: Dict[str, Any]) -> Dict[str, Any]:
-        """ Hook for subclasses to modify a formatted message before it's added to the list. """
-        # Base implementation does nothing
-        return formatted_message
+        return self.message_formatter.format_messages(messages)
 
     def _prepare_request_payload(self, 
-                                 messages: List[Dict[str, Any]], 
-                                 options: Dict[str, Any]) -> Dict[str, Any]:
+                               messages: List[Dict[str, Any]], 
+                               options: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Prepares the final request payload dictionary for the provider's API.
-        Handles merging default/model/runtime parameters, system prompt, tools, etc.
-        Subclasses might override parts, especially for provider-specific parameter names.
+        Prepare the request payload for the provider API.
         
         Args:
-            messages: The list of conversation messages (already role-mapped if needed).
-            options: Runtime options for the request (e.g., temperature, max_tokens, tools).
+            messages: List of conversation messages
+            options: Runtime options for the request
             
         Returns:
-            The complete request payload dictionary.
+            Complete request payload dictionary
         """
         self.logger.debug(f"Preparing request payload with options: {options}")
         
-        # 1. Parameter Merging (Defaults < Model Config < Runtime Options)
-        # Start with provider/model defaults (subclass should populate self.parameters)
-        payload_params = self.parameters.copy() if hasattr(self, 'parameters') else {}
-        # Merge model-specific config parameters (already handled in subclass __init__ usually)
-        # payload_params.update(self.model_config.get("parameters", {}))
-        # Merge runtime options, overriding defaults/model config
-        payload_params.update(options)
-
-        # 2. Handle System Prompt
-        system_prompt = payload_params.pop("system_prompt", None)
-        # How system prompt is added depends on provider (handled in _format_messages or here)
-        # Example: some providers might take it as a top-level parameter
-        # if system_prompt:
-        #     payload["system"] = system_prompt 
-        # Others expect it as the first message (handled in _format_messages override)
-
-        # 3. Format Messages (using potentially overridden _format_messages)
-        # Note: Pass system_prompt to _format_messages if it needs to handle it
-        formatted_messages = self._format_messages(messages)
-        payload = {"messages": formatted_messages}
-
-        # 4. Handle Tools
-        tools = payload_params.pop("tools", None)
-        tool_choice = payload_params.pop("tool_choice", None)
+        # Special keys to handle separately
+        special_keys = ["system_prompt", "tools", "tool_choice"]
+        
+        # Process parameters
+        params, special_params = self.parameter_manager.prepare_request_payload(
+            runtime_options=options,
+            special_keys=special_keys
+        )
+        
+        # Format messages (potentially with system prompt)
+        system_prompt = special_params.get("system_prompt")
+        formatted_messages = self.message_formatter.format_messages(
+            messages=messages,
+            system_prompt=system_prompt
+        )
+        
+        # Start building payload
+        payload = {
+            "messages": formatted_messages,
+            "model": self.model_id
+        }
+        
+        # Add remaining parameters
+        payload.update(params)
+        
+        # Handle tools if present
+        tools = special_params.get("tools")
+        tool_choice = special_params.get("tool_choice")
+        
         if tools:
-            # Requires ToolRegistry access - maybe pass it in or get instance?
-            # Assuming ToolRegistry is available or passed during init
-            # This part needs refinement based on ToolRegistry availability
             try:
-                tool_registry = ToolRegistry() # Or get instance/passed registry
-                formatted_tools = tool_registry.format_tools_for_provider(
-                    self.__class__.__name__.upper(), # Derive provider name
-                    set(tools) if isinstance(tools, list) else None # Assume tools is list of names
-                )
+                formatted_tools = self.tool_manager.format_tools(tools)
                 if formatted_tools:
                     payload["tools"] = formatted_tools
+                    
+                    # Add tool_choice if specified
                     if tool_choice:
-                        # Add tool_choice logic (provider-specific formatting needed)
-                        # payload["tool_choice"] = self._format_tool_choice(tool_choice)
-                        payload["tool_choice"] = tool_choice # Placeholder - needs provider formatting
+                        formatted_choice = self.tool_manager.format_tool_choice(tool_choice)
+                        payload["tool_choice"] = formatted_choice
             except Exception as e:
-                self.logger.error(f"Failed to format tools for provider: {e}", exc_info=True)
-
-        # 5. Add remaining merged parameters to the payload
-        # Subclasses might need to rename keys (e.g., max_tokens vs max_tokens_to_sample)
-        final_payload = self._map_payload_parameters(payload_params)
-        payload.update(final_payload)
-        
-        # Add model ID
-        payload["model"] = self.model_id
+                self.logger.error(f"Failed to format tools: {e}", exc_info=True)
         
         self.logger.debug(f"Final request payload keys: {list(payload.keys())}")
-        # Avoid logging full messages/tools payload by default unless needed
-        # self.logger.debug(f"Final request payload: {payload}") 
         return payload
 
-    def _map_payload_parameters(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """ Hook for subclasses to rename parameters to provider-specific names. """
-        # Base implementation returns parameters as is
-        return params
-
-    def _convert_messages(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Convert messages to provider-specific format.
-        Override this method in provider implementations.
-        
-        Args:
-            messages: List of messages in standard format
-            
-        Returns:
-            List of messages in provider-specific format
-        """
-        return messages
-    
-    def _convert_response(self, raw_response: Any) -> ProviderResponse:
-        """
-        Abstract method for subclasses to convert the raw provider response 
-        into a standardized ProviderResponse object.
-        """
-        raise NotImplementedError(f"Subclasses must implement _convert_response")
-    
     def _add_tool_message(self, messages: List[Dict[str, Any]], 
-                         name: str, 
-                         content: str) -> List[Dict[str, Any]]:
+                        name: str, 
+                        content: str) -> List[Dict[str, Any]]:
         """
-        Add a tool message in provider-specific format.
-        Override this method in provider implementations.
+        Add a tool message to the conversation.
         
         Args:
             messages: Current conversation messages
@@ -213,17 +196,11 @@ class BaseProvider(ProviderInterface):
         Returns:
             Updated messages list
         """
-        messages.append({
-            "role": "tool",
-            "name": name,
-            "content": str(content)
-        })
-        return messages
+        return self.tool_manager.add_tool_message(messages, name, content)
         
     def _extract_content(self, response: Dict[str, Any]) -> str:
         """
         Extract content from a provider response.
-        Override this method in provider implementations if needed.
         
         Args:
             response: Provider response dictionary
@@ -236,7 +213,6 @@ class BaseProvider(ProviderInterface):
     def _has_tool_calls(self, response: Dict[str, Any]) -> bool:
         """
         Check if response contains tool calls.
-        Override this method in provider implementations if needed.
         
         Args:
             response: Provider response dictionary
@@ -244,7 +220,7 @@ class BaseProvider(ProviderInterface):
         Returns:
             True if response contains tool calls
         """
-        return bool(response.get('tool_calls', []))
+        return self.tool_manager.has_tool_calls(response)
     
     def standardize_response(self, response: Union[str, Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -269,31 +245,41 @@ class BaseProvider(ProviderInterface):
         # Default case - empty response
         return {'content': '', 'tool_calls': []}
     
+    def _convert_response(self, raw_response: Any) -> ProviderResponse:
+        """
+        Convert the raw provider response to a standardized ProviderResponse.
+        
+        Args:
+            raw_response: Raw response from the provider's API
+            
+        Returns:
+            Standardized ProviderResponse object
+        """
+        raise NotImplementedError(f"Subclasses must implement _convert_response")
+    
     def request(self, messages: Union[str, List[Dict[str, Any]]], **options) -> ProviderResponse:
         """
         Make a request to the AI model.
-        This base method now handles payload preparation.
-        Subclasses MUST implement _make_api_request().
         
         Args:
-            messages: The conversation messages (List[Dict]) or a simple string prompt.
-            options: Additional request options (temperature, tools, etc.).
+            messages: The conversation messages or a simple string prompt
+            options: Additional request options
             
         Returns:
-            Standardized ProviderResponse object.
+            Standardized ProviderResponse object
         """
         if isinstance(messages, str):
              # Convert simple prompt string to messages list
              messages = [{"role": "user", "content": messages}]
         
-        # Prepare the payload using the new standardized method
+        # Prepare the payload
         payload = self._prepare_request_payload(messages, options)
         
         try:
-            # Subclasses implement the actual API call
+            # Make the API request
             raw_response = self._make_api_request(payload)
             
-            # Subclasses implement response conversion to standard ProviderResponse object
+            # Convert to standardized response
             provider_response = self._convert_response(raw_response)
             
             # Ensure the return type is ProviderResponse
@@ -304,8 +290,6 @@ class BaseProvider(ProviderInterface):
                       provider_response = ProviderResponse(**provider_response)
                  except Exception as conversion_error:
                       self.logger.error(f"Failed to convert provider response dict to ProviderResponse model: {conversion_error}")
-                      # Raise a more specific error or return a default error response?
-                      # For now, re-raise the original error from _make_api_request if it failed
                       raise AIProviderError(f"Invalid response format from {self.__class__.__name__}._convert_response")
             
             return provider_response
@@ -313,20 +297,23 @@ class BaseProvider(ProviderInterface):
         except Exception as e:
              # Catch potential API errors or conversion errors
              self.logger.error(f"Error during {self.__class__.__name__} request: {e}", exc_info=True)
-             # TODO: Map to specific AIProviderError subclass
-             # Return an error ProviderResponse object
              return ProviderResponse(error=str(e))
              
     def _make_api_request(self, payload: Dict[str, Any]) -> Any:
-        """ Abstract method for subclasses to implement the actual API call. 
-            Should return the raw response object from the provider's SDK.
+        """
+        Make the actual API request to the provider.
+        
+        Args:
+            payload: Request payload dictionary
+            
+        Returns:
+            Raw response from the provider's API
         """
         raise NotImplementedError(f"Subclasses must implement _make_api_request")
         
     def stream(self, messages: Union[str, List[Dict[str, Any]]], **options) -> str:
         """
         Stream a response from the AI model.
-        Override this method in provider implementations.
         
         Args:
             messages: The conversation messages or a simple string prompt
@@ -335,5 +322,19 @@ class BaseProvider(ProviderInterface):
         Returns:
             Streamed response as a string
         """
-        # This is a base implementation - providers should override this
-        raise NotImplementedError(f"Subclasses must implement stream") 
+        raise NotImplementedError(f"Subclasses must implement stream")
+    
+    def build_tool_result_messages(self, 
+                                 tool_calls: List[ToolCall], 
+                                 tool_results: List[ToolResult]) -> List[Dict[str, Any]]:
+        """
+        Build formatted messages for tool results.
+        
+        Args:
+            tool_calls: List of tool calls
+            tool_results: List of tool results
+            
+        Returns:
+            List of messages representing tool results
+        """
+        return self.tool_manager.build_tool_result_messages(tool_calls, tool_results) 

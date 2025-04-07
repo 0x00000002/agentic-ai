@@ -292,6 +292,9 @@ class TestAIBase:
             # Instantiate AIBase
             ai = AIBase(logger=mock_logger)
             
+            # Add _model_key attribute which is set in __init__ but not in our mock
+            ai._model_key = "default-model"
+            
             # Reset mocks potentially called during init
             mock_convo_manager.reset_mock()
             mock_logger.reset_mock()
@@ -330,7 +333,7 @@ class TestAIBase:
         mock_convo_manager.add_message.assert_has_calls(add_message_calls)
         mock_convo_manager.get_messages.assert_called_once()
         mock_provider.request.assert_called_once_with(dummy_messages, temperature=0.5)
-        mock_logger.info.assert_any_call(f"Processing request: {user_prompt[:50]}...")
+        mock_logger.debug.assert_any_call(f"Processing request: {user_prompt[:50]}...")
 
     def test_request_provider_returns_string(self, initialized_ai, mock_convo_manager, mock_provider, mock_logger, mock_config_instance):
         """Test request flow when provider returns a raw string."""
@@ -359,7 +362,7 @@ class TestAIBase:
         mock_convo_manager.add_message.assert_has_calls(add_message_calls)
         mock_convo_manager.get_messages.assert_called_once()
         mock_provider.request.assert_called_once_with(dummy_messages)
-        mock_logger.info.assert_any_call(f"Processing request: {user_prompt[:50]}...")
+        mock_logger.debug.assert_any_call(f"Processing request: {user_prompt[:50]}...")
 
     @patch('src.core.base_ai.ErrorHandler.handle_error')
     def test_request_provider_raises_exception(self, mock_handle_error, initialized_ai, mock_convo_manager, mock_provider, mock_logger):
@@ -393,19 +396,24 @@ class TestAIBase:
 
     # --- Tests for Conversation Methods ---
 
-    def test_reset_conversation(self, initialized_ai, mock_convo_manager, mock_config_instance):
-        """Test reset_conversation calls ConversationManager.reset and adds system prompt."""
+    def test_reset_conversation(self, initialized_ai, mock_convo_manager, mock_prompt_template, mock_logger):
+        """Test conversation reset functionality."""
         # Arrange
         ai = initialized_ai
-        system_prompt = ai._system_prompt # Get the system prompt set during init
-
+        test_system_prompt = "You are a helpful AI."
+        ai._system_prompt = test_system_prompt
+        
         # Act
         ai.reset_conversation()
-
+        
         # Assert
+        # NOTE: Reset should clear conversation but not AI settings
         mock_convo_manager.reset.assert_called_once()
-        # Ensure system prompt is re-added after reset
-        mock_convo_manager.add_message.assert_called_once_with(role="system", content=system_prompt)
+        mock_logger.debug.assert_any_call("Conversation history reset")
+        mock_convo_manager.add_message.assert_called_once_with(
+            role="system",
+            content=test_system_prompt
+        )
 
     def test_get_conversation(self, initialized_ai, mock_convo_manager):
         """Test get_conversation returns messages from ConversationManager."""
@@ -461,7 +469,8 @@ class TestAIBase:
             "quality": model_config.get("quality", ""), # Add default
             "speed": model_config.get("speed", ""),       # Add default
             "parameters": model_config.get("parameters", {}), # Add default
-            "privacy": model_config.get("privacy", "")    # Add default
+            "privacy": model_config.get("privacy", ""),    # Add default
+            "short_key": getattr(ai, "_model_key", "")     # Add short_key
         }
         # Ensure the base mock config has provider/model_id for a meaningful test
         assert "provider" in model_config

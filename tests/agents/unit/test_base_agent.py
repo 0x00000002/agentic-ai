@@ -76,9 +76,9 @@ class TestBaseAgent:
         mock_unified_config.get_agent_config.assert_called_once_with(agent_id)
         assert agent.agent_config == {"some_setting": "value"}
         # Use the fixture arguments directly
-        patch_logger_factory.assert_not_called() 
+        patch_logger_factory.assert_not_called()
         patch_config_get_instance.assert_not_called()
-        mock_logger.info.assert_called_with(f"Initialized {agent_id} agent")
+        mock_logger.debug.assert_called_with(f"Initialized {agent_id} agent")
 
     def test_init_defaults(self, mock_ai_instance, mock_tool_manager, mock_unified_config, mock_logger, patch_logger_factory, patch_config_get_instance):
         """Test initialization using default dependencies (config, logger, agent_id)."""
@@ -103,7 +103,7 @@ class TestBaseAgent:
         mock_unified_config.get_agent_config.assert_called_once_with("base_agent")
         assert agent.agent_config == {"some_setting": "value"}
         # Verify logger was used
-        mock_logger.info.assert_called_with("Initialized base_agent agent")
+        mock_logger.debug.assert_called_with("Initialized base_agent agent")
         
     def test_init_agent_config_not_found(self, mock_unified_config, patch_config_get_instance):
          """Test initialization when agent config is not found for the ID."""
@@ -189,18 +189,15 @@ class TestBaseAgent:
         request = {"prompt": prompt, "model": override_model_key}
         ai_response = "Response from overridden model"
 
-        # Configure original AI instance mock
-        mock_ai_instance.get_model_info.return_value = {"model_id": original_model_api_id}
+        # Configure original AI instance mock with short_key
+        mock_ai_instance.get_model_info.return_value = {
+            "model_id": original_model_api_id,
+            "short_key": original_model_key  # Add short_key to match new implementation
+        }
         mock_ai_instance.get_system_prompt.return_value = "Original System Prompt"
         mock_ai_instance._logger = MagicMock() # Give it a mock logger
         mock_ai_instance._request_id = None
         mock_ai_instance._prompt_template = None
-        
-        # Configure config mock to map API ID back to original key
-        mock_unified_config.get_all_models.return_value = {
-            original_model_key: {"model_id": original_model_api_id, "provider": "p1"},
-            override_model_key: {"model_id": "override-api-id", "provider": "p2"}
-        }
         
         # Mock the AI class itself to capture instantiation
         MockAIClass = MagicMock(spec=AIBase)
@@ -216,8 +213,9 @@ class TestBaseAgent:
         response = agent.process_request(request)
 
         # --- Assert ---
-        # Check config was queried to find the original model key
-        mock_unified_config.get_all_models.assert_called_once()
+        # We no longer need to check get_all_models since we get short_key directly
+        # No need to assert: mock_unified_config.get_all_models.assert_called_once()
+        
         # Check a new AI instance was created with the override key
         MockAIClass.assert_called_once_with(
             model=override_model_key,
@@ -233,7 +231,7 @@ class TestBaseAgent:
         assert response["status"] == "success"
         # Check the original AI instance was restored
         assert agent.ai_instance is mock_ai_instance
-        mock_logger.info.assert_any_call("Restoring original AI instance.")
+        mock_logger.debug.assert_any_call("Restoring original AI instance.")
         
     def test_process_request_model_override_skipped_same_key(self, mock_ai_instance, mock_unified_config, mock_logger):
         """Test model override is skipped if request specifies the same model key."""
@@ -244,16 +242,16 @@ class TestBaseAgent:
         request = {"prompt": prompt, "model": model_key} # Same key as original
         ai_response = "Response from original model"
         
-        mock_ai_instance.get_model_info.return_value = {"model_id": model_api_id}
+        # Add short_key to the mock response
+        mock_ai_instance.get_model_info.return_value = {
+            "model_id": model_api_id,
+            "short_key": model_key  # Add short_key
+        }
         mock_ai_instance.request.return_value = ai_response
         # Mock the AI class but expect it NOT to be called
         MockAIClass = MagicMock(spec=AIBase)
         mock_ai_instance.__class__ = MockAIClass
-        
-        mock_unified_config.get_all_models.return_value = {
-            model_key: {"model_id": model_api_id, "provider": "p1"}
-        }
-        
+                
         agent = BaseAgent(ai_instance=mock_ai_instance, unified_config=mock_unified_config, logger=mock_logger, agent_id=agent_id)
         response = agent.process_request(request)
         
@@ -266,7 +264,7 @@ class TestBaseAgent:
         assert agent.ai_instance is mock_ai_instance # Should not have changed
 
     def test_process_request_model_override_skipped_id_not_found(self, mock_ai_instance, mock_unified_config, mock_logger):
-        """Test model override is skipped if original model ID isn't in config."""
+        """Test model override is skipped if original model info is missing short_key."""
         agent_id = "override_agent_not_found"
         original_model_api_id = "original-model-api-id-not-in-config"
         override_model_key = "override-model"
@@ -274,16 +272,12 @@ class TestBaseAgent:
         request = {"prompt": prompt, "model": override_model_key}
         ai_response = "Response from original model"
 
+        # Return model_info WITHOUT short_key
         mock_ai_instance.get_model_info.return_value = {"model_id": original_model_api_id}
         mock_ai_instance.request.return_value = ai_response
         MockAIClass = MagicMock(spec=AIBase)
         mock_ai_instance.__class__ = MockAIClass
-        
-        # Config mock doesn't contain the original_model_api_id
-        mock_unified_config.get_all_models.return_value = {
-            override_model_key: {"model_id": "override-api-id", "provider": "p2"}
-        }
-        
+                
         agent = BaseAgent(ai_instance=mock_ai_instance, unified_config=mock_unified_config, logger=mock_logger, agent_id=agent_id)
         response = agent.process_request(request)
         
@@ -291,7 +285,8 @@ class TestBaseAgent:
         mock_ai_instance.request.assert_called_once_with(prompt)
         assert response["content"] == ai_response
         assert response["status"] == "success"
-        mock_logger.error.assert_called_once_with(f"Could not find matching short key for original model API ID '{original_model_api_id}'. Cannot safely determine if override is needed. Skipping override.")
+        # Now we check for a warning instead of error
+        mock_logger.warning.assert_any_call(f"Model info missing short key for API ID '{original_model_api_id}'. Cannot safely determine if override is needed. Skipping override.")
         assert agent.ai_instance is mock_ai_instance
 
     def test_process_request_system_prompt_override_success(self, mock_ai_instance, mock_logger):
@@ -334,7 +329,7 @@ class TestBaseAgent:
         
         # Find any log message containing "Restoring original system prompt"
         restoration_logs = [
-            call_args[0][0] for call_args in mock_logger.info.call_args_list 
+            call_args[0][0] for call_args in mock_logger.debug.call_args_list
             if isinstance(call_args[0][0], str) and "Restoring original system prompt" in call_args[0][0]
         ]
         assert restoration_logs, "Expected a log message about restoring the system prompt"
