@@ -1,146 +1,137 @@
-# Prompt Management
+# Prompt Management using PromptTemplate
 
 ## Overview
 
-The prompt management system in Agentic-AI allows you to:
+The primary way to manage and use prompts in Agentic AI is through the `PromptTemplate` service (`src/prompts/prompt_template.py`). This service allows you to:
 
-- Create reusable prompt templates with variables
-- Version prompts to test different variations
-- Track performance metrics for prompts
-- A/B test different prompt versions
+- Define reusable prompt templates with variables in YAML files.
+- Include multiple versions of a template within the same definition.
+- Specify a default version for each template.
+- Render specific template versions with variable substitution.
+- Perform basic usage tracking for rendered prompts.
 
-## Creating Templates
+## Defining Templates in YAML
 
-Prompt templates are parameterized prompts with placeholders for variables:
+Prompt templates are defined in YAML files located in a designated directory (default: `src/prompts/templates/`). Each file can contain definitions for one or more templates.
 
-```python
-from src.prompts import PromptManager
+The structure for a template definition is as follows:
 
-# Initialize prompt manager
-prompt_manager = PromptManager(storage_dir="data/prompts")
+````yaml
+# Example: src/prompts/templates/coding_prompts.yaml
 
-# Create a template
-template_id = prompt_manager.create_template(
-    name="Question Template",
-    description="Template for asking questions about topics",
-    template="Answer this question about {{topic}}: {{question}}",
-    default_values={"topic": "general knowledge"}
-)
+explain_code:
+  description: "Explains a given code snippet."
+  default_version: "v1.1"
+  versions:
+    - version: "v1.0"
+      template: |
+        Explain the following {{language}} code:
+        ```{{language}}
+        {{code_snippet}}
+        ```
+    - version: "v1.1"
+      template: |
+        Act as an expert {{language}} programmer.
+        Provide a clear and concise explanation for this code snippet:
+        ```{{language}}
+        {{code_snippet}}
+        ```
+        Focus on the core logic and potential edge cases.
 
-# Use the template with the AI
-ai = AI(
-    model=Model.CLAUDE_3_7_SONNET,
-    config_manager=config_manager,
-    prompt_manager=prompt_manager
-)
+generate_function:
+  description: "Generates a function based on a description."
+  default_version: "v1.0"
+  versions:
+    - version: "v1.0"
+      template: |
+        Write a {{language}} function that does the following:
+        {{function_description}}
+````
 
-response = ai.request_with_template(
-    template_id=template_id,
-    variables={
-        "topic": "history",
-        "question": "When was the Declaration of Independence signed?"
-    }
-)
-```
+Key elements:
 
-## Versioning Prompts
+- **Top-level key (`explain_code`, `generate_function`)**: This is the `template_id` used to reference the template.
+- **`description`**: A brief explanation of the template's purpose.
+- **`default_version`**: (Optional) The version string to use if no specific version is requested during rendering.
+- **`versions`**: A list of dictionaries, each representing a specific version.
+  - **`version`**: A unique identifier string for this version (e.g., "v1.0", "v1.1", "experimental").
+  - **`template`**: The actual prompt text for this version. Variables are enclosed in double curly braces (e.g., `{{language}}`, `{{code_snippet}}`).
 
-Create and test multiple versions of a prompt template:
+## Using the PromptTemplate Service
 
-```python
-# Create an alternative version
-version_id = prompt_manager.create_version(
-    template_id=template_id,
-    template_string="I need information about {{topic}}. Please answer: {{question}}",
-    name="Alternative Wording",
-    description="Different wording to test effectiveness"
-)
-
-# Set a version as active
-prompt_manager.set_active_version(template_id, version_id)
-
-# Or create and set as active in one step
-version_id = prompt_manager.create_version(
-    template_id=template_id,
-    template_string="New template text with {{variables}}",
-    set_active=True
-)
-```
-
-## Tracking Metrics
-
-The prompt management system automatically tracks usage and performance metrics:
+The `PromptTemplate` service loads these YAML files upon initialization and provides methods to render them.
 
 ```python
-# Get metrics for a template
-metrics = prompt_manager.get_template_metrics(template_id)
-
-print(f"Template used {metrics['usage_count']} times")
-for metric_name, values in metrics["metrics"].items():
-    print(f"{metric_name}: avg={values['avg']}, min={values['min']}, max={values['max']}")
-
-# You can also record custom metrics
-prompt_manager.record_prompt_performance(
-    usage_id="some-usage-id",
-    metrics={
-        "accuracy": 0.95,
-        "relevance": 0.87
-    }
-)
-```
-
-## A/B Testing
-
-Perform A/B testing by providing a user ID when using templates:
-
-```python
-# Different users will get different versions based on consistent hashing
-response1 = ai.request_with_template(
-    template_id=template_id,
-    variables={"key": "value"},
-    user_id="user-123"
-)
-
-response2 = ai.request_with_template(
-    template_id=template_id,
-    variables={"key": "value"},
-    user_id="user-456"
-)
-
-# View metrics by version
-metrics_by_version = prompt_manager.get_version_metrics(template_id)
-for version_id, metrics in metrics_by_version.items():
-    print(f"Version {version_id}: {metrics}")
-```
-
-## Example Usage
-
-```python
-from src.core.tool_enabled_ai import ToolEnabledAI
+from src.core.tool_enabled_ai import ToolEnabledAI # Or your base AI class
 from src.prompts.prompt_template import PromptTemplate
 
-# Initialize template service (loads templates from default directory)
+# Initialize the template service (loads templates from default directory)
+# You can optionally specify a different directory: PromptTemplate(templates_dir="path/to/custom/templates")
 template_service = PromptTemplate()
 
-# Create AI instance, passing the template service
+# --- Integrate with AI instance ---
+# Pass the service instance during AI initialization
 ai = ToolEnabledAI(
+    # ... other AI config like model, tools etc. ...
     prompt_template=template_service
-    # ... other AI config ...
 )
 
-# Example: Use a template for a request
-variables = {"topic": "renewable energy"}
-response = ai.request_with_template(
-    template_id="explain_concept",
+# --- Rendering a Prompt ---
+
+# 1. Define variables required by the template
+variables = {
+    "language": "Python",
+    "code_snippet": "def hello():\n  print(\"Hello, World!\")"
+}
+
+# 2. Request using the template ID (from the YAML file)
+# This will use the default version ("v1.1" in the example YAML)
+response_default = ai.request_with_template(
+    template_id="explain_code",
+    variables=variables
+)
+print("--- Default Version Response ---")
+print(response_default)
+
+# 3. Request a specific version
+response_v1 = ai.request_with_template(
+    template_id="explain_code",
     variables=variables,
-    version="v1" # Optional: specify version
+    version="v1.0" # Specify the desired version string
 )
-print(response)
+print("\n--- Specific Version (v1.0) Response ---")
+print(response_v1)
 
-# Example: Track performance
-# Assuming 'request_with_template' returns usage_id along with response
-# (or modify AI base to store last usage_id)
-# usage_id = ...
-# metrics = {"tokens_used": 500, "success": True}
-# template_service.record_prompt_performance(usage_id, metrics)
+# --- Direct Rendering (Lower Level) ---
+# If you need to render without going through the AI's request method:
+try:
+    rendered_prompt, usage_id = template_service.render_prompt(
+        template_id="explain_code",
+        variables=variables,
+        version="v1.1"
+    )
+    print(f"\n--- Directly Rendered Prompt (v1.1, Usage ID: {usage_id}) ---")
+    print(rendered_prompt)
+
+    # Basic performance tracking can be done using the usage_id
+    # (Example - actual metrics depend on what you measure)
+    metrics = {"tokens_used": 150, "latency_ms": 550}
+    template_service.record_prompt_performance(usage_id, metrics)
+
+except ValueError as e:
+    print(f"Error rendering prompt: {e}")
+
 ```
+
+## Key Methods of `PromptTemplate` Service
+
+- **`__init__(templates_dir=None, logger=None)`**: Initializes the service, loading templates from the specified or default directory.
+- **`render_prompt(template_id, variables=None, version=None, context=None)`**: Finds the specified template and version (or default), substitutes variables, and returns the rendered prompt string along with a unique `usage_id` for tracking.
+- **`record_prompt_performance(usage_id, metrics)`**: Records performance data (like latency, token count, success status) associated with a specific `usage_id`. This data is typically saved to a file.
+- **`get_template_ids()`**: Returns a list of loaded template IDs.
+- **`get_template_info(template_id)`**: Returns the loaded data (description, versions, etc.) for a specific template ID.
+- **`reload_templates()`**: Clears the cache and reloads templates from the YAML files.
+
+## Note on `PromptManager`
+
+There is another class, `PromptManager` (`src/prompts/prompt_manager.py`), which appears to be a more complex system focused on programmatic template/version creation, detailed metrics storage (in `metrics.json`), and A/B testing infrastructure. This system seems to operate independently of the YAML-based templates loaded by the `PromptTemplate` service. For standard usage involving predefined prompts, the `PromptTemplate` service described here is the recommended approach.

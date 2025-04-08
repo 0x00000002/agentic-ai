@@ -18,7 +18,7 @@
         <link rel="prev" href="../getting-started/">
       
       
-        <link rel="next" href="../error_handling/">
+        <link rel="next" href="../core/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -248,7 +248,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../error_handling/" class="md-tabs__link">
+        <a href="../core/" class="md-tabs__link">
           
   
   
@@ -265,58 +265,17 @@
   
   
   
-    
-    
-      <li class="md-tabs__item">
-        <a href="../configuration_system/" class="md-tabs__link">
-          
+    <li class="md-tabs__item">
+      <a href="../configuration_system/" class="md-tabs__link">
+        
   
+  
+    
   
   Configuration
 
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../agent_descriptions/" class="md-tabs__link">
-          
-  
-  
-  Agents
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../tools/overview/" class="md-tabs__link">
-          
-  
-  
-  Tools
-
-        </a>
-      </li>
-    
+      </a>
+    </li>
   
 
       
@@ -365,38 +324,17 @@
   
   
   
-    
-    
-      <li class="md-tabs__item">
-        <a href="../conversations/overview/" class="md-tabs__link">
-          
-  
-  
-  Conversations
-
-        </a>
-      </li>
-    
-  
-
-      
+    <li class="md-tabs__item">
+      <a href="../metrics_system/" class="md-tabs__link">
         
   
   
-  
-  
     
-    
-      <li class="md-tabs__item">
-        <a href="../metrics_system/" class="md-tabs__link">
-          
-  
   
   Metrics
 
-        </a>
-      </li>
-    
+      </a>
+    </li>
   
 
       
@@ -405,18 +343,17 @@
   
   
   
-    
-    
-      <li class="md-tabs__item">
-        <a href="../ui/gradio_interface/" class="md-tabs__link">
-          
+    <li class="md-tabs__item">
+      <a href="../ui/gradio_interface/" class="md-tabs__link">
+        
   
+  
+    
   
   UI
 
-        </a>
-      </li>
-    
+      </a>
+    </li>
   
 
       
@@ -457,25 +394,6 @@
         </a>
       </li>
     
-  
-
-      
-        
-  
-  
-  
-  
-    <li class="md-tabs__item">
-      <a href="../tutorials/" class="md-tabs__link">
-        
-  
-  
-    
-  
-  Tutorials
-
-      </a>
-    </li>
   
 
       
@@ -642,49 +560,58 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Core Components">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#component-relationships-diagrams" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component Relationships Diagrams
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Component Relationships Diagrams">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#ai-core" class="md-nav__link">
+  <a href="#1-configuration-system" class="md-nav__link">
     <span class="md-ellipsis">
-      AI Core
+      1. Configuration System
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#multi-agent-system" class="md-nav__link">
+  <a href="#2-core-ai-system" class="md-nav__link">
     <span class="md-ellipsis">
-      Multi-Agent System
+      2. Core AI System
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#tool-subsystem" class="md-nav__link">
+  <a href="#3-tool-subsystem" class="md-nav__link">
     <span class="md-ellipsis">
-      Tool Subsystem
+      3. Tool Subsystem
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuration-management" class="md-nav__link">
+  <a href="#4-agent-system" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Management
+      4. Agent System
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#error-handling" class="md-nav__link">
+  <a href="#5-high-level-interactions" class="md-nav__link">
     <span class="md-ellipsis">
-      Error Handling
+      5. High-Level Interactions
     </span>
   </a>
   
@@ -692,24 +619,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dependency-management" class="md-nav__link">
-    <span class="md-ellipsis">
-      Dependency Management
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#component-relationships" class="md-nav__link">
-    <span class="md-ellipsis">
-      Component Relationships
-    </span>
-  </a>
   
 </li>
       
@@ -719,66 +628,6 @@
       Key Architectural Improvements
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Key Architectural Improvements">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-refactored-coordinator-orchestration" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Refactored Coordinator / Orchestration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-modularized-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Modularized Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-standardized-error-handling" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Standardized Error Handling
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-standardized-provider-interface" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Standardized Provider Interface
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-simplified-tool-subsystem" class="md-nav__link">
-    <span class="md-ellipsis">
-      5. Simplified Tool Subsystem
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#6-dependency-injection-and-factories" class="md-nav__link">
-    <span class="md-ellipsis">
-      6. Dependency Injection and Factories
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -849,6 +698,98 @@
   
   
     <li class="md-nav__item">
+      <a href="../core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core AI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Agents
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tools
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conversations/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Conversations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../error_handling/" class="md-nav__link">
         
   
@@ -901,25 +842,9 @@
   
   
   
-    
-    
-    
-    
-      
-      
+    <li class="md-nav__item">
+      <a href="../configuration_system/" class="md-nav__link">
         
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
   
   
   <span class="md-ellipsis">
@@ -928,65 +853,7 @@
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            Configuration
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../configuration_system/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    System Overview
-    
-  </span>
-  
-
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../config/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Configuration Files
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
     </li>
   
 
@@ -1019,7 +886,7 @@
   
   
   <span class="md-ellipsis">
-    Agents
+    Prompts
     
   </span>
   
@@ -1029,290 +896,6 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
-            <span class="md-nav__icon md-icon"></span>
-            Agents
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../agent_descriptions/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Descriptions
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../agents/architecture/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Agent System Architecture
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tool_finder_agent/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Tool Finder Agent
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../agents/agent_specifications/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Specifications
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../agents/implementation_plan/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Implementation Plan
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../agents/implementation_standards/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Implementation Standards
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
-        
-          
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    Tools
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7">
-            <span class="md-nav__icon md-icon"></span>
-            Tools
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tools/overview/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Overview
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tools/auto_tool_finding/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Auto Tool Finding
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
-        
-          
-          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    Prompts
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             Prompts
           </label>
@@ -1391,10 +974,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
   
@@ -1407,8 +990,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_9">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             Providers
           </label>
@@ -1450,6 +1033,50 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../metrics_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Metrics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ui/gradio_interface/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
     
@@ -1472,7 +1099,7 @@
   
   
   <span class="md-ellipsis">
-    Conversations
+    Examples
     
   </span>
   
@@ -1482,225 +1109,6 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_10">
-            <span class="md-nav__icon md-icon"></span>
-            Conversations
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../conversations/overview/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Overview
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
-        
-          
-          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    Metrics
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_11">
-            <span class="md-nav__icon md-icon"></span>
-            Metrics
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../metrics_system/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    System Overview
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
-        
-          
-          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    UI
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_12">
-            <span class="md-nav__icon md-icon"></span>
-            UI
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ui/gradio_interface/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Gradio Interface
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
-        
-          
-          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    Examples
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_13">
             <span class="md-nav__icon md-icon"></span>
             Examples
           </label>
@@ -1779,10 +1187,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
         
           
-          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
             
   
   
@@ -1795,8 +1203,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_14">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
             <span class="md-nav__icon md-icon"></span>
             Development
           </label>
@@ -1848,54 +1256,9 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../CONTRIBUTING.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Contributing
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorials/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Tutorials
-    
-  </span>
-  
-
-      </a>
     </li>
   
 
@@ -1922,146 +1285,315 @@
 <h1 id="agentic-ai-architecture">Agentic-AI Architecture</h1>
 <p>This document describes the architecture of the Agentic-AI framework, focusing on the core design principles and component relationships.</p>
 <h2 id="overview">Overview</h2>
-<p>Agentic-AI is a modular framework for building AI applications with tool integration capabilities. The architecture follows solid software engineering principles including:</p>
+<p>Agentic-AI is a modular framework for building AI applications with integrated tool usage and agent-based processing capabilities. The architecture emphasizes:</p>
 <ul>
-<li><strong>Separation of Concerns</strong>: Each component has a clear, focused responsibility</li>
-<li><strong>Dependency Injection</strong>: Components receive their dependencies rather than creating them</li>
-<li><strong>Interface-Based Design</strong>: Components interact through well-defined interfaces</li>
-<li><strong>Error Handling</strong>: Standardized error handling across the framework</li>
-<li><strong>Configuration Management</strong>: Modular, externalized configuration</li>
+<li><strong>Separation of Concerns</strong>: Each component has a clear, focused responsibility (e.g., configuration, core AI logic, tool execution, agent coordination).</li>
+<li><strong>Interface-Based Design</strong>: Components interact through well-defined interfaces (<code>AIInterface</code>, <code>ProviderInterface</code>, <code>AgentInterface</code>, etc.) where applicable.</li>
+<li><strong>Configuration Management</strong>: A centralized <code>UnifiedConfig</code> system loads settings from modular YAML files, allowing overrides via code, files, or environment variables.</li>
+<li><strong>Dependency Injection/Access</strong>: Key services like configuration (<code>UnifiedConfig</code>), logging (<code>LoggerFactory</code>), and potentially <code>ToolManager</code> or <code>PromptTemplate</code> are often accessed via singletons or passed during initialization.</li>
+<li><strong>Standardized Error Handling</strong>: A hierarchy of exceptions (<code>AIFrameworkError</code>, <code>AIConfigError</code>, <code>AIProviderError</code>, etc.) and an <code>ErrorHandler</code> facilitate consistent error management.</li>
 </ul>
 <h2 id="core-components">Core Components</h2>
-<h3 id="ai-core">AI Core</h3>
-<p>The AI core provides the foundation for interacting with language models:</p>
 <ul>
-<li><strong>AIBase</strong>: Base implementation of the AI interface.</li>
-<li><strong>ToolEnabledAI</strong>: Extended implementation of <code>AIBase</code> with tool integration capabilities.</li>
-<li><strong>Providers</strong>: Abstraction layer for different AI providers (<code>BaseProvider</code>, <code>OpenAIProvider</code>, etc.).</li>
-<li><strong>ProviderFactory</strong>: Creates provider instances based on configuration.</li>
-<li><strong>Interfaces</strong>: Clear contracts for component interactions (e.g., <code>AIInterface</code>, <code>ProviderInterface</code>).</li>
+<li>
+<p><strong>Configuration (<code>src/config</code>)</strong>: Manages all settings.</p>
+</li>
+<li>
+<p><code>UnifiedConfig</code>: Singleton providing access to merged configuration from YAML files (<code>models.yml</code>, <code>providers.yml</code>, <code>agents.yml</code>, <code>tools.yml</code>, <code>use_cases.yml</code>) and overrides.</p>
+</li>
+<li><code>UserConfig</code>: Represents user-provided overrides.</li>
+<li>
+<p><code>configure()</code>: Function to apply user overrides.</p>
+</li>
+<li>
+<p><strong>Core AI (<code>src/core</code>)</strong>: Handles direct interaction with LLMs.</p>
+</li>
+<li>
+<p><code>AIBase</code>: Foundational class managing provider selection (via <code>ProviderFactory</code>), basic request/response handling, and conversation history (<code>ConversationManager</code>).</p>
+</li>
+<li><code>ToolEnabledAI</code>: Extends <code>AIBase</code> to manage the tool-calling loop, interacting with <code>ToolManager</code> and the provider.</li>
+<li><code>ProviderFactory</code>: Creates instances of specific provider clients.</li>
+<li><code>providers/</code>: Contains implementations for different AI providers (OpenAI, Anthropic, etc.), inheriting from <code>BaseProvider</code> and implementing <code>ProviderInterface</code>.</li>
+<li>
+<p><code>ConversationManager</code>: Tracks message history for AI interactions.</p>
+</li>
+<li>
+<p><strong>Tools (<code>src/tools</code>)</strong>: Manages function/API calling capabilities.</p>
+</li>
+<li>
+<p><code>ToolManager</code>: Central service for registering tools (via <code>ToolRegistry</code>) and executing them (via <code>ToolExecutor</code>).</p>
+</li>
+<li><code>ToolRegistry</code>: Stores <code>ToolDefinition</code> objects and handles provider-specific formatting.</li>
+<li><code>ToolExecutor</code>: Executes the actual tool functions.</li>
+<li>
+<p><code>models</code>: Defines <code>ToolDefinition</code>, <code>ToolCall</code>, <code>ToolResult</code>.</p>
+</li>
+<li>
+<p><strong>Agents (<code>src/agents</code>)</strong>: Enables specialized processing and workflows.</p>
+</li>
+<li>
+<p><code>Coordinator</code>: Central agent orchestrating request handling based on intent analysis (<code>RequestAnalyzer</code>), often delegating to specialized agents.</p>
+</li>
+<li><code>BaseAgent</code>: Abstract base class for all agents.</li>
+<li><code>AgentFactory</code>: Creates agent instances using <code>AgentRegistry</code>.</li>
+<li><code>AgentRegistry</code>: Maps agent IDs to agent classes.</li>
+<li>
+<p>Specialized Agents (e.g., <code>ListenerAgent</code>, <code>ChatAgent</code>, <code>ToolFinderAgent</code>): Implement specific functionalities.</p>
+</li>
+<li>
+<p><strong>Prompts (<code>src/prompts</code>)</strong>: Manages reusable prompt templates.</p>
+</li>
+<li>
+<p><code>PromptTemplate</code>: Service loading templates from YAML files, handling versioning and variable substitution.</p>
+</li>
+<li>
+<p><strong>Utilities (<code>src/utils</code>)</strong>: Provides common functionalities.</p>
+</li>
+<li>
+<p><code>LoggerFactory</code>: Creates configured logger instances.</p>
+</li>
+<li>
+<p><strong>Error Handling (<code>src/exceptions.py</code>)</strong>: Defines custom exceptions and the <code>ErrorHandler</code>.</p>
+</li>
+<li>
+<p><strong>UI (<code>src/ui</code>)</strong>: Provides user interfaces.</p>
+</li>
+<li><code>SimpleChatUI</code>: A Gradio-based chat interface interacting with the <code>Coordinator</code>.</li>
 </ul>
-<h3 id="multi-agent-system">Multi-Agent System</h3>
-<p>The multi-agent system enables specialized processing of user requests:</p>
-<ul>
-<li><strong>Coordinator</strong>: Coordinates the workflow between specialized agents (current implementation).</li>
-<li><strong>RequestAnalyzer</strong>: Analyzes requests to determine appropriate agents and tools.</li>
-<li><strong>ResponseAggregator</strong>: Combines responses from multiple agents.</li>
-<li><strong>BaseAgent</strong>: Common functionality for all agents.</li>
-</ul>
-<h3 id="tool-subsystem">Tool Subsystem</h3>
-<p>Handles tool definition, management, and execution:</p>
-<ul>
-<li><strong>ToolManager</strong>: Coordinates tool registration, discovery (via registry), and execution.</li>
-<li><strong>ToolRegistry</strong>: Manages tool definitions and provider-specific formatting.</li>
-<li><strong>ToolExecutor</strong>: Executes tool functions with timeout and retries.</li>
-<li><strong>Models</strong>: Pydantic models for <code>ToolDefinition</code>, <code>ToolCall</code>, <code>ToolResult</code>.</li>
-</ul>
-<h3 id="configuration-management">Configuration Management</h3>
-<p>Configuration is modularized for better maintainability:</p>
-<ul>
-<li><strong>UnifiedConfig</strong>: Central singleton class for accessing merged configuration data.</li>
-<li><strong>Modular Config Files</strong>: Separate files for models, providers, agents, tools, etc.</li>
-</ul>
-<h3 id="error-handling">Error Handling</h3>
-<p>The error handling system provides consistent error management:</p>
-<ul>
-<li><strong>ErrorHandler</strong>: Centralized error handling with standardized responses</li>
-<li><strong>Exception Hierarchy</strong>: Well-defined exception types for different error scenarios</li>
-</ul>
-<h2 id="dependency-management">Dependency Management</h2>
-<p>Dependencies between components are primarily managed through:</p>
-<ul>
-<li><strong>Dependency Injection</strong>: Components like <code>Coordinator</code> and <code>ToolEnabledAI</code> receive dependencies (e.g., <code>ToolManager</code>, <code>ProviderInterface</code>) via their constructors.</li>
-<li><strong>Factories</strong>: Specific factories like <code>ProviderFactory</code> are used to create instances of components (e.g., providers) based on configuration.</li>
-<li><strong>Singleton Access</strong>: Core configuration (<code>UnifiedConfig</code>) and logging (<code>LoggerFactory</code>) often use singleton patterns for easy access.</li>
-</ul>
-<p>This approach promotes loose coupling and testability.</p>
-<h2 id="component-relationships">Component Relationships</h2>
-<p>(Diagram needs update to reflect current structure, including ToolManager, ToolEnabledAI, Coordinator, ProviderFactory, UnifiedConfig)</p>
-<div class="highlight"><pre><span></span><code>┌──────────────────┐     ┌───────────────────┐     ┌───────────────────┐
-│                  │     │                   │     │                   │
-│  ConfigFactory   │◄────┤   AppContainer    │────►│   ErrorHandler    │
-│                  │     │                   │     │                   │
-└───────┬──────────┘     └───────┬───────────┘     └───────────────────┘
-        │                        │
-        │                        │
-┌───────▼──────────┐     ┌───────▼───────────┐
-│                  │     │                   │
-│  ProviderFactory │     │   AIBase / AI     │
-│                  │     │                   │
-└───────┬──────────┘     └───────┬───────────┘
-        │                        │
-        │                        │
-┌───────▼──────────┐     ┌───────▼───────────┐     ┌───────────────────┐
-│                  │     │                   │     │                   │
-│    Providers     │     │   Orchestrator    │────►│  RequestAnalyzer  │
-│                  │     │                   │     │                   │
-└──────────────────┘     └───────┬───────────┘     └───────────────────┘
-                                 │
-                                 │
-                         ┌───────▼───────────┐     ┌───────────────────┐
-                         │                   │     │                   │
-                         │  Specialized      │────►│ ResponseAggregator│
-                         │  Agents           │     │                   │
-                         └───────────────────┘     └───────────────────┘
+<h2 id="component-relationships-diagrams">Component Relationships Diagrams</h2>
+<p>These diagrams illustrate the key relationships and dependencies between the major components.</p>
+<h3 id="1-configuration-system">1. Configuration System</h3>
+<p><img alt="Configuration" src="../diagrams/configuration.png" /></p>
+<div class="highlight"><pre><span></span><code>graph TD
+    subgraph Configuration
+        UnifiedConfig[UnifiedConfig Singleton]
+        YAMLFiles[YAML Config Files]
+        ConfigureFunc[configure()]
+        UserConfig[UserConfig]
+        UnifiedConfig -- Loads --&gt; YAMLFiles
+        ConfigureFunc -- Applies --&gt; UserConfig
+        ConfigureFunc -- Updates --&gt; UnifiedConfig
+    end
+
+    subgraph Components Using Config
+        AIBase
+        ToolEnabledAI
+        Coordinator
+        ToolManager
+        ProviderImplementations
+        BaseAgent
+    end
+
+    AIBase --&gt; UnifiedConfig
+    ToolEnabledAI --&gt; UnifiedConfig
+    Coordinator --&gt; UnifiedConfig
+    ToolManager --&gt; UnifiedConfig
+    ProviderImplementations --&gt; UnifiedConfig
+    BaseAgent --&gt; UnifiedConfig
 </code></pre></div>
+<h3 id="2-core-ai-system">2. Core AI System</h3>
+<p><img alt="Core AI System" src="../diagrams/core_ai.png" /></p>
+<div class="highlight"><pre><span></span><code>graph TD
+    subgraph Core AI
+        ToolEnabledAI[ToolEnabledAI]
+        AIBase[AIBase]
+        ProviderFactory[ProviderFactory]
+        ProviderImplementations[Provider Implementations]
+        ConversationManager[ConversationManager]
+        PromptTemplateSvc[PromptTemplate Service]
+
+        ToolEnabledAI -- Inherits --&gt; AIBase
+        AIBase --&gt; ProviderFactory
+        AIBase --&gt; ConversationManager
+        AIBase --&gt; PromptTemplateSvc
+        ProviderFactory --&gt; ProviderImplementations
+    end
+
+    subgraph Dependencies
+       UnifiedConfig[UnifiedConfig Singleton]
+       ToolManager[ToolManager]
+       LoggerFactory[LoggerFactory Singleton]
+    end
+
+    ToolEnabledAI --&gt; UnifiedConfig
+    ToolEnabledAI --&gt; ToolManager
+    ToolEnabledAI --&gt; LoggerFactory
+    AIBase --&gt; UnifiedConfig
+    AIBase --&gt; LoggerFactory
+    ProviderImplementations --&gt; UnifiedConfig
+    PromptTemplateSvc --&gt; LoggerFactory
+</code></pre></div>
+<h3 id="3-tool-subsystem">3. Tool Subsystem</h3>
+<p><img alt="Tools" src="../diagrams/tools.png" /></p>
+<div class="highlight"><pre><span></span><code>graph TD
+    subgraph Tools
+        ToolManager[ToolManager]
+        ToolRegistry[ToolRegistry]
+        ToolExecutor[ToolExecutor]
+        ToolDefinition[ToolDefinition Model]
+        ToolCall[ToolCall Model]
+        ToolResult[ToolResult Model]
+
+        ToolManager -- Uses --&gt; ToolRegistry
+        ToolManager -- Uses --&gt; ToolExecutor
+        ToolRegistry -- Stores --&gt; ToolDefinition
+        ToolExecutor -- Executes --&gt; ToolDefinition
+        ToolExecutor -- Returns --&gt; ToolResult
+    end
+
+    subgraph Dependencies
+       UnifiedConfig[UnifiedConfig Singleton]
+       LoggerFactory[LoggerFactory Singleton]
+    end
+
+    subgraph Users Of Tools
+        ToolEnabledAI
+        Coordinator
+        BaseAgent
+    end
+
+    ToolManager --&gt; UnifiedConfig
+    ToolManager --&gt; LoggerFactory
+    ToolEnabledAI --&gt; ToolManager
+    Coordinator --&gt; ToolManager
+    BaseAgent --&gt; ToolManager
+</code></pre></div>
+<h3 id="4-agent-system">4. Agent System</h3>
+<p><img alt="Agents" src="../diagrams/agents_system.png" /></p>
+<div class="highlight"><pre><span></span><code>graph TD
+    subgraph Agents
+        Coordinator[Coordinator]
+        AgentFactory[AgentFactory]
+        AgentRegistry[AgentRegistry]
+        BaseAgent[BaseAgent]
+        ListenerAgent[ListenerAgent]
+        ChatAgent[ChatAgent]
+        ToolFinderAgent[ToolFinderAgent]
+        OtherAgents[...]
+        RequestAnalyzer[Request Analyzer]
+
+        Coordinator -- Inherits --&gt; BaseAgent
+        ListenerAgent -- Inherits --&gt; BaseAgent
+        ChatAgent -- Inherits --&gt; BaseAgent
+        ToolFinderAgent -- Inherits --&gt; BaseAgent
+        OtherAgents -- Inherits --&gt; BaseAgent
+
+        Coordinator -- Uses --&gt; AgentFactory
+        Coordinator -- Uses --&gt; RequestAnalyzer
+        AgentFactory -- Uses --&gt; AgentRegistry
+        AgentFactory -- Creates --&gt; BaseAgent
+        RequestAnalyzer -- Uses --&gt; AgentRegistry
+    end
+
+    subgraph Dependencies
+       UnifiedConfig[UnifiedConfig Singleton]
+       ToolManager[ToolManager]
+       LoggerFactory[LoggerFactory Singleton]
+       AIBase[AIBase]
+    end
+
+    BaseAgent --&gt; UnifiedConfig
+    BaseAgent --&gt; ToolManager
+    BaseAgent --&gt; LoggerFactory
+    BaseAgent --&gt; AIBase
+    Coordinator --&gt; ToolManager # Coordinator might directly use TM or via BaseAgent
+</code></pre></div>
+<h3 id="5-high-level-interactions">5. High-Level Interactions</h3>
+<p><img alt="High Level" src="../diagrams/high_level_interactions.png" /></p>
+<div class="highlight"><pre><span></span><code>graph LR
+    subgraph User Input
+        UI[UI / API]
+    end
+
+    subgraph Core Processing
+        Coordinator[Agent System (Coordinator)]
+        ToolEnabledAI[Core AI (ToolEnabledAI)]
+    end
+
+    subgraph Supporting Systems
+        Config[Configuration (UnifiedConfig)]
+        Tools[Tool Subsystem (ToolManager)]
+        Prompts[Prompt Templates]
+        Logging[Logging]
+        Providers[Providers]
+    end
+
+    UI --&gt; Coordinator
+    UI --&gt; ToolEnabledAI # Direct AI calls possible
+
+    Coordinator -- Delegates / Uses --&gt; ToolEnabledAI
+    Coordinator --&gt; Tools
+    ToolEnabledAI --&gt; Tools
+    ToolEnabledAI --&gt; Providers
+
+    Coordinator --&gt; Config
+    ToolEnabledAI --&gt; Config
+    Tools --&gt; Config
+    Providers --&gt; Config
+    Prompts --&gt; Config
+
+    Coordinator --&gt; Prompts
+    ToolEnabledAI --&gt; Prompts
+
+    Coordinator --&gt; Logging
+    ToolEnabledAI --&gt; Logging
+    Tools --&gt; Logging
+    Providers --&gt; Logging
+    Prompts --&gt; Logging
+</code></pre></div>
+<p><em>(Note: These diagrams illustrate major dependencies and interactions. Not all minor connections are shown for clarity.)</em></p>
 <h2 id="key-architectural-improvements">Key Architectural Improvements</h2>
-<h3 id="1-refactored-coordinator-orchestration">1. Refactored Coordinator / Orchestration</h3>
-<p>The orchestration logic, now primarily in the <code>Coordinator</code> agent, is supported by focused components:</p>
 <ul>
-<li><strong>Coordinator</strong>: Coordinates the overall workflow (delegating or handling directly).</li>
-<li><strong>RequestAnalyzer</strong>: Handles request intent classification.</li>
-<li><strong>ResponseAggregator</strong>: (If used) Handles response aggregation.</li>
+<li><strong>Unified Configuration</strong>: Replaced disparate config managers with a single <code>UnifiedConfig</code> singleton accessing modular YAML files, simplifying configuration access.</li>
+<li><strong>Standardized Provider Interface</strong>: <code>BaseProvider</code> and <code>ProviderInterface</code> enforce a standard structure for provider implementations, returning a standardized <code>ProviderResponse</code> object to simplify core AI logic.</li>
+<li><strong>Refined Agent System</strong>: Centralized orchestration logic in the <code>Coordinator</code> agent, supported by <code>AgentFactory</code>, <code>AgentRegistry</code>, and <code>RequestAnalyzer</code>, providing a clearer structure than earlier multi-agent concepts.</li>
+<li><strong>Focused Tool Subsystem</strong>: <code>ToolManager</code>, <code>ToolRegistry</code>, and <code>ToolExecutor</code> provide clear responsibilities for tool definition, formatting, and execution, integrated seamlessly with <code>ToolEnabledAI</code>.</li>
+<li><strong>Simplified Core AI</strong>: <code>AIBase</code> handles fundamental LLM interaction, while <code>ToolEnabledAI</code> specifically layers tool-calling orchestration on top.</li>
+<li><strong>YAML-based Prompt Templates</strong>: Standardized on the <code>PromptTemplate</code> service loading versioned templates from YAML files as the primary prompt management method.</li>
+<li><strong>Consistent Error Handling</strong>: Implemented a clear exception hierarchy and <code>ErrorHandler</code> for uniform error management.</li>
 </ul>
-<p>This separation improves maintainability.</p>
-<h3 id="2-modularized-configuration">2. Modularized Configuration</h3>
-<p>Configuration remains separated into domain-specific files (models, providers, agents, tools, etc.) managed by the central <code>UnifiedConfig</code>.</p>
-<h3 id="3-standardized-error-handling">3. Standardized Error Handling</h3>
-<p>A consistent error handling approach using a hierarchy based on <code>AIFrameworkError</code> and specific exceptions like <code>AIProviderError</code>, <code>AIAuthenticationError</code>, <code>AIToolError</code>, etc., improves error visibility and debugging.</p>
-<h3 id="4-standardized-provider-interface">4. Standardized Provider Interface</h3>
-<p>The <code>BaseProvider</code> class enforces a standard structure (<code>_prepare_request_payload</code>, <code>_make_api_request</code>, <code>_convert_response</code>) for all provider implementations (OpenAI, Anthropic, Gemini, Ollama), simplifying integration and interaction logic in core AI classes. Providers now return a standardized <code>ProviderResponse</code> object.</p>
-<h3 id="5-simplified-tool-subsystem">5. Simplified Tool Subsystem</h3>
-<p>The tool system has been streamlined:</p>
-<ul>
-<li><code>ToolManager</code> coordinates execution via <code>ToolExecutor</code> and registration/formatting via <code>ToolRegistry</code>.</li>
-<li>Redundant components (<code>AIToolFinder</code>, <code>tool_prompt_builder.py</code>, <code>tool_call.py</code>) were removed.</li>
-<li><code>ToolEnabledAI</code> handles the tool-calling loop using the standardized provider responses and <code>ToolManager</code>.</li>
-</ul>
-<h3 id="6-dependency-injection-and-factories">6. Dependency Injection and Factories</h3>
-<p>Explicit dependency injection and factories (like <code>ProviderFactory</code>) are used instead of a single container, promoting clearer dependency flows.</p>
 <h2 id="usage-example">Usage Example</h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolEnabledAI</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">src.agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">Coordinator</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">configure</span>
-<span class="c1"># from your_tools_module import get_weather # Example tool function</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">configure</span><span class="p">,</span> <span class="n">UseCasePreset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolDefinition</span><span class="p">,</span> <span class="n">ToolManager</span> <span class="c1"># Assuming definition exists</span>
 
-<span class="c1"># Configure if needed (optional, uses defaults otherwise)</span>
-<span class="c1"># configure(model=&quot;gpt-4o&quot;)</span>
+<span class="c1"># --- Configuration (Optional) ---</span>
+<span class="c1"># Configure framework settings if defaults aren&#39;t suitable</span>
+<span class="c1"># configure(model=&quot;gpt-4o&quot;, use_case=UseCasePreset.CODING)</span>
 
-<span class="c1"># Create a ToolEnabledAI instance</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">ToolEnabledAI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o&quot;</span><span class="p">)</span> <span class="c1"># Or any other configured model</span>
+<span class="c1"># --- Direct AI Usage with Tools ---</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Using ToolEnabledAI Directly ---&quot;</span><span class="p">)</span>
+<span class="c1"># Create a ToolEnabledAI instance (uses configured model)</span>
+<span class="n">ai</span> <span class="o">=</span> <span class="n">ToolEnabledAI</span><span class="p">()</span>
 
-<span class="c1"># Tools are typically registered via ToolManager or configuration,</span>
-<span class="c1"># but if manual registration on ToolEnabledAI&#39;s manager is needed:</span>
-<span class="c1"># tool_def = ToolDefinition(...) # Define your tool</span>
-<span class="c1"># ai._tool_manager.register_tool(&quot;get_weather&quot;, tool_def)</span>
+<span class="c1"># Tools are typically loaded via configuration (tools.yml)</span>
+<span class="c1"># If manual registration is needed (less common):</span>
+<span class="c1"># tool_manager = ToolManager() # Get or create manager</span>
+<span class="c1"># weather_tool_def = ToolDefinition(...) # Define get_weather</span>
+<span class="c1"># tool_manager.register_tool(&quot;get_weather&quot;, weather_tool_def)</span>
+<span class="c1"># ai = ToolEnabledAI(tool_manager=tool_manager)</span>
 
-<span class="c1"># Make a request that might use tools</span>
-<span class="c1"># Use process_prompt for automatic tool handling</span>
-<span class="n">response_content</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">process_prompt</span><span class="p">(</span><span class="s2">&quot;What&#39;s the weather like in Paris today?&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">response_content</span><span class="p">)</span>
+<span class="c1"># Make a request - process_prompt handles the tool loop</span>
+<span class="n">response_ai</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">process_prompt</span><span class="p">(</span><span class="s2">&quot;What is the weather like in London?&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;AI Response: </span><span class="si">{</span><span class="n">response_ai</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-<span class="c1"># Create a Coordinator instance (uses default dependencies)</span>
+<span class="c1"># --- Agent-Based Usage via Coordinator ---</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Using Coordinator Agent ---&quot;</span><span class="p">)</span>
+<span class="c1"># Create a Coordinator instance (uses default dependencies &amp; config)</span>
 <span class="n">coordinator</span> <span class="o">=</span> <span class="n">Coordinator</span><span class="p">()</span>
 
-<span class="c1"># Process a request with the coordinator</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">coordinator</span><span class="o">.</span><span class="n">process_request</span><span class="p">({</span>
-    <span class="s2">&quot;prompt&quot;</span><span class="p">:</span> <span class="s2">&quot;Translate this text to French and analyze the sentiment&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;context&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;source_language&quot;</span><span class="p">:</span> <span class="s2">&quot;en&quot;</span><span class="p">}</span>
-<span class="p">})</span>
+<span class="c1"># Prepare a request for the coordinator</span>
+<span class="n">request_data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;prompt&quot;</span><span class="p">:</span> <span class="s2">&quot;Summarize the main points of the latest Agentic AI documentation updates.&quot;</span><span class="p">,</span>
+    <span class="c1"># Add other relevant info like user_id, session_id if needed by agents</span>
+<span class="p">}</span>
+
+<span class="c1"># Process the request through the coordinator</span>
+<span class="n">response_coord</span> <span class="o">=</span> <span class="n">coordinator</span><span class="o">.</span><span class="n">process_request</span><span class="p">(</span><span class="n">request_data</span><span class="p">)</span>
 
 <span class="c1"># Print the final content from the coordinator&#39;s response</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coordinator Response: </span><span class="si">{</span><span class="n">response_coord</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;content&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 
 

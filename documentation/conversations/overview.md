@@ -35,23 +35,34 @@ conversation.clear()
 
 ## Working with Thoughts
 
-The system can extract AI "thoughts" from responses to debug reasoning:
+The system can extract AI "thoughts" (typically enclosed in `<thinking>` tags) from responses to aid in debugging the AI's reasoning process. This extraction happens when adding a message if the `extract_thoughts` flag is set.
 
 ```python
-# Enable thought extraction in the conversation manager
+# Assume 'conversation' is an initialized ConversationManager instance
+raw_response_content = "<thinking>Let me consider the best approach here...</thinking>The answer is 42."
+
+# Add the assistant message, enabling thought extraction
 conversation.add_message(
     role="assistant",
-    content="<thinking>Let me consider the best approach here...</thinking>The answer is 42.",
+    content=raw_response_content,
     extract_thoughts=True
 )
 
-# Get the processed message (without thoughts)
-processed_message = conversation.get_last_message()
-# Result: {"role": "assistant", "content": "The answer is 42."}
+# Get the last message added
+last_message = conversation.get_last_message()
 
-# Access the thoughts if needed
-thoughts = conversation.get_thoughts()
-# Result: ["Let me consider the best approach here..."]
+# The 'content' key contains the response without the thinking tags
+print(f"Processed Content: {last_message['content']}")
+# Output: Processed Content: The answer is 42.
+
+# The extracted thoughts are stored in the 'thoughts' key within the message dictionary
+if 'thoughts' in last_message:
+    print(f"Extracted Thoughts: {last_message['thoughts']}")
+    # Output: Extracted Thoughts: Let me consider the best approach here...
+# Note: If multiple thinking blocks exist, they might be concatenated or handled based on ResponseParser logic.
+
+# There is no separate get_thoughts() method on ConversationManager itself.
+# Thoughts are accessed directly from the message dictionary after extraction.
 ```
 
 ## Handling Tool Calls

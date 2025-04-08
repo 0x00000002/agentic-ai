@@ -1,101 +1,92 @@
 # Gradio Chat Interface
 
-The Agentic-AI framework includes a user-friendly chat interface built with Gradio. This interface integrates with the multi-agent architecture to provide a seamless user experience.
+The Agentic-AI framework includes a user-friendly chat interface built with Gradio (`src/ui/simple_chat.py`). This interface integrates with the agent system, primarily the `Coordinator`, to provide a seamless user experience.
 
 ## Features
 
 - Text-based chat interface
-- Audio input support (microphone)
-- Integration with multiple agents
-- Conversation history management
-- System status messages
+- Audio input support (microphone) with language selection
+- Integration with the `Coordinator` agent for request processing
+- Conversation history display
+- Audio transcription status updates
 
 ## Architecture
 
-The UI is built around the `AgenticChatUI` class, which:
+The UI is built around the `SimpleChatUI` class, which:
 
-1. Initializes the necessary agents (Request Rooter, Listener)
-2. Sets up the Gradio interface components
-3. Handles message routing between the UI and the agent system
-4. Processes both text and audio inputs
+1. Takes an initialized `Coordinator` agent instance.
+2. Sets up the Gradio interface components (chatbot, text input, audio input, buttons).
+3. Handles message routing between the UI and the `Coordinator` agent.
+4. Processes both text input (`process_message`) and audio input (`process_audio`).
 
 ## Agent Integration
 
-The chat interface works with the multi-agent architecture:
+The chat interface primarily interacts with the agent system via the `Coordinator`:
 
-- **Request Rooter Agent**: Analyzes user text requests and routes them to appropriate agents
-- **Listener Agent**: Processes audio input and converts it to text
+- **`Coordinator` Agent**: Receives text prompts or audio transcription requests from the UI and routes them appropriately (e.g., to a default chat agent, the `ListenerAgent` for audio, etc.).
 
-## Example Usage
+## Example Usage (Conceptual)
+
+While the UI can be run directly, here's a conceptual breakdown of its initialization:
 
 ```python
-from src.ui.gradio_chat import AgenticChatUI
-from src.config.config_manager import ConfigManager
-from src.agents import AgentFactory, AgentRegistry
+from src.ui.simple_chat import SimpleChatUI
+from src.agents.coordinator import Coordinator
+from src.config import configure, UseCasePreset
+from src.agents.agent_factory import AgentFactory # Needed by Coordinator
+from src.agents.agent_registry import AgentRegistry # Needed by Factory
 
-# Initialize components
-config_manager = ConfigManager()
-registry = AgentRegistry()
-agent_factory = AgentFactory(registry=registry)
-
-# Register agent types
-from src.agents.request_rooter import RequestRooterAgent
-from src.agents.listener_agent import ListenerAgent
-agent_factory.register_agent("request_rooter", RequestRooterAgent)
-agent_factory.register_agent("listener", ListenerAgent)
-
-# Create the UI
-chat_ui = AgenticChatUI(
-    config_manager=config_manager,
-    agent_factory=agent_factory,
-    enable_audio=True
+# 1. Configure the framework (optional, defaults exist)
+configure(
+    model="claude-3-haiku", # Example model
+    use_case=UseCasePreset.CHAT
 )
 
-# Launch the interface
-chat_ui.launch(share=True)
+# 2. Initialize dependencies for Coordinator
+# (These are often created internally by Coordinator if not provided)
+registry = AgentRegistry()
+# Register necessary agents (like ListenerAgent, ChatAgent) in the registry...
+# Example: registry.register("listener_agent", ListenerAgent)
+# Example: registry.register("chat_agent", ChatAgent)
+agent_factory = AgentFactory(registry=registry)
+
+# 3. Create the Coordinator instance
+# It will use the globally configured settings and its dependencies
+coordinator = Coordinator(agent_factory=agent_factory)
+
+# 4. Create the UI with the coordinator
+chat_ui = SimpleChatUI(coordinator=coordinator)
+
+# 5. Launch the interface
+chat_ui.launch(share=True) # share=True creates a public link
 ```
 
 ## Running the UI
 
-You can run the UI directly from the examples directory:
+The simplest way to run the UI is often via the main execution block within `simple_chat.py` itself, or a dedicated run script if provided.
 
-```bash
-python examples/run_chat_ui.py
-```
+If run directly via `python src/ui/simple_chat.py`, the `run_simple_chat()` function within the file sets up a default configuration (e.g., using `claude-3-haiku` model and `CHAT` use case) and launches the interface.
 
-Command line options:
-
-```
---share          Create a public share link
---no-audio       Disable audio input
---debug          Enable debug mode (shows thinking)
---port PORT      Port to run the server on (default: 7860)
---config CONFIG  Path to custom config file
-```
+Check the `if __name__ == "__main__":` block in `src/ui/simple_chat.py` for potential command-line argument handling (though none seem implemented currently).
 
 ## Customization
 
 The UI can be customized in several ways:
 
-1. **CSS Styling**: Modify the `_get_custom_css` method in the `AgenticChatUI` class
-2. **Component Layout**: Customize the Gradio layout in the `build_ui` method
-3. **Model Selection**: Choose the AI model for generation.
-4. **Agent Configuration**: Update agent parameters in the `agents.yml` file
-5. **API Keys**: Ensure necessary API keys are set as environment variables (e.g., `OPENAI_API_KEY`).
+1. **CSS Styling**: Gradio interfaces support custom CSS. You might add CSS styling within the `build_interface` method.
+2. **Component Layout**: Customize the Gradio layout in the `build_interface` method within `SimpleChatUI`.
+3. **Model Selection/Configuration**: Modify the model, use case, etc., by calling `src.config.configure()` before initializing the UI or Coordinator, or by using environment variables/config files if supported by the configuration system.
+4. **Agent Configuration**: Update default agents used by the `Coordinator` in the `agents.yml` configuration file.
+5. **API Keys**: Ensure necessary API keys (e.g., `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`) are set as environment variables.
 
 ## Adding New Agent Types
 
-To add support for new agent types in the UI:
+Integrating new agents accessible via the UI typically involves:
 
-1. Register the agent class with the registry:
-
-   ```python
-   agent_factory.register_agent("new_agent_type", NewAgentClass)
-   ```
-
-2. Update the request rooter agent to recognize and route to the new agent
-
-3. If needed, add specific UI components to handle the agent's input/output requirements
+1.  Implementing the new agent class.
+2.  Registering the new agent with the `AgentRegistry`.
+3.  Potentially modifying the `Coordinator` or `RequestAnalyzer` logic if the new agent needs specific routing beyond the default handling.
+4.  If the agent requires unique UI elements, modifying the `build_interface` method in `SimpleChatUI`.
 
 ## Future Enhancements
 

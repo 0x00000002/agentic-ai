@@ -12,11 +12,13 @@
         <meta name="author" content="Agentic-AI Team">
       
       
-        <link rel="canonical" href="https://0x00000002.github.io/agentic-ai/tutorials/">
+        <link rel="canonical" href="https://0x00000002.github.io/agentic-ai/core/">
       
       
-        <link rel="prev" href="../development/testing_strategy/">
+        <link rel="prev" href="../architecture/">
       
+      
+        <link rel="next" href="../agents/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -24,7 +26,7 @@
     
     
       
-        <title>Tutorials - Agentic-AI Documentation</title>
+        <title>Core AI - Agentic-AI Documentation</title>
       
     
     
@@ -66,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#tutorials" class="md-skip">
+        <a href="#core-ai-components" class="md-skip">
           Skip to content
         </a>
       
@@ -100,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Tutorials
+              Core AI
             
           </span>
         </div>
@@ -240,11 +242,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../error_handling/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
   
@@ -261,58 +265,17 @@
   
   
   
-    
-    
-      <li class="md-tabs__item">
-        <a href="../configuration_system/" class="md-tabs__link">
-          
+    <li class="md-tabs__item">
+      <a href="../configuration_system/" class="md-tabs__link">
+        
   
+  
+    
   
   Configuration
 
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../agent_descriptions/" class="md-tabs__link">
-          
-  
-  
-  Agents
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../tools/overview/" class="md-tabs__link">
-          
-  
-  
-  Tools
-
-        </a>
-      </li>
-    
+      </a>
+    </li>
   
 
       
@@ -361,38 +324,17 @@
   
   
   
-    
-    
-      <li class="md-tabs__item">
-        <a href="../conversations/overview/" class="md-tabs__link">
-          
-  
-  
-  Conversations
-
-        </a>
-      </li>
-    
-  
-
-      
+    <li class="md-tabs__item">
+      <a href="../metrics_system/" class="md-tabs__link">
         
   
   
-  
-  
     
-    
-      <li class="md-tabs__item">
-        <a href="../metrics_system/" class="md-tabs__link">
-          
-  
   
   Metrics
 
-        </a>
-      </li>
-    
+      </a>
+    </li>
   
 
       
@@ -401,18 +343,17 @@
   
   
   
-    
-    
-      <li class="md-tabs__item">
-        <a href="../ui/gradio_interface/" class="md-tabs__link">
-          
+    <li class="md-tabs__item">
+      <a href="../ui/gradio_interface/" class="md-tabs__link">
+        
   
+  
+    
   
   UI
 
-        </a>
-      </li>
-    
+      </a>
+    </li>
   
 
       
@@ -453,27 +394,6 @@
         </a>
       </li>
     
-  
-
-      
-        
-  
-  
-  
-    
-  
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
-        
-  
-  
-    
-  
-  Tutorials
-
-      </a>
-    </li>
   
 
       
@@ -594,26 +514,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
@@ -626,12 +551,164 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             Core Concepts
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Core AI
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core AI
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#aibase-srccorebase_aipy" class="md-nav__link">
+    <span class="md-ellipsis">
+      AIBase (src/core/base_ai.py)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#toolenabledai-srccoretool_enabled_aipy" class="md-nav__link">
+    <span class="md-ellipsis">
+      ToolEnabledAI (src/core/tool_enabled_ai.py)
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Agents
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tools
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conversations/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Conversations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -692,25 +769,9 @@
   
   
   
-    
-    
-    
-    
-      
-      
+    <li class="md-nav__item">
+      <a href="../configuration_system/" class="md-nav__link">
         
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
   
   
   <span class="md-ellipsis">
@@ -719,65 +780,7 @@
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            Configuration
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../configuration_system/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    System Overview
-    
-  </span>
-  
-
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../config/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Configuration Files
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
     </li>
   
 
@@ -810,7 +813,7 @@
   
   
   <span class="md-ellipsis">
-    Agents
+    Prompts
     
   </span>
   
@@ -820,290 +823,6 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
-            <span class="md-nav__icon md-icon"></span>
-            Agents
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../agent_descriptions/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Descriptions
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../agents/architecture/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Agent System Architecture
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tool_finder_agent/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Tool Finder Agent
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../agents/agent_specifications/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Specifications
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../agents/implementation_plan/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Implementation Plan
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../agents/implementation_standards/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Implementation Standards
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
-        
-          
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    Tools
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7">
-            <span class="md-nav__icon md-icon"></span>
-            Tools
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tools/overview/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Overview
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tools/auto_tool_finding/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Auto Tool Finding
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
-        
-          
-          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    Prompts
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             Prompts
           </label>
@@ -1182,10 +901,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
   
@@ -1198,8 +917,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_9">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             Providers
           </label>
@@ -1241,6 +960,50 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../metrics_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Metrics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ui/gradio_interface/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
     
@@ -1263,7 +1026,7 @@
   
   
   <span class="md-ellipsis">
-    Conversations
+    Examples
     
   </span>
   
@@ -1273,225 +1036,6 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_10">
-            <span class="md-nav__icon md-icon"></span>
-            Conversations
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../conversations/overview/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Overview
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
-        
-          
-          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    Metrics
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_11">
-            <span class="md-nav__icon md-icon"></span>
-            Metrics
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../metrics_system/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    System Overview
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
-        
-          
-          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    UI
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_12">
-            <span class="md-nav__icon md-icon"></span>
-            UI
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ui/gradio_interface/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Gradio Interface
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
-        
-          
-          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    Examples
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_13">
             <span class="md-nav__icon md-icon"></span>
             Examples
           </label>
@@ -1570,10 +1114,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
         
           
-          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
             
   
   
@@ -1586,8 +1130,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_14">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
             <span class="md-nav__icon md-icon"></span>
             Development
           </label>
@@ -1639,63 +1183,8 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../CONTRIBUTING.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Contributing
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    Tutorials
-    
-  </span>
-  
-
-      </a>
       
     </li>
   
@@ -1720,14 +1209,43 @@
   
 
 
-<h1 id="tutorials">Tutorials</h1>
-<p>This section provides step-by-step guides for common tasks using the Agentic-AI framework.</p>
+<h1 id="core-ai-components">Core AI Components</h1>
+<p>This section describes the fundamental classes responsible for AI interaction and capabilities.</p>
+<h2 id="aibase-srccorebase_aipy"><code>AIBase</code> (<code>src/core/base_ai.py</code>)</h2>
+<p><code>AIBase</code> serves as the foundational class for all AI interactions. It implements the basic <code>AIInterface</code> and handles core responsibilities:</p>
 <ul>
-<li>Creating a Custom Agent <em>(Coming Soon)</em></li>
-<li>Adding Complex Tools <em>(Coming Soon)</em></li>
-<li>Integrating a New Provider <em>(Coming Soon)</em></li>
+<li><strong>Initialization</strong>: Takes a model identifier (<code>model</code>), optional <code>system_prompt</code>, <code>logger</code>, <code>request_id</code>, and <code>PromptTemplate</code> service.</li>
+<li><strong>Configuration</strong>: Fetches model and provider configurations from <code>UnifiedConfig</code>.</li>
+<li><strong>Provider Instantiation</strong>: Uses <code>ProviderFactory</code> to create the appropriate <code>ProviderInterface</code> instance (e.g., <code>OpenAIProvider</code>, <code>AnthropicProvider</code>) based on the model's configuration.</li>
+<li><strong>Conversation Management</strong>: Initializes and maintains a <code>ConversationManager</code> instance to track message history.</li>
+<li><strong>System Prompt</strong>: Sets the initial system prompt in the conversation history, using the provided <code>system_prompt</code>, a configured default, or a basic fallback.</li>
+<li><strong>Basic Request Handling</strong>:</li>
+<li><code>request(prompt, **options)</code>: Adds the user prompt to the conversation, sends the full message history to the provider, receives the response, adds the assistant's response to history, and returns the response content string.</li>
+<li><code>stream(prompt, **options)</code>: Similar to <code>request</code> but uses the provider's streaming capabilities.</li>
+<li><strong>State Management</strong>: Provides methods like <code>reset_conversation()</code>, <code>get_conversation()</code>, <code>get_system_prompt()</code>, <code>set_system_prompt()</code>, and <code>get_model_info()</code>.</li>
 </ul>
-<p><em>(More tutorials to be added)</em></p>
+<p><code>AIBase</code> itself does <em>not</em> handle tool calls.</p>
+<h2 id="toolenabledai-srccoretool_enabled_aipy"><code>ToolEnabledAI</code> (<code>src/core/tool_enabled_ai.py</code>)</h2>
+<p><code>ToolEnabledAI</code> inherits from <code>AIBase</code> and adds the capability to use tools (functions or external APIs) during request processing.</p>
+<ul>
+<li><strong>Initialization</strong>: Takes the same arguments as <code>AIBase</code>, plus an optional <code>ToolManager</code> instance. If no <code>ToolManager</code> is provided, it creates a default one.</li>
+<li><strong>Tool Support Check</strong>: Determines if the underlying provider (obtained via <code>AIBase</code> initialization) supports tool calling based on its interface or attributes.</li>
+<li><strong>Tool Management</strong>: Interacts with the <code>ToolManager</code> to get definitions of available tools.</li>
+<li><strong>Tool Calling Loop (<code>process_prompt</code>)</strong>: This is the primary method for handling requests that might involve tools.</li>
+<li>Adds the user prompt to history.</li>
+<li>Enters a loop (limited by <code>max_tool_iterations</code>).</li>
+<li>Gets available tool definitions from <code>ToolManager</code>.</li>
+<li>Calls the provider with the current messages and tool definitions.</li>
+<li>Receives the provider's response (which might include text content and/or tool call requests).</li>
+<li>Adds the assistant's message (content and requested tool calls) to history.</li>
+<li><strong>If tool calls are requested</strong>: Executes each tool call using <code>ToolManager.execute_tool()</code>. Adds the tool results back into the conversation history using the provider-specific format.</li>
+<li><strong>If no tool calls are requested</strong>: Exits the loop and returns the final text content from the assistant.</li>
+<li>Continues the loop if tools were called and the iteration limit is not reached.</li>
+<li><strong>Basic Request (No Tool Loop)</strong>:</li>
+<li><code>request_basic(prompt, **options)</code>: Sends the prompt and history to the provider but <em>does not</em> automatically execute any tool calls requested in the response. It returns the raw <code>ProviderResponse</code> object, allowing the caller to inspect potential tool calls.</li>
+<li><strong>Tool Information</strong>: Provides <code>get_tool_history()</code> and <code>get_available_tools()</code>.</li>
+</ul>
+<p>For most standard interactions where you want the AI to be able to use tools automatically, you should instantiate and use <code>ToolEnabledAI</code> and call its <code>process_prompt</code> method.</p>
 
 
 
