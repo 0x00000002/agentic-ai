@@ -2730,6 +2730,727 @@
       ],
       "success": true,
       "error": null
+    },
+    "4e884229-ee4c-4d31-8381-43841b367b08": {
+      "request_id": "4e884229-ee4c-4d31-8381-43841b367b08",
+      "start_time": "2025-04-08T05:01:06.601394+00:00",
+      "end_time": "2025-04-08T05:01:09.242226+00:00",
+      "duration_ms": 2640,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "response_formatter",
+        "solidity_expert",
+        "coordinator",
+        "tool_finder"
+      ],
+      "tools_used": [
+        "file_reader",
+        "code_search"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": false,
+      "error": null
+    },
+    "20cf5d86-38aa-464d-837a-28aeb77174b0": {
+      "request_id": "20cf5d86-38aa-464d-837a-28aeb77174b0",
+      "start_time": "2025-04-08T05:01:09.749568+00:00",
+      "end_time": "2025-04-08T05:01:10.748017+00:00",
+      "duration_ms": 998,
+      "prompt": "Explain the metrics tracking system in Agentic-AI",
+      "prompt_tokens": 7,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "response_formatter",
+        "solidity_expert"
+      ],
+      "tools_used": [
+        "solidity_compiler"
+      ],
+      "models_used": [
+        "gpt-4o"
+      ],
+      "success": false,
+      "error": null
+    },
+    "0abae740-cfb3-4d87-8e73-8b8d691a7f17": {
+      "request_id": "0abae740-cfb3-4d87-8e73-8b8d691a7f17",
+      "start_time": "2025-04-08T05:01:11.252425+00:00",
+      "end_time": "2025-04-08T05:01:13.651163+00:00",
+      "duration_ms": 2398,
+      "prompt": "Explain the metrics tracking system in Agentic-AI",
+      "prompt_tokens": 7,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert",
+        "coordinator",
+        "response_formatter"
+      ],
+      "tools_used": [
+        "web_search",
+        "file_reader",
+        "code_search"
+      ],
+      "models_used": [
+        "claude-3-5-sonnet"
+      ],
+      "success": false,
+      "error": null
+    },
+    "91c6448f-5549-40d3-9ffd-3bc5b3698ee0": {
+      "request_id": "91c6448f-5549-40d3-9ffd-3bc5b3698ee0",
+      "start_time": "2025-04-08T05:01:14.159824+00:00",
+      "end_time": "2025-04-08T05:01:15.232283+00:00",
+      "duration_ms": 1072,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "response_formatter",
+        "tool_finder",
+        "solidity_expert"
+      ],
+      "tools_used": [
+        "file_reader"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": false,
+      "error": null
+    },
+    "6dc95a24-f562-4003-a158-b902f164a9a1": {
+      "request_id": "6dc95a24-f562-4003-a158-b902f164a9a1",
+      "start_time": "2025-04-08T05:01:15.739124+00:00",
+      "end_time": "2025-04-08T05:01:17.284191+00:00",
+      "duration_ms": 1545,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert",
+        "response_formatter"
+      ],
+      "tools_used": [
+        "solidity_compiler"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": false,
+      "error": null
+    },
+    "e7fba72a-eeac-4790-bd37-a777263967de": {
+      "request_id": "e7fba72a-eeac-4790-bd37-a777263967de",
+      "start_time": "2025-04-08T05:01:17.791097+00:00",
+      "end_time": "2025-04-08T05:01:19.623969+00:00",
+      "duration_ms": 1832,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert",
+        "response_formatter",
+        "tool_finder"
+      ],
+      "tools_used": [
+        "solidity_compiler",
+        "file_reader"
+      ],
+      "models_used": [
+        "claude-3-5-sonnet"
+      ],
+      "success": true,
+      "error": null
+    },
+    "e772b218-0e88-4224-b703-18d3233b122e": {
+      "request_id": "e772b218-0e88-4224-b703-18d3233b122e",
+      "start_time": "2025-04-08T05:01:20.127675+00:00",
+      "end_time": "2025-04-08T05:01:21.604656+00:00",
+      "duration_ms": 1476,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "tool_finder",
+        "response_formatter",
+        "coordinator"
+      ],
+      "tools_used": [
+        "code_search"
+      ],
+      "models_used": [
+        "llamacpp://llama3-8b"
+      ],
+      "success": true,
+      "error": null
+    },
+    "2db7d531-8a0b-41ea-b030-76e919a55806": {
+      "request_id": "2db7d531-8a0b-41ea-b030-76e919a55806",
+      "start_time": "2025-04-08T05:01:22.112335+00:00",
+      "end_time": "2025-04-08T05:01:23.433978+00:00",
+      "duration_ms": 1321,
+      "prompt": "Explain the metrics tracking system in Agentic-AI",
+      "prompt_tokens": 7,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "coordinator"
+      ],
+      "tools_used": [
+        "file_reader",
+        "web_search",
+        "solidity_compiler"
+      ],
+      "models_used": [
+        "claude-3-5-sonnet"
+      ],
+      "success": true,
+      "error": null
+    },
+    "25b24949-a98d-4ac7-93c9-c3d3078a9508": {
+      "request_id": "25b24949-a98d-4ac7-93c9-c3d3078a9508",
+      "start_time": "2025-04-08T05:01:23.937210+00:00",
+      "end_time": "2025-04-08T05:01:25.422442+00:00",
+      "duration_ms": 1485,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "coordinator",
+        "solidity_expert"
+      ],
+      "tools_used": [
+        "code_search",
+        "code_writer"
+      ],
+      "models_used": [
+        "claude-3-5-sonnet"
+      ],
+      "success": true,
+      "error": null
+    },
+    "8ab87ada-ca4a-4652-8632-d2b37721b00d": {
+      "request_id": "8ab87ada-ca4a-4652-8632-d2b37721b00d",
+      "start_time": "2025-04-08T05:01:25.930866+00:00",
+      "end_time": "2025-04-08T05:01:27.751463+00:00",
+      "duration_ms": 1820,
+      "prompt": "How do I implement a staking contract in Solidity?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert",
+        "response_formatter",
+        "tool_finder",
+        "coordinator"
+      ],
+      "tools_used": [
+        "file_reader"
+      ],
+      "models_used": [
+        "claude-3-5-sonnet"
+      ],
+      "success": true,
+      "error": null
+    },
+    "44da6599-b5b5-46b0-965c-b310b4d40780": {
+      "request_id": "44da6599-b5b5-46b0-965c-b310b4d40780",
+      "start_time": "2025-04-08T05:02:18.859812+00:00",
+      "end_time": "2025-04-08T05:02:20.568232+00:00",
+      "duration_ms": 1708,
+      "prompt": "Find all files in the project containing 'metrics' and explain their purpose",
+      "prompt_tokens": 12,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "coordinator"
+      ],
+      "tools_used": [
+        "file_reader",
+        "code_search",
+        "web_search"
+      ],
+      "models_used": [
+        "llamacpp://llama3-8b"
+      ],
+      "success": true,
+      "error": null
+    },
+    "234f9641-cbef-49ec-bc01-20d3314216dc": {
+      "request_id": "234f9641-cbef-49ec-bc01-20d3314216dc",
+      "start_time": "2025-04-08T05:02:21.075414+00:00",
+      "end_time": "2025-04-08T05:02:21.986348+00:00",
+      "duration_ms": 910,
+      "prompt": "Find all files in the project containing 'metrics' and explain their purpose",
+      "prompt_tokens": 12,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "response_formatter"
+      ],
+      "tools_used": [
+        "code_search",
+        "code_writer"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": true,
+      "error": null
+    },
+    "6c7b573b-45c7-48d8-97c0-7d81dec4e853": {
+      "request_id": "6c7b573b-45c7-48d8-97c0-7d81dec4e853",
+      "start_time": "2025-04-08T05:02:22.494278+00:00",
+      "end_time": "2025-04-08T05:02:24.575972+00:00",
+      "duration_ms": 2081,
+      "prompt": "Explain the metrics tracking system in Agentic-AI",
+      "prompt_tokens": 7,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "response_formatter",
+        "solidity_expert"
+      ],
+      "tools_used": [
+        "code_search",
+        "code_writer",
+        "web_search"
+      ],
+      "models_used": [
+        "claude-3-5-sonnet"
+      ],
+      "success": true,
+      "error": null
+    },
+    "c23bf158-60c0-48b4-a655-d507e1b8305f": {
+      "request_id": "c23bf158-60c0-48b4-a655-d507e1b8305f",
+      "start_time": "2025-04-08T05:02:25.084236+00:00",
+      "end_time": "2025-04-08T05:02:26.171689+00:00",
+      "duration_ms": 1087,
+      "prompt": "Find all files in the project containing 'metrics' and explain their purpose",
+      "prompt_tokens": 12,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "tool_finder",
+        "coordinator"
+      ],
+      "tools_used": [
+        "solidity_compiler"
+      ],
+      "models_used": [
+        "claude-3-5-sonnet"
+      ],
+      "success": true,
+      "error": null
+    },
+    "11df1524-0276-4117-9e78-9d253cdae0c6": {
+      "request_id": "11df1524-0276-4117-9e78-9d253cdae0c6",
+      "start_time": "2025-04-08T05:02:26.680187+00:00",
+      "end_time": "2025-04-08T05:02:28.307526+00:00",
+      "duration_ms": 1627,
+      "prompt": "Find all files in the project containing 'metrics' and explain their purpose",
+      "prompt_tokens": 12,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "tool_finder",
+        "response_formatter"
+      ],
+      "tools_used": [
+        "file_reader"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": true,
+      "error": null
+    },
+    "4c476898-0ed1-40e6-bedb-128e536f7fc4": {
+      "request_id": "4c476898-0ed1-40e6-bedb-128e536f7fc4",
+      "start_time": "2025-04-08T05:02:28.814580+00:00",
+      "end_time": "2025-04-08T05:02:29.834944+00:00",
+      "duration_ms": 1020,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "tool_finder"
+      ],
+      "tools_used": [
+        "code_writer"
+      ],
+      "models_used": [
+        "llamacpp://llama3-8b"
+      ],
+      "success": true,
+      "error": null
+    },
+    "7db1845d-e8b4-4534-967c-54aea2f4cb1e": {
+      "request_id": "7db1845d-e8b4-4534-967c-54aea2f4cb1e",
+      "start_time": "2025-04-08T05:02:30.342694+00:00",
+      "end_time": "2025-04-08T05:02:32.072603+00:00",
+      "duration_ms": 1729,
+      "prompt": "How do I implement a staking contract in Solidity?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "coordinator",
+        "solidity_expert"
+      ],
+      "tools_used": [
+        "code_search",
+        "web_search"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": false,
+      "error": null
+    },
+    "a5596e8a-b3e1-49f8-a095-374137be58e1": {
+      "request_id": "a5596e8a-b3e1-49f8-a095-374137be58e1",
+      "start_time": "2025-04-08T05:02:32.580816+00:00",
+      "end_time": "2025-04-08T05:02:33.906487+00:00",
+      "duration_ms": 1325,
+      "prompt": "Explain the metrics tracking system in Agentic-AI",
+      "prompt_tokens": 7,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert"
+      ],
+      "tools_used": [
+        "file_reader"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": false,
+      "error": null
+    },
+    "bcb34b21-cd9c-46ec-9fde-660b6fb699f3": {
+      "request_id": "bcb34b21-cd9c-46ec-9fde-660b6fb699f3",
+      "start_time": "2025-04-08T05:02:34.414451+00:00",
+      "end_time": "2025-04-08T05:02:35.907980+00:00",
+      "duration_ms": 1493,
+      "prompt": "Explain the metrics tracking system in Agentic-AI",
+      "prompt_tokens": 7,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "response_formatter"
+      ],
+      "tools_used": [
+        "web_search",
+        "solidity_compiler"
+      ],
+      "models_used": [
+        "gpt-4o"
+      ],
+      "success": false,
+      "error": null
+    },
+    "ff6ffb81-0882-4e27-b8ac-55662ca9d47e": {
+      "request_id": "ff6ffb81-0882-4e27-b8ac-55662ca9d47e",
+      "start_time": "2025-04-08T05:02:36.416805+00:00",
+      "end_time": "2025-04-08T05:02:37.916541+00:00",
+      "duration_ms": 1499,
+      "prompt": "Write a Solidity function to distribute rewards based on user token balances",
+      "prompt_tokens": 12,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert",
+        "response_formatter",
+        "coordinator"
+      ],
+      "tools_used": [
+        "file_reader",
+        "code_search",
+        "web_search"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": true,
+      "error": null
+    },
+    "c56d8b64-9c1a-4f9f-80fe-76de55c03e8e": {
+      "request_id": "c56d8b64-9c1a-4f9f-80fe-76de55c03e8e",
+      "start_time": "2025-04-08T05:03:02.341162+00:00",
+      "end_time": "2025-04-08T05:03:03.697730+00:00",
+      "duration_ms": 1356,
+      "prompt": "How do I implement a staking contract in Solidity?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "tool_finder",
+        "solidity_expert"
+      ],
+      "tools_used": [
+        "code_search",
+        "file_reader",
+        "code_writer"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": true,
+      "error": null
+    },
+    "0b2c45f3-3ef6-4fec-a65d-9574f444c8ba": {
+      "request_id": "0b2c45f3-3ef6-4fec-a65d-9574f444c8ba",
+      "start_time": "2025-04-08T05:03:04.205471+00:00",
+      "end_time": "2025-04-08T05:03:06.405711+00:00",
+      "duration_ms": 2200,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert",
+        "tool_finder",
+        "coordinator",
+        "response_formatter"
+      ],
+      "tools_used": [
+        "solidity_compiler"
+      ],
+      "models_used": [
+        "llamacpp://llama3-8b"
+      ],
+      "success": true,
+      "error": null
+    },
+    "5a052dd4-27d9-42eb-8ecc-45a555cef9d9": {
+      "request_id": "5a052dd4-27d9-42eb-8ecc-45a555cef9d9",
+      "start_time": "2025-04-08T05:03:06.910324+00:00",
+      "end_time": "2025-04-08T05:03:08.468530+00:00",
+      "duration_ms": 1558,
+      "prompt": "Explain the metrics tracking system in Agentic-AI",
+      "prompt_tokens": 7,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "response_formatter"
+      ],
+      "tools_used": [
+        "solidity_compiler",
+        "code_search",
+        "web_search"
+      ],
+      "models_used": [
+        "llamacpp://llama3-8b"
+      ],
+      "success": true,
+      "error": null
+    },
+    "0317de4a-0e51-495c-a8fe-35eb99fbbb36": {
+      "request_id": "0317de4a-0e51-495c-a8fe-35eb99fbbb36",
+      "start_time": "2025-04-08T05:03:08.971736+00:00",
+      "end_time": "2025-04-08T05:03:10.140778+00:00",
+      "duration_ms": 1169,
+      "prompt": "Write a Solidity function to distribute rewards based on user token balances",
+      "prompt_tokens": 12,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "response_formatter"
+      ],
+      "tools_used": [
+        "file_reader"
+      ],
+      "models_used": [
+        "claude-3-5-sonnet"
+      ],
+      "success": true,
+      "error": null
+    },
+    "e0826e22-59bd-4b8d-8243-a9246178e61a": {
+      "request_id": "e0826e22-59bd-4b8d-8243-a9246178e61a",
+      "start_time": "2025-04-08T05:03:10.649112+00:00",
+      "end_time": "2025-04-08T05:03:11.333267+00:00",
+      "duration_ms": 684,
+      "prompt": "Explain the metrics tracking system in Agentic-AI",
+      "prompt_tokens": 7,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "tool_finder"
+      ],
+      "tools_used": [
+        "file_reader"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": true,
+      "error": null
+    },
+    "9a913007-6853-461b-81e8-f1e6499aba0c": {
+      "request_id": "9a913007-6853-461b-81e8-f1e6499aba0c",
+      "start_time": "2025-04-08T05:03:11.838679+00:00",
+      "end_time": "2025-04-08T05:03:13.546131+00:00",
+      "duration_ms": 1707,
+      "prompt": "Write a Solidity function to distribute rewards based on user token balances",
+      "prompt_tokens": 12,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "tool_finder",
+        "coordinator"
+      ],
+      "tools_used": [
+        "code_writer",
+        "solidity_compiler"
+      ],
+      "models_used": [
+        "gpt-4o"
+      ],
+      "success": true,
+      "error": null
+    },
+    "5e987e85-40a0-4687-8d22-2b4fc11287db": {
+      "request_id": "5e987e85-40a0-4687-8d22-2b4fc11287db",
+      "start_time": "2025-04-08T05:03:14.055428+00:00",
+      "end_time": "2025-04-08T05:03:16.204601+00:00",
+      "duration_ms": 2149,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "tool_finder",
+        "solidity_expert",
+        "response_formatter"
+      ],
+      "tools_used": [
+        "web_search",
+        "code_writer",
+        "file_reader"
+      ],
+      "models_used": [
+        "llamacpp://llama3-8b"
+      ],
+      "success": true,
+      "error": null
+    },
+    "fb14e8d6-0f21-4252-8bd1-6c78bf970f16": {
+      "request_id": "fb14e8d6-0f21-4252-8bd1-6c78bf970f16",
+      "start_time": "2025-04-08T05:03:16.712639+00:00",
+      "end_time": "2025-04-08T05:03:19.532999+00:00",
+      "duration_ms": 2820,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "tool_finder",
+        "coordinator",
+        "solidity_expert",
+        "response_formatter"
+      ],
+      "tools_used": [
+        "file_reader",
+        "code_writer"
+      ],
+      "models_used": [
+        "llamacpp://llama3-8b"
+      ],
+      "success": false,
+      "error": null
+    },
+    "5c29c612-109c-4021-80f3-b9a31865f064": {
+      "request_id": "5c29c612-109c-4021-80f3-b9a31865f064",
+      "start_time": "2025-04-08T05:03:20.041375+00:00",
+      "end_time": "2025-04-08T05:03:21.648275+00:00",
+      "duration_ms": 1606,
+      "prompt": "Explain the metrics tracking system in Agentic-AI",
+      "prompt_tokens": 7,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert"
+      ],
+      "tools_used": [
+        "code_search",
+        "code_writer",
+        "solidity_compiler"
+      ],
+      "models_used": [
+        "claude-3-5-sonnet"
+      ],
+      "success": true,
+      "error": null
+    },
+    "c6dde6b2-e8bc-40b5-90f9-dbba6f12c359": {
+      "request_id": "c6dde6b2-e8bc-40b5-90f9-dbba6f12c359",
+      "start_time": "2025-04-08T05:03:22.157042+00:00",
+      "end_time": "2025-04-08T05:03:23.481050+00:00",
+      "duration_ms": 1324,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert"
+      ],
+      "tools_used": [
+        "code_search",
+        "solidity_compiler",
+        "file_reader"
+      ],
+      "models_used": [
+        "claude-3-5-sonnet"
+      ],
+      "success": true,
+      "error": null
     }
   },
   "agent_usage": {
@@ -2764,29 +3485,61 @@
       "avg_confidence": 0.845767586739077,
       "last_used": "2025-04-05T06:47:25.995687",
       "avg_duration_ms": 275.25
+    },
+    "response_formatter": {
+      "total_requests": 18,
+      "successful_requests": 18,
+      "total_duration_ms": 5849,
+      "avg_confidence": 0.849393960190613,
+      "last_used": "2025-04-08T05:03:19.156695+00:00",
+      "avg_duration_ms": 324.94444444444446
+    },
+    "solidity_expert": {
+      "total_requests": 18,
+      "successful_requests": 15,
+      "total_duration_ms": 5209,
+      "avg_confidence": 0.8435237537409354,
+      "last_used": "2025-04-08T05:03:23.141601+00:00",
+      "avg_duration_ms": 289.3888888888889
+    },
+    "coordinator": {
+      "total_requests": 13,
+      "successful_requests": 10,
+      "total_duration_ms": 4705,
+      "avg_confidence": 0.8907232637068287,
+      "last_used": "2025-04-08T05:03:18.389808+00:00",
+      "avg_duration_ms": 361.9230769230769
+    },
+    "tool_finder": {
+      "total_requests": 14,
+      "successful_requests": 13,
+      "total_duration_ms": 3734,
+      "avg_confidence": 0.8187408100718946,
+      "last_used": "2025-04-08T05:03:17.895353+00:00",
+      "avg_duration_ms": 266.7142857142857
     }
   },
   "tool_usage": {
     "web_search": {
-      "total_calls": 3,
-      "successful_calls": 3,
-      "total_duration_ms": 422,
-      "last_used": "2025-04-05T06:47:23.924200",
-      "avg_duration_ms": 140.66666666666666
+      "total_calls": 12,
+      "successful_calls": 11,
+      "total_duration_ms": 1508,
+      "last_used": "2025-04-08T05:03:15.893311+00:00",
+      "avg_duration_ms": 125.66666666666667
     },
     "code_search": {
-      "total_calls": 2,
-      "successful_calls": 2,
-      "total_duration_ms": 287,
-      "last_used": "2025-04-05T06:47:26.183355",
-      "avg_duration_ms": 143.5
+      "total_calls": 15,
+      "successful_calls": 14,
+      "total_duration_ms": 1834,
+      "last_used": "2025-04-08T05:03:23.207358+00:00",
+      "avg_duration_ms": 122.26666666666667
     },
     "code_writer": {
-      "total_calls": 3,
-      "successful_calls": 3,
-      "total_duration_ms": 361,
-      "last_used": "2025-04-05T06:47:18.024500",
-      "avg_duration_ms": 120.33333333333333
+      "total_calls": 12,
+      "successful_calls": 11,
+      "total_duration_ms": 1583,
+      "last_used": "2025-04-08T05:03:21.536095+00:00",
+      "avg_duration_ms": 131.91666666666666
     },
     "terminal": {
       "total_calls": 4,
@@ -2796,11 +3549,18 @@
       "avg_duration_ms": 134.5
     },
     "file_reader": {
-      "total_calls": 5,
-      "successful_calls": 4,
-      "total_duration_ms": 698,
-      "last_used": "2025-04-05T06:47:26.357549",
-      "avg_duration_ms": 139.6
+      "total_calls": 21,
+      "successful_calls": 18,
+      "total_duration_ms": 2997,
+      "last_used": "2025-04-08T05:03:23.477340+00:00",
+      "avg_duration_ms": 142.71428571428572
+    },
+    "solidity_compiler": {
+      "total_calls": 11,
+      "successful_calls": 10,
+      "total_duration_ms": 1477,
+      "last_used": "2025-04-08T05:03:23.273412+00:00",
+      "avg_duration_ms": 134.27272727272728
     }
   },
   "model_usage": {
@@ -2848,6 +3608,42 @@
       "total_duration_ms": 0,
       "last_used": "2025-04-05T13:35:25.021602+00:00",
       "avg_duration_ms": 0
+    },
+    "phi4": {
+      "total_calls": 10,
+      "successful_calls": 10,
+      "total_tokens_in": 2839,
+      "total_tokens_out": 754,
+      "total_duration_ms": 6204,
+      "last_used": "2025-04-08T05:03:11.115466+00:00",
+      "avg_duration_ms": 620.4
+    },
+    "gpt-4o": {
+      "total_calls": 3,
+      "successful_calls": 3,
+      "total_tokens_in": 442,
+      "total_tokens_out": 76,
+      "total_duration_ms": 2219,
+      "last_used": "2025-04-08T05:03:12.755728+00:00",
+      "avg_duration_ms": 739.6666666666666
+    },
+    "claude-3-5-sonnet": {
+      "total_calls": 10,
+      "successful_calls": 10,
+      "total_tokens_in": 2385,
+      "total_tokens_out": 525,
+      "total_duration_ms": 6968,
+      "last_used": "2025-04-08T05:03:23.029054+00:00",
+      "avg_duration_ms": 696.8
+    },
+    "llamacpp://llama3-8b": {
+      "total_calls": 7,
+      "successful_calls": 7,
+      "total_tokens_in": 2339,
+      "total_tokens_out": 580,
+      "total_duration_ms": 4566,
+      "last_used": "2025-04-08T05:03:17.386737+00:00",
+      "avg_duration_ms": 652.2857142857143
     }
   }
 }

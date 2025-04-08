@@ -26,7 +26,7 @@ nav:
   - Configuration: configuration_system.md
   - Prompts:
       - Management: prompts/management.md
-      - Prompting Guide: PROMPTS.md
+      - Prompting Guide: prompts/guide.md
   - Providers:
       - Overview: providers/overview.md
   - Metrics: metrics_system.md

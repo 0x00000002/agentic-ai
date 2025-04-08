@@ -532,18 +532,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#adding-tool-capabilities" class="md-nav__link">
+  <a href="#using-tools" class="md-nav__link">
     <span class="md-ellipsis">
-      Adding Tool Capabilities
+      Using Tools
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#automatic-tool-finding" class="md-nav__link">
+  <a href="#using-agents-coordinator" class="md-nav__link">
     <span class="md-ellipsis">
-      Automatic Tool Finding
+      Using Agents (Coordinator)
     </span>
   </a>
   
@@ -862,7 +862,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../PROMPTS/" class="md-nav__link">
+      <a href="../prompts/guide/" class="md-nav__link">
         
   
   
@@ -1217,86 +1217,67 @@
 <h2 id="basic-usage">Basic Usage</h2>
 <p>Here's a simple example to get started with Agentic-AI:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.core.tool_enabled_ai</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolEnabledAI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.config.unified_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnifiedConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">configure</span><span class="p">,</span> <span class="n">get_config</span>
 
-<span class="c1"># Initialize configuration (if needed, often handled internally)</span>
-<span class="c1"># config = UnifiedConfig.get_instance()</span>
+<span class="c1"># Configure the framework (optional - uses defaults otherwise)</span>
+<span class="c1"># Example: Use a specific model</span>
+<span class="c1"># configure(model=&quot;claude-3-haiku&quot;)</span>
 
-<span class="c1"># Create AI instance</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">ToolEnabledAI</span><span class="p">(</span>
-    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-5-haiku&quot;</span> <span class="c1"># Example: Use a specific model</span>
-<span class="p">)</span>
+<span class="c1"># Create AI instance (uses the configured model or default)</span>
+<span class="n">ai</span> <span class="o">=</span> <span class="n">ToolEnabledAI</span><span class="p">()</span>
 
-<span class="c1"># Make a simple request</span>
+<span class="c1"># Make a simple request (uses the underlying provider)</span>
+<span class="c1"># Note: For tool usage, use process_prompt() instead of request()</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;What is the capital of France?&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="adding-tool-capabilities">Adding Tool Capabilities</h2>
-<p>Register tools to allow the AI to perform actions:</p>
+<h2 id="using-tools">Using Tools</h2>
+<p>Tools allow the AI to perform actions. They are typically defined in <code>src/config/tools.yml</code> and loaded automatically by the <code>ToolManager</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.core.tool_enabled_ai</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolEnabledAI</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">configure</span><span class="p">,</span> <span class="n">UseCasePreset</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">get_weather</span><span class="p">(</span><span class="n">location</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="c1"># ... (function remains same) ...</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">get_current_time</span><span class="p">():</span>
-    <span class="c1"># ... (function remains same) ...</span>
-
-<span class="c1"># Create tool-enabled AI</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">ToolEnabledAI</span><span class="p">(</span>
-    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-7-sonnet&quot;</span> <span class="c1"># Example: A model good at tool use</span>
+<span class="c1"># Configure the framework, maybe selecting a model good at tool use</span>
+<span class="n">configure</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-5-sonnet&quot;</span><span class="p">,</span>
+    <span class="n">use_case</span><span class="o">=</span><span class="n">UseCasePreset</span><span class="o">.</span><span class="n">CHAT</span> <span class="c1"># Or another relevant use case</span>
 <span class="p">)</span>
 
-<span class="c1"># Register tools</span>
-<span class="n">ai</span><span class="o">.</span><span class="n">register_tool</span><span class="p">(</span>
-    <span class="n">tool_name</span><span class="o">=</span><span class="s2">&quot;get_weather&quot;</span><span class="p">,</span>
-    <span class="n">tool_function</span><span class="o">=</span><span class="n">get_weather</span><span class="p">,</span>
-    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Get the current weather for a specific location.&quot;</span>
-<span class="p">)</span>
-<span class="n">ai</span><span class="o">.</span><span class="n">register_tool</span><span class="p">(</span>
-    <span class="n">tool_name</span><span class="o">=</span><span class="s2">&quot;get_current_time&quot;</span><span class="p">,</span>
-    <span class="n">tool_function</span><span class="o">=</span><span class="n">get_current_time</span><span class="p">,</span>
-    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Get the current date and time.&quot;</span>
-<span class="p">)</span>
+<span class="c1"># Create AI instance. It automatically gets a ToolManager</span>
+<span class="c1"># which loads tools defined in tools.yml.</span>
+<span class="n">ai</span> <span class="o">=</span> <span class="n">ToolEnabledAI</span><span class="p">()</span>
 
-<span class="c1"># The AI will now use the tool when appropriate</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;What&#39;s the weather like in Tokyo today?&quot;</span><span class="p">)</span>
+<span class="c1"># The AI will use tools loaded by ToolManager when appropriate.</span>
+<span class="c1"># Use process_prompt() to enable the tool-calling loop.</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">process_prompt</span><span class="p">(</span><span class="s2">&quot;What&#39;s the weather like in Tokyo today?&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Weather Response: </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-<span class="n">response</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;What time is it now?&quot;</span><span class="p">)</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">process_prompt</span><span class="p">(</span><span class="s2">&quot;What time is it now?&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time Response: </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="automatic-tool-finding">Automatic Tool Finding</h2>
-<p>Enable the AI to automatically select relevant tools:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.core.tool_enabled_ai</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolEnabledAI</span>
+<p>See the <a href="../tools/overview/">Tool Integration</a> section for more details on defining and managing tools.</p>
+<h2 id="using-agents-coordinator">Using Agents (Coordinator)</h2>
+<p>For more complex interactions involving specific workflows or routing, you often use the <code>Coordinator</code> agent:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">Coordinator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">configure</span><span class="p">,</span> <span class="n">UseCasePreset</span>
 
-<span class="c1"># Dummy tool functions</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_weather</span><span class="p">(</span><span class="n">location</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;It&#39;s always sunny in </span><span class="si">{</span><span class="n">location</span><span class="si">}</span><span class="s2">!&quot;</span>
+<span class="c1"># Configure the framework (e.g., model, use case)</span>
+<span class="c1"># configure(model=&quot;claude-3-haiku&quot;, use_case=UseCasePreset.CHAT)</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">calculator_function</span><span class="p">(</span><span class="n">expression</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="k">try</span><span class="p">:</span> <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="n">expression</span><span class="p">))</span>
-    <span class="k">except</span><span class="p">:</span> <span class="k">return</span> <span class="s2">&quot;Invalid expression&quot;</span>
+<span class="c1"># Create a Coordinator instance (uses default dependencies &amp; config)</span>
+<span class="n">coordinator</span> <span class="o">=</span> <span class="n">Coordinator</span><span class="p">()</span>
 
-<span class="c1"># Create AI with auto tool finding</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">ToolEnabledAI</span><span class="p">(</span>
-    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-7-sonnet&quot;</span><span class="p">,</span>
-    <span class="n">auto_tool_finding</span><span class="o">=</span><span class="kc">True</span> <span class="c1"># Enable auto finding</span>
-<span class="p">)</span>
+<span class="c1"># Prepare a request for the coordinator</span>
+<span class="n">request_data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;prompt&quot;</span><span class="p">:</span> <span class="s2">&quot;Tell me a joke and then tell me the weather in London.&quot;</span><span class="p">,</span>
+<span class="p">}</span>
 
-<span class="c1"># Register tools (still required for the AI to know about them)</span>
-<span class="n">ai</span><span class="o">.</span><span class="n">register_tool</span><span class="p">(</span><span class="s2">&quot;get_weather&quot;</span><span class="p">,</span> <span class="n">get_weather</span><span class="p">,</span> <span class="s2">&quot;Get weather for a location&quot;</span><span class="p">)</span>
-<span class="n">ai</span><span class="o">.</span><span class="n">register_tool</span><span class="p">(</span><span class="s2">&quot;calculate&quot;</span><span class="p">,</span> <span class="n">calculator_function</span><span class="p">,</span> <span class="s2">&quot;Perform calculations&quot;</span><span class="p">)</span>
+<span class="c1"># Process the request through the coordinator</span>
+<span class="n">response_coord</span> <span class="o">=</span> <span class="n">coordinator</span><span class="o">.</span><span class="n">process_request</span><span class="p">(</span><span class="n">request_data</span><span class="p">)</span>
 
-<span class="c1"># The AI will automatically select the appropriate tool</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;What&#39;s the weather like in Paris today?&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Auto Weather: </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-<span class="n">response</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;Calculate 3 + 5 * 2&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Auto Calculation: </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># Print the final content from the coordinator&#39;s response</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coordinator Response: </span><span class="si">{</span><span class="n">response_coord</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;content&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p>See the <a href="../tools/overview/">Tool Integration</a> section for more details.</p>
+<p>Refer to the <a href="../agents/">Agent System</a> documentation for more on agents.</p>
 
 
 

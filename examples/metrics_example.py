@@ -138,10 +138,10 @@ def simulate_request(metrics, prompt, agents, tools, model):
 def main():
     """Run the metrics example."""
     # Configure logger
-    logger = LoggerFactory.create("metrics_example")
+    # logger = LoggerFactory.create("metrics_example") # Logger likely created internally now
     
     # Initialize metrics service
-    metrics = RequestMetricsService(logger=logger)
+    metrics = RequestMetricsService()
     
     # Define some example agents, tools, and models
     agents = ["coordinator", "tool_finder", "solidity_expert", "response_formatter"]
@@ -189,7 +189,8 @@ def main():
     if completed_requests:
         sample_request = random.choice(completed_requests)
         print(f"\nSample request details ({sample_request}):")
-        request_data = metrics.get_request_data(sample_request)
+        # Access the data dictionary directly
+        request_data = metrics._metrics_data.get("requests", {}).get(sample_request)
         if request_data:
             print(f"Duration: {request_data.get('duration_ms', 0)} ms")
             print(f"Agents used: {request_data.get('agents_used', [])}")
@@ -197,7 +198,8 @@ def main():
             print(f"Models used: {request_data.get('models_used', [])}")
     
     # Initialize dashboard
-    dashboard = MetricsDashboard(metrics_service=metrics, logger=logger)
+    # Pass the instantiated service, logger likely handled internally
+    dashboard = MetricsDashboard(metrics_service=metrics)
     
     # Generate a performance report
     print("\nGenerating performance report...")
@@ -214,12 +216,13 @@ def main():
         for tool in report["top_performing_tools"]:
             print(f"  {tool['tool_id']}: {tool['success_rate']:.2f} success rate")
     
-    # Save metrics to file for persistence
-    metrics_file = os.path.join("data", "metrics", f"metrics_{datetime.now().strftime('%Y%m%d%H%M%S')}.json")
-    os.makedirs(os.path.dirname(metrics_file), exist_ok=True)
-    metrics.save_to_file(metrics_file)
-    print(f"\nMetrics saved to: {metrics_file}")
-    
+    # Save metrics to file for persistence - This is now handled automatically internally
+    # metrics_file = os.path.join("data", "metrics", f"metrics_{datetime.now().strftime('%Y%m%d%H%M%S')}.json")
+    # os.makedirs(os.path.dirname(metrics_file), exist_ok=True)
+    # metrics.save_to_file(metrics_file)
+    # print(f"\nMetrics saved to: {metrics_file}")
+    print(f"\nMetrics automatically saved to: {metrics._storage_path}")
+
     print("\nExample completed. You can now run the metrics CLI to explore the data:")
     print("  python -m src.metrics.cli summary")
     print("  python -m src.metrics.cli agents")
