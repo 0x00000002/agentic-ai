@@ -1112,6 +1112,30 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#provider-specific-tool-call-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Provider-Specific Tool Call Handling
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Provider-Specific Tool Call Handling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#openai-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      OpenAI Provider
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1868,6 +1892,27 @@
 <li>Once the provider returns a final response without tool calls, <code>ToolEnabledAI</code> returns the text content.</li>
 </ol>
 <p>This loop allows the AI to use tools iteratively to accomplish tasks.</p>
+<h2 id="provider-specific-tool-call-handling">Provider-Specific Tool Call Handling</h2>
+<p>Different AI providers handle tool calls in slightly different ways. The framework normalizes these differences to provide a consistent experience:</p>
+<h3 id="openai-provider">OpenAI Provider</h3>
+<p>The OpenAI provider automatically parses tool call arguments from JSON strings into Python dictionaries:</p>
+<ul>
+<li>Tool call arguments returned by the OpenAI API are JSON strings by default</li>
+<li>The <code>_convert_response</code> method automatically parses these strings into Python dictionaries</li>
+<li>If JSON parsing fails, the raw string is preserved in a <code>_raw_args</code> field</li>
+<li>This automatic parsing makes it easier to work with tool arguments in your code</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1"># Example of what happens internally when OpenAI returns a tool call</span>
+<span class="c1"># Original from OpenAI:</span>
+<span class="c1"># tool_call.function.arguments = &#39;{&quot;location&quot;: &quot;New York&quot;, &quot;unit&quot;: &quot;celsius&quot;}&#39;</span>
+
+<span class="c1"># After _convert_response processing:</span>
+<span class="n">tool_call</span><span class="o">.</span><span class="n">arguments</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="s2">&quot;New York&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;celsius&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>This ensures that tool calls work consistently across different providers while taking advantage of each provider's specific capabilities.</p>
 
 
 
