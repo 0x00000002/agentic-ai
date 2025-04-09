@@ -472,16 +472,18 @@ class UnifiedConfig(metaclass=SingletonMeta):
         Returns:
             Tool configuration dictionary
         """
-        tools = self._config.get("tools", {}).get("tools", {})
+        # Get the entire tools section from the config
+        tools_config = self._config.get("tools", {})
         
         # Return all tool configurations if no specific tool is requested
         if tool_name is None:
-            return tools
+            return tools_config
             
-        # Check if the specific tool exists in any category
-        for category, category_config in tools.get("categories", {}).items():
-            if tool_name in category_config:
-                return category_config[tool_name]
+        # If a specific tool is requested, look for it in the tools list
+        if "tools" in tools_config and isinstance(tools_config["tools"], list):
+            for tool_def in tools_config["tools"]:
+                if isinstance(tool_def, dict) and tool_def.get("name") == tool_name:
+                    return tool_def
                 
         # Return empty dictionary if tool not found
         self._logger.warning(f"Tool configuration not found: {tool_name}")

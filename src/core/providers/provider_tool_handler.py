@@ -1,5 +1,5 @@
 """
-Tool management for AI providers.
+Provider-specific tool handling.
 Handles tool formatting, validation, and provider-specific tool interfaces.
 """
 from typing import Dict, Any, Optional, List, Set, Union
@@ -8,9 +8,9 @@ from ...tools.models import ToolCall, ToolDefinition, ToolResult
 from ...tools.tool_registry import ToolRegistry
 
 
-class ToolManager:
+class ProviderToolHandler: # Renamed from ToolManager
     """
-    Manages tool-related functionality for AI providers.
+    Manages provider-specific tool-related functionality.
     
     This class is responsible for:
     - Formatting tools for different providers
@@ -24,7 +24,7 @@ class ToolManager:
                  logger: Optional[LoggerInterface] = None,
                  tool_registry: Optional[ToolRegistry] = None):
         """
-        Initialize the tool manager.
+        Initialize the provider tool handler.
         
         Args:
             provider_name: Name of the provider (e.g., "openai", "anthropic")

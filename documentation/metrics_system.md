@@ -184,6 +184,41 @@ The metrics system is also integrated with the Tool Registry. When a tool is exe
 2. The success or failure is recorded
 3. The tool usage is associated with the current request ID
 
+## Tool-Specific Statistics with ToolStatsManager
+
+The framework includes a dedicated `ToolStatsManager` component that provides detailed per-tool usage statistics, complementing the broader metrics system:
+
+### Key Differences from RequestMetricsService
+
+- **Tool-Focused**: Specializes in tool usage statistics rather than the entire system
+- **Performance Metrics**: Tracks detailed performance metrics like average execution time
+- **Stateless Operation**: Works independently of request tracking (no request IDs needed)
+- **Simplicity**: Lightweight design for simple tool usage tracking
+- **Durability**: Persistent JSON storage with automatic save/load operations
+
+### Example Usage
+
+```python
+from src.tools.tool_stats_manager import ToolStatsManager
+
+# Get the ToolStatsManager instance
+stats_manager = ToolStatsManager()
+
+# Record a tool usage
+stats_manager.update_stats(
+    tool_name="weather_tool",
+    success=True,
+    duration_ms=250
+)
+
+# Get statistics for analysis
+weather_stats = stats_manager.get_stats("weather_tool")
+print(f"Success rate: {weather_stats['successes']/weather_stats['uses']*100:.1f}%")
+print(f"Average duration: {weather_stats['avg_duration_ms']:.2f}ms")
+```
+
+For more detailed information about ToolStatsManager, see the [Tool Usage Statistics](/documentation/tools/overview.md#tool-usage-statistics) section in the Tools documentation.
+
 ## Extending the Metrics System
 
 ### Adding New Metrics
@@ -235,7 +270,6 @@ class MyCustomAgent:
                 metadata={"error": str(e)}
             )
             raise
-```
 
 ## Troubleshooting
 
@@ -260,3 +294,4 @@ To debug metrics tracking, you can:
 3. Track both successes and failures for complete analytics
 4. Include relevant metadata for easier debugging and analysis
 5. Regularly review metrics to identify performance issues and opportunities for optimization
+```

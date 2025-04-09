@@ -1,0 +1,29 @@
+{
+    "weather_tool": {
+        "uses": 8,
+        "successes": 3,
+        "failures": 5,
+        "last_used": "2025-04-09T12:36:14.835961",
+        "first_used": "2025-04-09T12:36:14.527821",
+        "total_duration_ms": 473,
+        "avg_duration_ms": 157.66666666666666
+    },
+    "calculator_tool": {
+        "uses": 10,
+        "successes": 10,
+        "failures": 0,
+        "last_used": "2025-04-09T12:36:14.699976",
+        "first_used": "2025-04-09T12:36:14.588445",
+        "total_duration_ms": 3005,
+        "avg_duration_ms": 300.5
+    },
+    "search_tool": {
+        "uses": 8,
+        "successes": 7,
+        "failures": 1,
+        "last_used": "2025-04-09T12:36:14.800186",
+        "first_used": "2025-04-09T12:36:14.712560",
+        "total_duration_ms": 2519,
+        "avg_duration_ms": 359.85714285714283
+    }
+}

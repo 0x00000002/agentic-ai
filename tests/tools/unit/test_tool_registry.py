@@ -5,52 +5,48 @@ Unit tests for the ToolRegistry class.
 
 import pytest
 from unittest.mock import MagicMock, patch
+from typing import Dict, Any
 
 # Import necessary components from src/tools
 from src.tools.models import ToolDefinition
 from src.tools.tool_registry import ToolRegistry
 from src.exceptions import AIToolError
 
-# Example Tool Definitions (can be moved to fixtures)
-def sample_tool_func(location: str, unit: str = "celsius") -> str:
-    """Gets the weather."""
-    return f"Weather in {location} is nice, {unit}"
+# Example Tool Functions (can be simple mocks or lambdas for these tests)
+def mock_tool_func_1(location: str) -> str:
+    return f"Weather in {location}: Sunny"
 
-def sample_stock_func(symbol: str) -> str:
-    """Gets stock price."""
-    return f"Price for {symbol} is $100"
+def mock_tool_func_2(query: str, count: int = 5) -> Dict[str, Any]:
+    return {"results": [f"Result {i} for {query}" for i in range(count)]}
 
-# Define parameter schemas directly as dicts
-WEATHER_PARAMS_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "location": {"type": "string", "description": "The city and state, e.g. San Francisco, CA"},
-        "unit": {"type": "string", "enum": ["celsius", "fahrenheit"], "description": "Unit for temperature"}
-    },
-    "required": ["location"]
-}
-
-STOCK_PARAMS_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "symbol": {"type": "string", "description": "The stock ticker symbol"},
-    },
-    "required": ["symbol"]
-}
-
-# Update ToolDefinition instantiation
+# Tool Definitions (Updated for lazy loading)
 TOOL_DEF_1 = ToolDefinition(
     name="get_weather",
-    description="Get the current weather in a given location",
-    function=sample_tool_func,
-    parameters_schema=WEATHER_PARAMS_SCHEMA
+    description="Gets the weather for a location.",
+    parameters_schema={
+        "type": "object",
+        "properties": {"location": {"type": "string"}},
+        "required": ["location"]
+    },
+    module_path="tests.tools.unit.test_tool_registry", # Points to this test file
+    function_name="mock_tool_func_1",
+    function=None # Keep function None initially for testing loading
 )
 
 TOOL_DEF_2 = ToolDefinition(
-    name="get_stock_price",
-    description="Get the current stock price for a symbol",
-    function=sample_stock_func, 
-    parameters_schema=STOCK_PARAMS_SCHEMA
+    name="search_docs",
+    description="Searches documents.",
+    parameters_schema={
+        "type": "object",
+        "properties": {
+            "query": {"type": "string"},
+            "count": {"type": "integer", "default": 5}
+        },
+        "required": ["query"]
+    },
+    module_path="tests.tools.unit.test_tool_registry", # Points to this test file
+    function_name="mock_tool_func_2",
+    function=None
 )
 
 class TestToolRegistry:
@@ -59,10 +55,12 @@ class TestToolRegistry:
     @pytest.fixture
     def registry(self) -> ToolRegistry:
         """Provides a clean ToolRegistry instance for each test."""
-        # Prevent built-in tool registration for cleaner tests
-        with patch.object(ToolRegistry, '_register_builtin_tools', return_value=None):
-             reg = ToolRegistry()
-             yield reg
+        # Patch config loading during ToolRegistry init to ensure it starts empty
+        with patch.object(ToolRegistry, '_load_tools_from_config', return_value=None) as mock_load:
+            reg = ToolRegistry()
+            # Ensure the patch was effective (optional sanity check)
+            # mock_load.assert_called_once()
+            yield reg
 
     def test_register_tool_success(self, registry: ToolRegistry):
         """Test successful registration of a tool."""

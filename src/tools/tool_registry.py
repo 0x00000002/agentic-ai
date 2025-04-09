@@ -2,25 +2,27 @@
 Tool registry for managing available tools.
 """
 from typing import Dict, List, Any, Optional, Set, Callable, Union
+import importlib # Added import
+import yaml # Added import
+
 from .interfaces import ToolStrategy
 from ..utils.logger import LoggerInterface, LoggerFactory
 from ..exceptions import AIToolError
 from .models import ToolDefinition, ToolResult
-from ..config import get_config
+from ..config import get_config, UnifiedConfig # Modified import
 from ..config.provider import Provider
-import json
-import os
-from datetime import datetime
 
 
-# Dummy function for the built-in tool
-def dummy_tool_function(query: str) -> str:
-    """A simple dummy tool for testing."""
-    return f"Dummy tool processed query: {query}"
+# Removed dummy_tool_function
+# def dummy_tool_function(query: str) -> str:
+#     """A simple dummy tool for testing."""
+#     return f"Dummy tool processed query: {query}"
+
 
 class ToolRegistry:
     """
     Registry for managing tool definitions and implementations.
+    Focuses on loading, storing, and formatting tool definitions.
     """
     
     def __init__(self, logger: Optional[LoggerInterface] = None):
@@ -31,65 +33,96 @@ class ToolRegistry:
             logger: Logger instance
         """
         self._logger = logger or LoggerFactory.create()
-        self._config = get_config()
-        self._tools: Dict[str, ToolStrategy] = {}
+        # Use UnifiedConfig instance directly for consistency
+        self._config = UnifiedConfig.get_instance() 
+        self._tools: Dict[str, ToolStrategy] = {} # This seems unused, maybe remove later?
         self._tools_metadata: Dict[str, ToolDefinition] = {}
         self._tool_categories: Dict[str, Set[str]] = {}  # Category name to set of tool names
-        self.usage_stats: Dict[str, Dict[str, Any]] = {}
         
-        # Load tool categories from configuration
+        # Load tool categories from configuration first
         self._load_categories()
         
-        # Register built-in tools if enabled
-        if self._is_builtin_enabled():
-            self._register_builtin_tools()
+        # Load tools from the configuration file
+        self._load_tools_from_config() # Changed from _register_builtin_tools
     
     def _load_categories(self) -> None:
         """Load tool categories from configuration."""
-        tool_config = self._config.get_tool_config()
+        # Use get_tool_config() which likely returns the merged dict for 'tools'
+        tool_config = self._config.get_tool_config() or {} 
         categories = tool_config.get("categories", {})
         
         for category_name, category_config in categories.items():
             # Initialize empty set for each category
-            if category_config.get("enabled", True):
+            if isinstance(category_config, dict) and category_config.get("enabled", True):
                 self._tool_categories[category_name] = set()
                 self._logger.debug(f"Loaded tool category: {category_name}")
-    
-    def _is_builtin_enabled(self) -> bool:
-        """Check if built-in tools are enabled in configuration."""
-        tool_config = self._config.get_tool_config()
-        builtin_config = tool_config.get("built_in", {})
-        return builtin_config.get("enabled", True)
-    
-    def _register_builtin_tools(self) -> None:
-        """Register any built-in tools."""
-        # Define a simple dummy tool
-        dummy_tool_def = ToolDefinition(
-            name="dummy_tool",
-            description="A simple built-in tool for demonstration and testing purposes.",
-            parameters_schema={
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string", "description": "The input query for the dummy tool."}
-                },
-                "required": ["query"]
-            },
-            function=dummy_tool_function # Reference the actual function
-        )
+            elif isinstance(category_config, bool) and category_config: # Allow simple boolean enablement
+                 self._tool_categories[category_name] = set()
+                 self._logger.debug(f"Loaded tool category (simple enablement): {category_name}")
+
+
+    def _load_tools_from_config(self) -> None:
+        """Loads tool definitions from the 'tools' section of the merged configuration."""
+        self._logger.info("Loading tools from configuration...")
         try:
-            # Register the dummy tool, assign to a default category if desired
-            self.register_tool(
-                tool_name=dummy_tool_def.name, 
-                tool_definition=dummy_tool_def,
-                category="built_in" # Assign to a 'built_in' category
-            )
-            self._logger.info("Registered built-in dummy_tool.")
-        except AIToolError as e:
-            # Log if registration fails (e.g., if already registered somehow)
-             self._logger.warning(f"Could not register built-in dummy_tool: {e}")
+            # Use get_tool_config() which likely returns the merged dict for 'tools'
+            tools_config = self._config.get_tool_config() or {}
+            tool_definitions_list = tools_config.get('tools', []) # Access the 'tools' list directly
+
+            if not isinstance(tool_definitions_list, list):
+                 self._logger.error(f"Expected a list under 'tools' key in tool config, got {type(tool_definitions_list)}. Skipping tool loading.")
+                 return
+                 
+            if not tool_definitions_list:
+                self._logger.warning("No tool definitions found under 'tools' key in configuration.")
+                return
+
+            for tool_conf in tool_definitions_list:
+                if not isinstance(tool_conf, dict):
+                     self._logger.warning(f"Skipping invalid tool config entry (not a dictionary): {tool_conf}")
+                     continue
+                     
+                tool_name = tool_conf.get("name")
+                module_path = tool_conf.get("module")
+                function_name = tool_conf.get("function")
+                description = tool_conf.get("description", "")
+                schema = tool_conf.get("parameters_schema", {})
+                category = tool_conf.get("category")
+
+                if not all([tool_name, module_path, function_name]):
+                    self._logger.error(f"Skipping tool: Missing required fields (name, module, function) in config entry: {tool_conf}")
+                    continue
+
+                try:
+                    # Don't import/get function here, just store paths
+                    # module = importlib.import_module(module_path)
+                    # function_callable = getattr(module, function_name)
+                    
+                    tool_def = ToolDefinition(
+                        name=tool_name,
+                        description=description,
+                        parameters_schema=schema,
+                        module_path=module_path,        # Store module path
+                        function_name=function_name,    # Store function name
+                        function=None                   # Set function to None initially
+                    )
+                    
+                    self.register_tool(tool_name=tool_name, tool_definition=tool_def, category=category)
+
+                # Remove specific import/attribute errors as they won't happen here
+                # except ImportError:
+                #     self._logger.error(f"Failed to import module '{module_path}' for tool '{tool_name}'. Skipping.")
+                # except AttributeError:
+                #     self._logger.error(f"Failed to find function '{function_name}' in module '{module_path}' for tool '{tool_name}'. Skipping.")
+                except AIToolError as e:
+                     self._logger.warning(f"Skipping registration for tool '{tool_name}' from config: {e}") # Changed to warning
+                except Exception as e:
+                    self._logger.error(f"Unexpected error creating tool definition '{tool_name}' from config: {e}", exc_info=True)
+
         except Exception as e:
-            self._logger.error(f"Unexpected error registering built-in dummy_tool: {e}", exc_info=True)
-    
+            self._logger.error(f"Failed to load tools from configuration: {e}", exc_info=True)
+
+
     def register_tool(self, 
                      tool_name: str, 
                      tool_definition: ToolDefinition,
@@ -123,15 +156,6 @@ class ToolRegistry:
                 self._logger.debug(f"Tool {tool_name} added to category {category}")
             
             self._logger.info(f"Tool registered: {tool_name}")
-            
-            # Initialize usage stats if not already present
-            if tool_name not in self.usage_stats:
-                self.usage_stats[tool_name] = {
-                    "uses": 0,
-                    "successes": 0,
-                    "last_used": None,
-                    "first_used": datetime.now().isoformat()
-                }
             
         except Exception as e:
             self._logger.error(f"Tool registration failed for {tool_name}: {str(e)}", exc_info=True)
@@ -298,112 +322,4 @@ class ToolRegistry:
                  self._logger.error(f"Failed to format tool '{tool_name}' for provider '{provider_name}': {e}")
                  # Optionally skip this tool or return [] depending on desired robustness
 
-        return formatted_tools
-
-    def update_usage_stats(self, tool_name: str, success: bool, request_id: Optional[str] = None, duration_ms: Optional[int] = None) -> None:
-        """
-        Update usage statistics for a tool.
-        
-        Args:
-            tool_name: Name of the tool
-            success: Whether the tool execution was successful
-            request_id: Optional request ID for metrics tracking
-            duration_ms: Optional duration in milliseconds
-        """
-        if tool_name not in self.usage_stats:
-            self.usage_stats[tool_name] = {
-                "uses": 0,
-                "successes": 0,
-                "last_used": None,
-                "first_used": datetime.now().isoformat()
-            }
-            
-        self.usage_stats[tool_name]["uses"] += 1
-        if success:
-            self.usage_stats[tool_name]["successes"] += 1
-        self.usage_stats[tool_name]["last_used"] = datetime.now().isoformat()
-        
-        self._logger.debug(f"Updated usage stats for {tool_name}: uses={self.usage_stats[tool_name]['uses']}, successes={self.usage_stats[tool_name]['successes']}")
-        
-        # Track in metrics service if request_id is provided
-        if request_id:
-            try:
-                from ..metrics.request_metrics import RequestMetricsService
-                metrics_service = RequestMetricsService()
-                
-                # Track tool usage in metrics service
-                metrics_service.track_tool_usage(
-                    request_id=request_id,
-                    tool_id=tool_name,
-                    duration_ms=duration_ms,
-                    success=success
-                )
-            except Exception as e:
-                self._logger.warning(f"Failed to track tool usage in metrics service: {str(e)}")
-    
-    def get_usage_stats(self, tool_name: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Get usage statistics for tools.
-        
-        Args:
-            tool_name: Optional name of a specific tool
-            
-        Returns:
-            Dictionary of usage statistics
-        """
-        if tool_name:
-            return self.usage_stats.get(tool_name, {})
-        return self.usage_stats
-    
-    def get_recommended_tools(self, prompt: str, max_tools: int = 5) -> List[str]:
-        """
-        Get recommended tools based on usage statistics.
-        
-        This is a simple implementation that returns the most frequently used tools.
-        In a real implementation, this could use AI or more sophisticated heuristics.
-        
-        Args:
-            prompt: User prompt to analyze
-            max_tools: Maximum number of tools to recommend
-            
-        Returns:
-            List of recommended tool names
-        """
-        # Sort tools by usage count
-        sorted_tools = sorted(
-            self.usage_stats.items(),
-            key=lambda x: x[1]["uses"],
-            reverse=True
-        )
-        
-        # Return the top N tools
-        return [tool_name for tool_name, _ in sorted_tools[:max_tools]]
-    
-    def save_stats(self, file_path: str) -> None:
-        """
-        Save usage statistics to a file.
-        
-        Args:
-            file_path: Path to save the statistics to
-        """
-        try:
-            with open(file_path, 'w') as f:
-                json.dump(self.usage_stats, f, indent=2)
-            self._logger.info(f"Saved usage statistics to {file_path}")
-        except Exception as e:
-            self._logger.error(f"Failed to save usage statistics: {str(e)}")
-    
-    def load_stats(self, file_path: str) -> None:
-        """
-        Load usage statistics from a file.
-        
-        Args:
-            file_path: Path to load the statistics from
-        """
-        try:
-            if os.path.exists(file_path):
-                with open(file_path, 'r') as f:
-                    self.usage_stats = json.load(f)
-                self._logger.info(f"Loaded usage statistics from {file_path}")
-        except Exception as e:
-            self._logger.error(f"Failed to load usage statistics: {str(e)}") 
+        return formatted_tools 

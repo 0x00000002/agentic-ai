@@ -449,32 +449,50 @@ class TestUnifiedConfig:
     def test_get_tool_config_all(self, temp_config_dir: Path):
         """Test getting configuration for all tools."""
         tools_data = {
-            'tools': {
-                'categories': {
-                    'cat1': {'tool1': {'desc': 'd1'}},
-                    'cat2': {'tool2': {'desc': 'd2'}}
+            'tools': [
+                {
+                    'name': 'tool1',
+                    'desc': 'd1',
+                    'module': 'mod1',
+                    'function': 'func1'
+                },
+                {
+                    'name': 'tool2',
+                    'desc': 'd2',
+                    'module': 'mod2',
+                    'function': 'func2'
                 }
-            }
+            ],
+            'categories': {'cat1': {'enabled': True}}
         }
         create_dummy_yaml(temp_config_dir / "tools.yml", tools_data)
         instance = UnifiedConfig.get_instance(config_dir=str(temp_config_dir))
-        # get_tool_config() should return the inner 'tools' dict
-        assert instance.get_tool_config() == tools_data['tools']
+        # get_tool_config() without args returns the whole 'tools' section
+        assert instance.get_tool_config() == tools_data
 
     def test_get_tool_config_specific(self, temp_config_dir: Path):
         """Test getting configuration for a specific tool."""
+        tool1_data = {
+            'name': 'tool1',
+            'desc': 'd1',
+            'module': 'mod1',
+            'function': 'func1'
+        }
         tools_data = {
-            'tools': {
-                'categories': {
-                    'cat1': {'tool1': {'desc': 'd1'}},
-                    'cat2': {'tool2': {'desc': 'd2'}}
+            'tools': [
+                tool1_data,
+                {
+                    'name': 'tool2',
+                    'desc': 'd2',
+                    'module': 'mod2',
+                    'function': 'func2'
                 }
-            }
+            ]
         }
         create_dummy_yaml(temp_config_dir / "tools.yml", tools_data)
         instance = UnifiedConfig.get_instance(config_dir=str(temp_config_dir))
-        assert instance.get_tool_config('tool1') == {'desc': 'd1'}
-        assert instance.get_tool_config('tool2') == {'desc': 'd2'}
+        # get_tool_config() with a name should find the specific tool dict
+        assert instance.get_tool_config('tool1') == tool1_data
 
     def test_get_tool_config_not_found(self, temp_config_dir: Path):
         """Test getting non-existent tool config returns empty dict."""

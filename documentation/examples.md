@@ -183,3 +183,46 @@ response = ai.request_with_template(
 )
 print(response)
 ```
+
+## Using the Tool Statistics Manager
+
+This example demonstrates how to track and analyze tool usage with the `ToolStatsManager`.
+
+```python
+from src.tools.tool_stats_manager import ToolStatsManager
+from src.tools.tool_manager import ToolManager
+
+# Option 1: Using ToolStatsManager directly
+stats_manager = ToolStatsManager()
+
+# Record tool usage
+stats_manager.update_stats(
+    tool_name="search_tool",
+    success=True,
+    duration_ms=250
+)
+
+# Retrieve statistics
+search_stats = stats_manager.get_stats("search_tool")
+print(f"Search tool success rate: {search_stats['successes']/search_stats['uses']*100:.1f}%")
+
+# Save statistics for persistence
+stats_manager.save_stats()
+
+# Option 2: Using through ToolManager (recommended approach)
+tool_manager = ToolManager()
+
+# Execute a tool - stats tracking happens automatically
+result = tool_manager.execute_tool("weather_tool", location="New York")
+
+# Save statistics
+tool_manager.save_usage_stats()
+
+# Get tool statistics
+tool_info = tool_manager.get_tool_info("weather_tool")
+if tool_info and 'usage_stats' in tool_info:
+    usage_stats = tool_info['usage_stats']
+    print(f"Weather tool used {usage_stats['uses']} times with {usage_stats['successes']} successes")
+```
+
+For more detailed examples, see [Tool Statistics Example](examples/tool_stats_example.md).

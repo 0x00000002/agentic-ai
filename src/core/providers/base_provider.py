@@ -16,7 +16,7 @@ from ..models import ProviderResponse
 from .message_formatter import MessageFormatter
 from .parameter_manager import ParameterManager
 from .credential_manager import CredentialManager
-from .tool_manager import ToolManager
+from .provider_tool_handler import ProviderToolHandler
 
 
 class BaseProvider(ProviderInterface):
@@ -96,8 +96,8 @@ class BaseProvider(ProviderInterface):
             config=self.config
         )
         
-        # Create tool manager
-        self.tool_manager = ToolManager(
+        # Create tool manager (renamed)
+        self.tool_manager = ProviderToolHandler(
             provider_name=provider_name,
             logger=self.logger
         )

@@ -1,18 +1,18 @@
 """
-Unit tests for ToolManager class.
+Unit tests for ProviderToolHandler class.
 """
 import pytest
 from unittest.mock import MagicMock, patch
 import json
 
-from src.core.providers.tool_manager import ToolManager
+from src.core.providers.provider_tool_handler import ProviderToolHandler # Updated import
 from src.tools.models import ToolCall, ToolDefinition, ToolResult
 from src.utils.logger import LoggerInterface
 from src.tools.tool_registry import ToolRegistry
 
 
-class TestToolManager:
-    """Test suite for the ToolManager class."""
+class TestProviderToolHandler: # Renamed class
+    """Test suite for the ProviderToolHandler class."""
     
     @pytest.fixture
     def mock_logger(self):
@@ -43,29 +43,34 @@ class TestToolManager:
             
         mock_registry.format_tools_for_provider = mock_format_tools
         
-        # Create a mock tool definition
+        # Create a mock tool definition (Updated for lazy loading)
         tool_definition = ToolDefinition(
             name="calculator",
             description="Perform calculations",
-            parameters_schema={  # Correct field name 
+            parameters_schema={  # Correct field name
                 "type": "object",
                 "properties": {
                     "expression": {"type": "string"}
                 },
                 "required": ["expression"]
             },
-            function=lambda **kwargs: eval(kwargs.get("expression", "0"))
+            module_path="dummy.module",    # Added dummy path
+            function_name="dummy_func",    # Added dummy name
+            function=lambda **kwargs: eval(kwargs.get("expression", "0")) # Keep lambda for mock
         )
         
-        # Use get_tool method (correct method from ToolRegistry)
-        mock_registry.get_tool.return_value = tool_definition
+        # Set up get_tool to return the mock definition
+        def mock_get_tool(name):
+            return tool_definition if name == "calculator" else None
+        mock_registry.get_tool.side_effect = mock_get_tool
+        mock_registry.get_tool_names.return_value = ["calculator"]
         
         return mock_registry
     
     @pytest.fixture
     def tool_manager(self, mock_logger, mock_tool_registry):
-        """Fixture for a ToolManager."""
-        return ToolManager(
+        """Fixture for a ProviderToolHandler.""" # Updated docstring
+        return ProviderToolHandler( # Updated class name
             provider_name="test_provider",
             logger=mock_logger,
             tool_registry=mock_tool_registry

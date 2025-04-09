@@ -10,6 +10,7 @@ import time
 from src.utils.logger import LoggerFactory, LoggerInterface
 from src.tools.tool_registry import ToolRegistry
 from src.tools.tool_executor import ToolExecutor
+from src.tools.tool_stats_manager import ToolStatsManager
 from src.tools.models import ToolDefinition, ToolResult, ToolExecutionStatus
 from src.exceptions import AIToolError, ErrorHandler
 from src.config.unified_config import UnifiedConfig
@@ -24,14 +25,15 @@ class ToolManager:
     Manager for coordinating tool operations in the Agentic-AI framework.
     
     This class coordinates tool registration, discovery, and execution.
-    It works with the ToolRegistry to maintain tool definitions and usage statistics.
+    It works with the ToolRegistry for definitions and ToolStatsManager for usage statistics.
     (Removed ToolFinderAgent dependency)
     """
     
     def __init__(self, unified_config: Optional[UnifiedConfig] = None, 
                  logger: Optional[LoggerInterface] = None, 
                  tool_registry: Optional[ToolRegistry] = None, 
-                 tool_executor: Optional[ToolExecutor] = None):
+                 tool_executor: Optional[ToolExecutor] = None,
+                 tool_stats_manager: Optional[ToolStatsManager] = None):
         """
         Initialize the tool manager.
         
@@ -40,6 +42,7 @@ class ToolManager:
             logger: Optional logger instance
             tool_registry: Optional tool registry
             tool_executor: Optional tool executor
+            tool_stats_manager: Optional stats manager instance
         """
         self.logger = logger or LoggerFactory.create("tool_manager")
         self.config = unified_config or UnifiedConfig.get_instance()
@@ -47,7 +50,7 @@ class ToolManager:
         # Load tool configuration
         self.tool_config = self.config.get_tool_config()
         
-        # Initialize tool registry and executor with config
+        # Initialize registry and executor
         self.tool_registry = tool_registry or ToolRegistry(logger=self.logger)
         
         # Configure tool executor with settings from config
@@ -58,23 +61,11 @@ class ToolManager:
             max_retries=executor_config.get("max_retries", 3)
         )
         
-        # Initialize stats configuration
-        self._init_stats_config()
+        # Initialize stats manager (it handles loading stats internally if configured)
+        self.tool_stats_manager = tool_stats_manager or ToolStatsManager(logger=self.logger, unified_config=self.config)
         
         self.logger.info("Tool manager initialized (AIToolFinder removed)")
         
-    def _init_stats_config(self):
-        """Initialize statistics configuration from the config file."""
-        stats_config = self.tool_config.get("stats", {})
-        self.stats_storage_path = stats_config.get("storage_path", "data/tool_stats.json")
-        
-        # If stats tracking is enabled and a storage path is specified, try to load
-        if stats_config.get("track_usage", True) and self.stats_storage_path:
-            try:
-                self.load_usage_stats(self.stats_storage_path)
-            except Exception as e:
-                self.logger.warning(f"Failed to load tool usage stats: {str(e)}")
-                
     def register_tool(self, tool_name: str, tool_definition: ToolDefinition) -> None:
         """
         Register a tool with the tool registry.
@@ -85,29 +76,6 @@ class ToolManager:
         """
         self.tool_registry.register_tool(tool_name, tool_definition)
         
-    def find_tools(self, prompt: str, conversation_history: Optional[List[str]] = None) -> List[str]:
-        """
-        Find relevant tools for a given prompt using registry recommendations.
-        
-        Args:
-            prompt: User prompt to analyze
-            conversation_history: Optional conversation history (currently unused)
-            
-        Returns:
-            List of relevant tool names based on registry heuristics (e.g., usage stats).
-        """
-        self.logger.debug("Finding tools using registry recommendations.")
-        # Get the max recommendations from config
-        max_tools = self.tool_config.get("max_recommendations", 5)  # Default max
-        try:
-            # Use the registry's recommendation method
-            recommended_tools = self.tool_registry.get_recommended_tools(prompt, max_tools=max_tools)
-            self.logger.info(f"Registry recommended tools: {recommended_tools}")
-            return recommended_tools
-        except Exception as e:
-            self.logger.error(f"Error getting recommendations from tool registry: {str(e)}")
-            return []
-    
     def execute_tool(self, tool_name: str, **kwargs) -> ToolResult:
         """
         Execute a tool with the given parameters.
@@ -155,16 +123,14 @@ class ToolManager:
             # Calculate execution time
             execution_time_ms = int((time.time() - start_time) * 1000)
             
-            # Update usage stats if tracking is enabled
-            stats_config = self.tool_config.get("stats", {})
-            if stats_config.get("track_usage", True):
-                success = result.success
-                self.tool_registry.update_usage_stats(
-                    tool_name, 
-                    success,
-                    request_id=request_id,
-                    duration_ms=execution_time_ms
-                )
+            # Delegate stats update to ToolStatsManager
+            # ToolStatsManager checks internally if tracking is enabled
+            self.tool_stats_manager.update_stats(
+                tool_name=tool_name,
+                success=result.success,
+                duration_ms=execution_time_ms,
+                request_id=request_id # Pass request_id if needed by stats manager
+            )
             
             return result
         except Exception as e:
@@ -196,7 +162,7 @@ class ToolManager:
             return None
             
         # Get usage stats
-        usage_stats = self.tool_registry.get_usage_stats(tool_name)
+        usage_stats = self.tool_stats_manager.get_stats(tool_name)
         
         # Get any additional tool configuration
         tool_config = self.config.get_tool_config(tool_name)
@@ -204,7 +170,7 @@ class ToolManager:
         return {
             "name": tool_name,
             "description": tool_definition.description,
-            "parameters": tool_definition.parameters,
+            "parameters": tool_definition.parameters_schema,
             "usage_stats": usage_stats,
             "config": tool_config
         }
@@ -245,30 +211,22 @@ class ToolManager:
         # Format tools for the provider
         return self.tool_registry.format_tools_for_provider(provider_name, tool_names_set)
     
-    def save_usage_stats(self, file_path: str = None) -> None:
+    def save_usage_stats(self, file_path: Optional[str] = None) -> None:
         """
         Save usage statistics to a file.
         
         Args:
-            file_path: Path to save the statistics to, uses config path if None
+            file_path: Optional path to save stats. Uses configured path if None.
         """
-        # Use the configured path if none provided
-        if file_path is None:
-            stats_config = self.tool_config.get("stats", {})
-            file_path = stats_config.get("storage_path", "data/tool_stats.json")
-            
-        self.tool_registry.save_stats(file_path)
+        # Delegate to ToolStatsManager
+        self.tool_stats_manager.save_stats(file_path)
     
-    def load_usage_stats(self, file_path: str = None) -> None:
+    def load_usage_stats(self, file_path: Optional[str] = None) -> None:
         """
         Load usage statistics from a file.
         
         Args:
-            file_path: Path to load the statistics from, uses config path if None
+            file_path: Optional path to load stats from. Uses configured path if None.
         """
-        # Use the configured path if none provided
-        if file_path is None:
-            stats_config = self.tool_config.get("stats", {})
-            file_path = stats_config.get("storage_path", "data/tool_stats.json")
-            
-        self.tool_registry.load_stats(file_path) 
+        # Delegate to ToolStatsManager
+        self.tool_stats_manager.load_stats(file_path) 

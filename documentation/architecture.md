@@ -26,13 +26,14 @@ Agentic-AI is a modular framework for building AI applications with integrated t
   - `ToolEnabledAI`: Extends `AIBase` to manage the tool-calling loop, interacting with `ToolManager` and the provider.
   - `ProviderFactory`: Creates instances of specific provider clients.
   - `providers/`: Contains implementations for different AI providers (OpenAI, Anthropic, etc.), inheriting from `BaseProvider` and implementing `ProviderInterface`.
+    - `ProviderToolHandler`: Helper class within providers for formatting tool definitions and results.
   - `ConversationManager`: Tracks message history for AI interactions.
 
 - **Tools (`src/tools`)**: Manages function/API calling capabilities.
 
-  - `ToolManager`: Central service for registering tools (via `ToolRegistry`) and executing them (via `ToolExecutor`).
-  - `ToolRegistry`: Stores `ToolDefinition` objects and handles provider-specific formatting.
-  - `ToolExecutor`: Executes the actual tool functions.
+  - `ToolManager`: Central service coordinating tool execution (`execute_tool`) using `ToolExecutor` and retrieving tool definitions from `ToolRegistry`. Does not handle tool finding.
+  - `ToolRegistry`: Loads `ToolDefinition` objects from configuration, stores them, and provides them. Handles provider-specific formatting logic.
+  - `ToolExecutor`: Executes the actual tool functions with timeout/retry logic.
   - `models`: Defines `ToolDefinition`, `ToolCall`, `ToolResult`.
 
 - **Agents (`src/agents`)**: Enables specialized processing and workflows.
@@ -131,41 +132,45 @@ graph TD
 
 ### 3. Tool Subsystem
 
-![Tools](diagrams/tools.png)
-
 ```mermaid
 graph TD
-    subgraph Tools
-        ToolManager[ToolManager]
-        ToolRegistry[ToolRegistry]
-        ToolExecutor[ToolExecutor]
-        ToolDefinition[ToolDefinition Model]
-        ToolCall[ToolCall Model]
-        ToolResult[ToolResult Model]
-
-        ToolManager -- Uses --> ToolRegistry
-        ToolManager -- Uses --> ToolExecutor
-        ToolRegistry -- Stores --> ToolDefinition
-        ToolExecutor -- Executes --> ToolDefinition
-        ToolExecutor -- Returns --> ToolResult
+    subgraph "Users Of Tools"
+        ToolEnabledAI -- Calls Execute --> ToolManager
+        ToolEnabledAI -- Gets Formatted Tools --> ProviderToolHandler
     end
 
-    subgraph Dependencies
-       UnifiedConfig[UnifiedConfig Singleton]
-       LoggerFactory[LoggerFactory Singleton]
+    subgraph "Tools"
+        %% ToolCall Model - Represents data parsed by ToolEnabledAI, not a direct dependency here
+        ToolManager -- Delegates Execution --> ToolExecutor
+        ToolManager -- Gets Definition --> ToolRegistry
+        ToolManager -- Records Stats --> ToolStatsManager
+
+        ToolExecutor -- Returns --> ToolResult["ToolResult Model"]
+
+        %% ToolRegistry Loads/Stores Tool Definitions
+        ToolRegistry -- Stores/Provides --> ToolDefinition["ToolDefinition Model"]
+
+        %% ProviderToolHandler Formats Tools
+        ProviderToolHandler["ProviderToolHandler (src/core/providers)"] -- Gets Definitions --> ToolRegistry
+
+        %% ToolStatsManager manages usage statistics
+        ToolStatsManager -- Persists --> StatsFile["Tool Stats JSON"]
+
+        %% Config Loading (Implicitly happens in ToolRegistry.__init__)
+        UnifiedConfigRef["UnifiedConfig"] -- Provides Config --> ToolRegistry
+        UnifiedConfigRef -- Provides Config --> ToolStatsManager
+        ToolsYAML["tools.yml"] -- Read By --> UnifiedConfigRef
     end
 
-    subgraph Users Of Tools
-        ToolEnabledAI
-        Coordinator
-        BaseAgent
+    subgraph "Dependencies"
+       ToolManager -- Uses --> LoggerFactory["LoggerFactory"]
+       ToolRegistry -- Uses --> LoggerFactory
+       ToolExecutor -- Uses --> LoggerFactory
+       ToolStatsManager -- Uses --> LoggerFactory
+       ProviderToolHandler -- Uses --> LoggerFactory
+       ToolManager -- Uses --> UnifiedConfig["UnifiedConfig"]
+       ToolRegistry -- Uses --> UnifiedConfigRef %% Show registry uses config
     end
-
-    ToolManager --> UnifiedConfig
-    ToolManager --> LoggerFactory
-    ToolEnabledAI --> ToolManager
-    Coordinator --> ToolManager
-    BaseAgent --> ToolManager
 ```
 
 ### 4. Agent System
@@ -266,7 +271,7 @@ _(Note: These diagrams illustrate major dependencies and interactions. Not all m
 - **Unified Configuration**: Replaced disparate config managers with a single `UnifiedConfig` singleton accessing modular YAML files, simplifying configuration access.
 - **Standardized Provider Interface**: `BaseProvider` and `ProviderInterface` enforce a standard structure for provider implementations, returning a standardized `ProviderResponse` object to simplify core AI logic.
 - **Refined Agent System**: Centralized orchestration logic in the `Coordinator` agent, supported by `AgentFactory`, `AgentRegistry`, and `RequestAnalyzer`, providing a clearer structure than earlier multi-agent concepts.
-- **Focused Tool Subsystem**: `ToolManager`, `ToolRegistry`, and `ToolExecutor` provide clear responsibilities for tool definition, formatting, and execution, integrated seamlessly with `ToolEnabledAI`.
+- **Focused Tool Subsystem**: `ToolManager`, `ToolRegistry`, `ToolExecutor`, and `ToolStatsManager` provide clear responsibilities for tool definition, formatting, execution, and usage statistics tracking, integrated seamlessly with `ToolEnabledAI`.
 - **Simplified Core AI**: `AIBase` handles fundamental LLM interaction, while `ToolEnabledAI` specifically layers tool-calling orchestration on top.
 - **YAML-based Prompt Templates**: Standardized on the `PromptTemplate` service loading versioned templates from YAML files as the primary prompt management method.
 - **Consistent Error Handling**: Implemented a clear exception hierarchy and `ErrorHandler` for uniform error management.

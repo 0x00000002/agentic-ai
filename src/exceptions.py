@@ -158,6 +158,22 @@ class AIToolError(AIFrameworkError):
         super().__init__(message, error_code)
 
 
+class RetryableToolError(AIToolError):
+    """Error during tool execution that might be resolved by retrying."""
+    
+    def __init__(self, message: str, tool_name: Optional[str] = None):
+        """
+        Initialize the retryable tool error.
+        
+        Args:
+            message: Error message
+            tool_name: Name of the tool that failed
+        """
+        super().__init__(message, tool_name)
+        # Add a marker or modify error code if needed, but inheriting is often enough
+        # self.error_code = f"TOOL_RETRY_{tool_name.upper()}" if tool_name else "TOOL_RETRY"
+
+
 class AIAgentError(AIFrameworkError):
     """Error during agent execution."""
     

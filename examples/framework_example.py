@@ -238,14 +238,17 @@ def example_ui_interaction():
     # Process the message
     logger.info(f"Processing user message: {user_message}")
     history = []
-    response = chat_ui.process_message(user_message, history)
+    updated_history, _ = chat_ui.process_message(user_message, history)
     
     # Display the response
-    if response and len(response) > 0:
+    if updated_history and len(updated_history) > 0:
+        # Get the last interaction (which is the response)
+        last_interaction = updated_history[-1]
+        bot_response_content = last_interaction[1]
         logger.info("Bot response:")
-        print("\n" + response[0][1] + "\n")
+        print("\n" + bot_response_content + "\n")
     else:
-        logger.warning("No response received")
+        logger.warning("No response received or history is empty")
     
     logger.info("UI interaction example completed")
     logger.info("Note: In a real application, you would launch the UI with chat_ui.launch()")

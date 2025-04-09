@@ -1,34 +1,40 @@
 """
 Models for tool-related functionality.
 """
-from typing import Dict, Any, List, Optional, Callable
-from pydantic import BaseModel, Field
+from typing import Dict, Any, List, Optional, Callable, Union
+from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
 
 
 class ToolCall(BaseModel):
-    """Model representing a request from the AI to call a specific tool."""
-    name: str = Field(..., description="The name of the tool to call.")
-    arguments: Dict[str, Any] = Field(..., description="The arguments to pass to the tool, usually as a dictionary.")
-    id: Optional[str] = Field(default=None, description="An optional unique identifier for the tool call, provided by some APIs (e.g., OpenAI).")
+    """Model for a tool call requested by the AI."""
+    id: str
+    name: str
+    arguments: Dict[str, Any]
 
 
-class ToolExecutionStatus(str, Enum):
+class ToolExecutionStatus(Enum):
     """Enum for tool execution status."""
+    SUCCESS = "success"
+    ERROR = "error"
     PENDING = "pending"
     RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
+    TIMEOUT = "timeout"
 
 
 class ToolDefinition(BaseModel):
-    """Model for tool metadata and configuration."""
+    """Model for a tool definition."""
     name: str
     description: str
-    parameters_schema: Dict[str, Any] = Field(..., description="JSON schema for tool parameters")
-    function: Callable = Field(..., description="The actual tool function to execute")
-    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Additional tool metadata")
+    parameters_schema: Dict[str, Any] = Field(default_factory=dict)
+    # Add module path and function name for lazy loading
+    module_path: str
+    function_name: str
+    # Make function optional, default to None
+    function: Optional[Callable[..., Any]] = Field(default=None, exclude=True) # Exclude from serialization
+
+    # Use ConfigDict instead of nested class Config
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class ToolCallRequest(BaseModel):

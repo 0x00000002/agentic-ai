@@ -6,6 +6,7 @@ from .tool_manager import ToolManager
 from .tool_executor import ToolExecutor
 from .tool_registry import ToolRegistry
 from .models import ToolDefinition, ToolResult, ToolCall
+from .tool_stats_manager import ToolStatsManager
 
 __all__ = [
     'ToolManager',
@@ -13,5 +14,6 @@ __all__ = [
     'ToolRegistry',
     'ToolDefinition',
     'ToolResult',
-    'ToolCall'
+    'ToolCall',
+    'ToolStatsManager'
 ] 

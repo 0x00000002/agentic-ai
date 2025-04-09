@@ -37,34 +37,34 @@ tools:
       required: ["query"]
     category: "built_in"
 
-# Built-in tools configuration
-built_in:
-  enabled: true
-  
-# Tool execution settings
-execution:
-  timeout: 30  # Default timeout in seconds
-  max_retries: 3
-  
-# Tool statistics settings
-stats:
-  storage_path: "data/tool_stats.json"
-  track_usage: true
-  
-# Tools by category
-categories:
-  file_management:
-    description: "Tools for managing files and directories"
-    enabled: true
-  data_processing:
-    description: "Tools for processing and analyzing data"
-    enabled: true
-  api_integration:
-    description: "Tools for integrating with external APIs"
+  # Built-in tools configuration
+  built_in:
     enabled: true
     
-# Tool finder agent settings
-finder_agent:
-  enabled: true
-  max_recommendations: 5
-  use_history: true 
+  # Tool execution settings
+  execution:
+    timeout: 30  # Default timeout in seconds
+    max_retries: 3
+    
+  # Tool statistics settings
+  stats:
+    storage_path: "data/tool_stats.json"
+    track_usage: true
+    
+  # Tools by category
+  categories:
+    file_management:
+      description: "Tools for managing files and directories"
+      enabled: true
+    data_processing:
+      description: "Tools for processing and analyzing data"
+      enabled: true
+    api_integration:
+      description: "Tools for integrating with external APIs"
+      enabled: true
+      
+  # Tool finder agent settings
+  finder_agent:
+    enabled: true
+    max_recommendations: 5
+    use_history: true 
