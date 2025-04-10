@@ -1,0 +1,67 @@
+# src/config/mcp.yml
+# Configuration for launching external Model Context Protocol (MCP) servers 
+# and declaring the tools they provide.
+
+mcp_servers:
+  # --- Server Definitions --- 
+  # Each key is a unique server identifier (mcp_server_name)
+
+  example_mcp_server_1: # Key is the mcp_server_name
+    description: "Example server providing tools X and Y."
+    command: "python" # Command to run the script (e.g., python, node)
+    script_path: "path/to/your/example_server1.py" # Relative or absolute path to the server script
+    # env: { "API_KEY": "..." } # Optional environment variables
+    provides_tools:
+      - name: "mcp_tool_x"
+        description: "Description for MCP tool X."
+        inputSchema: # Placeholder schema
+          type: object
+          properties:
+            param1:
+              type: string
+        required: [param1]
+        speed: "medium"
+        safety: "external"
+      - name: "mcp_tool_y"
+        description: "Description for MCP tool Y."
+        inputSchema: {}
+        speed: "slow"
+        safety: "external"
+
+  # --- Placeholder Servers for Requested Tools --- 
+  # These require actual script paths, commands, and tool schemas from the 
+  # modelcontextprotocol/servers repository or implementations.
+  brave_search_server:
+    description: "Server for Brave Search"
+    command: "npx" # Common for JS servers in repo
+    script_path: "@modelcontextprotocol/server-brave-search" # Example using npx package name
+    provides_tools:
+      - name: "brave_search" # Actual tool name might differ
+        description: "Web and local search using Brave's Search API."
+        inputSchema: { "type": "object", "properties": { "query": { "type": "string" } }, "required": ["query"] } # Placeholder
+        speed: "medium"
+        safety: "external"
+
+  filesystem_server:
+    description: "Server for Filesystem Operations"
+    command: "npx"
+    script_path: "@modelcontextprotocol/server-filesystem" # Example using npx
+    # Args might be needed here to specify allowed paths, e.g., args: ["/path/to/allowed/dir"]
+    provides_tools:
+      - name: "fs_read_file"
+        description: "Read content from an allowed file."
+        inputSchema: { "type": "object", "properties": { "path": { "type": "string" } }, "required": ["path"] } # Placeholder
+        speed: "fast"
+        safety: "external"
+      - name: "fs_write_file"
+        description: "Write content to an allowed file."
+        inputSchema: { "type": "object", "properties": { "path": { "type": "string" }, "content": { "type": "string" } }, "required": ["path", "content"] } # Placeholder
+        speed: "fast"
+        safety: "external"
+      # Add list_dir, etc. based on actual server tools
+
+  # Add Fetch, EverArt, Google Drive, Maps, Memory, Puppeteer servers similarly
+  # Ensure the tool names, descriptions, and schemas match the actual MCP server implementations.
+  # Update command and script_path based on how you install/run those servers.
+
+# Add more tool definitions here as needed 

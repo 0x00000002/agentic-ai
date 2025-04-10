@@ -52,7 +52,8 @@ class UnifiedConfig(metaclass=SingletonMeta):
         "providers": "providers.yml",
         "agents": "agents.yml",
         "use_cases": "use_cases.yml",
-        "tools": "tools.yml"
+        "tools": "tools.yml",
+        "mcp": "mcp.yml"  # Add MCP configuration file
     }
     
     @classmethod
@@ -461,6 +462,15 @@ class UnifiedConfig(metaclass=SingletonMeta):
         if user_overrides:
             user_config = UserConfig(**user_overrides)
             self._apply_user_config(user_config)
+    
+    def get_mcp_config(self) -> Dict[str, Any]:
+        """
+        Get the MCP configuration.
+        
+        Returns:
+            Dictionary containing the MCP configuration, or an empty dict if not loaded.
+        """
+        return self._config.get("mcp", {})
     
     def get_tool_config(self, tool_name: Optional[str] = None) -> Dict[str, Any]:
         """

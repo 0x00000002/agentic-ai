@@ -1,19 +1,27 @@
 """
-Tool executor for handling tool execution.
+Tool executor for handling the execution of **internal** Python functions.
 """
 from typing import Any, Dict, Optional, Callable
 import time
-from functools import wraps
+from functools import wraps, partial
 import signal
-import importlib  # Added for lazy loading
+import importlib
+import asyncio
+import inspect
+import functools
+
 from ..utils.logger import LoggerInterface, LoggerFactory
 from ..exceptions import AIToolError, RetryableToolError
-from .models import ToolDefinition, ToolResult, ToolExecutionStatus
-import asyncio # Added asyncio
+from .models import ToolDefinition, ToolResult
 
+# Default timeout for tool execution in seconds
+DEFAULT_TOOL_TIMEOUT = 30
 
 class ToolExecutor:
-    """Executor for handling tool execution."""
+    """
+    Executor for handling internal Python tool execution with timeouts and retries.
+    Assumes it receives a ToolDefinition for an internal tool.
+    """
     
     def __init__(self, logger: Optional[LoggerInterface] = None, timeout: int = 30, max_retries: int = 3):
         """
@@ -29,142 +37,135 @@ class ToolExecutor:
         self.max_retries = max_retries
     
     def _get_tool_function(self, tool_definition: ToolDefinition) -> Callable[..., Any]:
-        """Lazily loads and returns the tool function."""
-        if tool_definition.function is None:
-            self._logger.debug(f"Lazily loading function '{tool_definition.function_name}' from module '{tool_definition.module_path}'")
-            try:
-                module = importlib.import_module(tool_definition.module_path)
-                function_callable = getattr(module, tool_definition.function_name)
-                # Cache the loaded function back into the definition
-                tool_definition.function = function_callable
-            except ImportError:
-                self._logger.error(f"Failed to import module '{tool_definition.module_path}' for tool '{tool_definition.name}'.")
-                raise AIToolError(f"Tool '{tool_definition.name}' module not found.", tool_name=tool_definition.name)
-            except AttributeError:
-                self._logger.error(f"Failed to find function '{tool_definition.function_name}' in module '{tool_definition.module_path}' for tool '{tool_definition.name}'.")
-                raise AIToolError(f"Tool '{tool_definition.name}' function not found.", tool_name=tool_definition.name)
-            except Exception as e:
-                self._logger.error(f"Unexpected error loading tool '{tool_definition.name}': {e}", exc_info=True)
-                raise AIToolError(f"Failed to load tool '{tool_definition.name}'.", tool_name=tool_definition.name)
+        """Lazily loads and returns the tool function from an internal ToolDefinition."""
+        # Add check for internal source
+        if tool_definition.source != 'internal':
+            # This check should ideally happen in ToolManager before calling executor
+            raise AIToolError(f"Only internal tools can be executed by this executor: {tool_definition.name}")
         
-        return tool_definition.function
-
-    async def execute(self, tool_definition: ToolDefinition, **args) -> ToolResult:
-        """
-        Execute a tool function defined in ToolDefinition with timeout and retries.
-        Uses asyncio for handling timeouts and delays.
-        
-        Args:
-            tool_definition: The tool definition object containing the function.
-            args: Arguments to pass to the tool function.
+        # Check for function caching first
+        if tool_definition._function_cache is not None:
+            return tool_definition._function_cache
             
-        Returns:
-            Tool execution result
-        """
+        # Support both naming conventions (module/function and module_path/function_path)
+        module_path = getattr(tool_definition, 'module_path', None) or getattr(tool_definition, 'module', None)
+        function_path = getattr(tool_definition, 'function_path', None) or getattr(tool_definition, 'function', None)
+        
+        # Check if both naming conventions are used simultaneously with different values
+        if hasattr(tool_definition, 'module') and hasattr(tool_definition, 'module_path') and \
+           tool_definition.module and tool_definition.module_path and \
+           tool_definition.module != tool_definition.module_path:
+            raise AIToolError(f"Tool definition {tool_definition.name} has inconsistent module/function path naming")
+            
+        if hasattr(tool_definition, 'function') and hasattr(tool_definition, 'function_path') and \
+           tool_definition.function and tool_definition.function_path and \
+           tool_definition.function != tool_definition.function_path:
+            raise AIToolError(f"Tool definition {tool_definition.name} has inconsistent module/function path naming")
+        
+        # Add check for missing module/function path
+        if not module_path or not function_path:
+             raise AIToolError(f"Internal tool definition {tool_definition.name} is missing module or function path.")
+             
+        # Function loading logic
+        self._logger.debug(f"Lazily loading function '{function_path}' from module '{module_path}'")
+        try:
+            module = importlib.import_module(module_path)
+            function_callable = getattr(module, function_path)
+            # Cache the loaded function
+            tool_definition._function_cache = function_callable
+        except ImportError:
+            self._logger.error(f"Failed to import module '{module_path}' for tool '{tool_definition.name}'.")
+            raise AIToolError(f"Tool '{tool_definition.name}' module not found.", tool_name=tool_definition.name)
+        except AttributeError:
+            self._logger.error(f"Failed to find function '{function_path}' in module '{module_path}' for tool '{tool_definition.name}'.")
+            raise AIToolError(f"Tool '{tool_definition.name}' function not found.", tool_name=tool_definition.name)
+        except Exception as e:
+            self._logger.error(f"Unexpected error loading tool '{tool_definition.name}': {e}", exc_info=True)
+            raise AIToolError(f"Failed to load tool '{tool_definition.name}'.", tool_name=tool_definition.name)
+        
+        return tool_definition._function_cache
+
+    async def execute(
+        self,
+        tool_definition: ToolDefinition,
+        parameters: Dict[str, Any],
+        retry_count: int = 0,
+        timeout: float = DEFAULT_TOOL_TIMEOUT,
+    ) -> ToolResult:
+        """Execute a tool with the given parameters. May retry on retryable errors."""
+        # Check if source attribute exists
+        if not hasattr(tool_definition, 'source'):
+            error_msg = f"Source attribute is required for tool execution: {tool_definition.name}"
+            self._logger.error(error_msg)
+            return ToolResult(
+                tool_name=getattr(tool_definition, 'name', 'unknown'),
+                success=False,
+                error=error_msg,
+                output=None,
+            )
+
+        # Ensure we're only executing internal tools
+        if tool_definition.source != 'internal':
+            error_msg = f"Only internal tools can be executed by this executor: {tool_definition.name}"
+            self._logger.error(error_msg)
+            return ToolResult(
+                tool_name=tool_definition.name,
+                success=False, 
+                error=error_msg,
+                output=None,
+            )
+
         tool_name = tool_definition.name
-        # We pass the whole definition to _execute_with_timeout now
-        # tool = tool_definition 
+        attempt = 0
+        last_exception = None
         
-        # Extract request_id if present
-        request_id = args.pop("request_id", None)
-        
-        # Try to execute the tool with retries
-        retries = 0
-        last_error = None
-        execution_time_ms = None
-        
-        while retries <= self.max_retries:
-            start_time = time.time()
-            should_retry = False
+        while attempt <= self.max_retries:
             try:
-                # Try to execute with asyncio timeout
+                self._logger.debug(f"Executing tool '{tool_name}' (Attempt {attempt + 1})")
                 tool_function = self._get_tool_function(tool_definition)
                 
-                # Check if the target function is async itself
                 if asyncio.iscoroutinefunction(tool_function):
-                     self._logger.debug(f"Executing async tool function {tool_name}")
-                     result = await asyncio.wait_for(
-                         tool_function(**args), 
-                         timeout=self.timeout
-                     )
+                    # Await async tool function with timeout
+                    result = await asyncio.wait_for(
+                        tool_function(**parameters), 
+                        timeout=self.timeout
+                    )
                 else:
-                     # Run synchronous function in a thread pool executor to avoid blocking event loop
-                     # Or potentially run directly if known to be fast? For now, let's keep it simple and direct
-                     # If sync functions block, we'll need loop.run_in_executor
-                     self._logger.debug(f"Executing sync tool function {tool_name}")
-                     # NOTE: This might block the event loop if tool_function is long-running sync code.
-                     # Consider loop.run_in_executor for truly blocking sync code later if needed.
-                     # For simplicity now, we call it directly within the timeout context.
-                     # If tool_function itself uses asyncio/awaits internally, this will fail.
-                     # It's assumed here that internal tool functions are either fully sync or fully async.
-                     # Let's wrap the potential blocking call.
-                     loop = asyncio.get_running_loop()
-                     result = await asyncio.wait_for(
-                         loop.run_in_executor(None, tool_function, *args.values()), # Simplified: assumes args order matches func signature - POTENTIAL ISSUE
-                         # Better approach would be functools.partial(tool_function, **args)
-                         # loop.run_in_executor(None, functools.partial(tool_function, **args)), # Using partial
-                         timeout=self.timeout
-                     )
-
-                end_time = time.time()
-                execution_time_ms = int((end_time - start_time) * 1000)
+                    # Run sync tool function in executor with timeout
+                    loop = asyncio.get_running_loop()
+                    partial_func = functools.partial(tool_function, **parameters)
+                    result = await asyncio.wait_for(
+                        loop.run_in_executor(None, partial_func),
+                        timeout=self.timeout
+                    )
                 
-                # Successful execution - return immediately
-                return ToolResult(
-                    success=True,
-                    result=result,
-                    error=None # No error details needed on success
-                )
-                
-            except asyncio.TimeoutError as e: # Changed to asyncio.TimeoutError
-                self._logger.warning(f"Tool {tool_name} execution timed out (attempt {retries+1}/{self.max_retries+1})")
-                last_error = f"TimeoutError: Tool execution exceeded {self.timeout}s"
-                should_retry = True # Timeouts are retryable
-                
-            except RetryableToolError as e:
-                 self._logger.warning(f"Tool {tool_name} encountered retryable error (attempt {retries+1}/{self.max_retries+1}): {str(e)}")
-                 last_error = f"{type(e).__name__}: {str(e)}"
-                 should_retry = True # Explicitly retryable
-                 
-            except (ValueError, TypeError, KeyError, AttributeError, ImportError) as e:
-                 # Specific non-retryable errors from within the tool logic or import issues
-                 self._logger.error(f"Tool {tool_name} failed with non-retryable error: {type(e).__name__}: {str(e)}")
-                 last_error = f"{type(e).__name__}: {str(e)}"
-                 should_retry = False # Do not retry these
-                 break # Exit the while loop immediately
-
-            except Exception as e:
-                # Catch any other unexpected exception
-                self._logger.warning(f"Tool {tool_name} failed with unexpected error (attempt {retries+1}/{self.max_retries+1}): {type(e).__name__}: {str(e)}")
-                last_error = f"{type(e).__name__}: {str(e)}"
-                # Decide whether to retry unexpected errors. Current logic retries. Let's keep that for now.
-                should_retry = True 
+                self._logger.info(f"Tool '{tool_name}' executed successfully.")
+                return ToolResult(success=True, result=result, tool_name=tool_name)
             
-            # Increment retry counter only if we are going to retry
-            if should_retry and retries < self.max_retries:
-                retries += 1
-                try:
-                    # Exponential backoff with max of 10 seconds
-                    delay = min(2 ** retries, 10) 
-                    self._logger.info(f"Retrying tool {tool_name} in {delay} seconds...")
-                    await asyncio.sleep(delay) # Changed to asyncio.sleep
-                except asyncio.CancelledError: # Handle potential cancellation during sleep
-                    self._logger.warning(f"Tool {tool_name} retry sleep cancelled.")
-                    last_error = "Retry cancelled during sleep"
-                    break # Stop retrying if sleep is cancelled
-                except Exception as sleep_e: # Catch potential interruption during sleep - less likely with asyncio.sleep
-                     self._logger.warning(f"Sleep interrupted unexpectedly: {sleep_e}")
-                     last_error = f"Retry interrupted during sleep: {sleep_e}"
-                     break # Stop retrying if sleep fails
-            else:
-                 # If should_retry is False, or we've exhausted retries
-                 break # Exit the while loop
-        
-        # If we get here, execution failed definitively (either non-retryable or all retries exhausted)
-        self._logger.error(f"Tool {tool_name} execution failed definitively. Last error: {last_error}")
-        return ToolResult(
-            success=False,
-            result=None,
-            error=last_error or "Unknown error"
-            # Consider adding error_details here if model is updated
-        ) 
+            except (RetryableToolError, TimeoutError) as e:
+                last_exception = e
+                if attempt < self.max_retries:
+                    self._logger.warning(f"Tool '{tool_name}' failed with {type(e).__name__}. Retrying ({attempt + 1}/{self.max_retries})...")
+                    # Exponential backoff
+                    delay = 2 ** (attempt + 1)
+                    await asyncio.sleep(delay)
+                    attempt += 1
+                    continue # Retry the loop
+                else:
+                    # Max retries reached
+                    self._logger.error(f"Tool '{tool_name}' failed after {self.max_retries + 1} attempts due to {type(e).__name__}.")
+                    break # Exit retry loop
+            
+            except Exception as e:
+                # Non-retryable error
+                self._logger.error(f"Tool '{tool_name}' failed with non-retryable error: {e}")
+                last_exception = e
+                break # Exit retry loop
+                
+        # If loop finished due to retries or non-retryable error
+        error_message = f"{type(last_exception).__name__}: {str(last_exception)}"
+        # Add tool_name prefix to RetryableToolError message for clarity if needed
+        if isinstance(last_exception, RetryableToolError) and not str(last_exception).startswith(tool_name):
+             error_message = f"{type(last_exception).__name__}: {tool_name}: {str(last_exception)}"
+             
+        return ToolResult(success=False, error=error_message, tool_name=tool_name) 

@@ -1,9 +1,10 @@
 """
-Tool registry for managing available tools.
+Tool registry for managing available **internal** tools.
 """
 from typing import Dict, List, Any, Optional, Set, Callable, Union
 import importlib # Added import
 import yaml # Added import
+from pydantic import ValidationError
 
 from .interfaces import ToolStrategy
 from ..utils.logger import LoggerInterface, LoggerFactory
@@ -21,8 +22,8 @@ from ..config.provider import Provider
 
 class ToolRegistry:
     """
-    Registry for managing tool definitions and implementations.
-    Focuses on loading, storing, and formatting tool definitions.
+    Registry for managing internal tool definitions.
+    Focuses on loading, storing, and formatting **internal** tool definitions from tools.yml.
     """
     
     def __init__(self, logger: Optional[LoggerInterface] = None):
@@ -35,15 +36,14 @@ class ToolRegistry:
         self._logger = logger or LoggerFactory.create()
         # Use UnifiedConfig instance directly for consistency
         self._config = UnifiedConfig.get_instance() 
-        self._tools: Dict[str, ToolStrategy] = {} # This seems unused, maybe remove later?
         self._tools_metadata: Dict[str, ToolDefinition] = {}
-        self._tool_categories: Dict[str, Set[str]] = {}  # Category name to set of tool names
+        self._tool_categories: Dict[str, Set[str]] = {}  # Keep category logic for internal tools
         
         # Load tool categories from configuration first
         self._load_categories()
         
-        # Load tools from the configuration file
-        self._load_tools_from_config() # Changed from _register_builtin_tools
+        # Load internal tool definitions from the configuration file
+        self._load_internal_tools_from_config()
     
     def _load_categories(self) -> None:
         """Load tool categories from configuration."""
@@ -61,85 +61,68 @@ class ToolRegistry:
                  self._logger.debug(f"Loaded tool category (simple enablement): {category_name}")
 
 
-    def _load_tools_from_config(self) -> None:
-        """Loads tool definitions from the 'tools' section of the merged configuration."""
-        self._logger.info("Loading tools from configuration...")
+    def _load_internal_tools_from_config(self) -> None:
+        """Loads internal tool definitions from the 'tools' section of the merged configuration."""
+        self._logger.info("Loading internal tools from configuration...")
         try:
             # Use get_tool_config() which likely returns the merged dict for 'tools'
             tools_config = self._config.get_tool_config() or {}
             tool_definitions_list = tools_config.get('tools', []) # Access the 'tools' list directly
 
             if not isinstance(tool_definitions_list, list):
-                 self._logger.error(f"Expected a list under 'tools' key in tool config, got {type(tool_definitions_list)}. Skipping tool loading.")
+                 self._logger.error(f"Expected a list under 'tools' key in tool config, got {type(tool_definitions_list)}. Skipping internal tool loading.")
                  return
                  
             if not tool_definitions_list:
-                self._logger.warning("No tool definitions found under 'tools' key in configuration.")
+                self._logger.warning("No internal tool definitions found under 'tools' key in configuration.")
                 return
 
             for tool_conf in tool_definitions_list:
                 if not isinstance(tool_conf, dict):
-                     self._logger.warning(f"Skipping invalid tool config entry (not a dictionary): {tool_conf}")
+                     self._logger.warning(f"Skipping invalid internal tool config entry (not a dictionary): {tool_conf}")
                      continue
-                     
-                tool_name = tool_conf.get("name")
-                module_path = tool_conf.get("module")
-                function_name = tool_conf.get("function")
-                description = tool_conf.get("description", "")
-                schema = tool_conf.get("parameters_schema", {})
-                category = tool_conf.get("category")
-
-                if not all([tool_name, module_path, function_name]):
-                    self._logger.error(f"Skipping tool: Missing required fields (name, module, function) in config entry: {tool_conf}")
-                    continue
+                
+                # Add source explicitly for validation
+                tool_conf['source'] = 'internal' 
+                tool_name = tool_conf.get("name") # Get name for logging
 
                 try:
-                    # Don't import/get function here, just store paths
-                    # module = importlib.import_module(module_path)
-                    # function_callable = getattr(module, function_name)
+                    # Validate and create ToolDefinition using Pydantic
+                    tool_def = ToolDefinition(**tool_conf)
                     
-                    tool_def = ToolDefinition(
-                        name=tool_name,
-                        description=description,
-                        parameters_schema=schema,
-                        module_path=module_path,        # Store module path
-                        function_name=function_name,    # Store function name
-                        function=None                   # Set function to None initially
-                    )
-                    
-                    self.register_tool(tool_name=tool_name, tool_definition=tool_def, category=category)
+                    # Register the validated internal tool definition
+                    self.register_internal_tool(tool_definition=tool_def)
 
-                # Remove specific import/attribute errors as they won't happen here
-                # except ImportError:
-                #     self._logger.error(f"Failed to import module '{module_path}' for tool '{tool_name}'. Skipping.")
-                # except AttributeError:
-                #     self._logger.error(f"Failed to find function '{function_name}' in module '{module_path}' for tool '{tool_name}'. Skipping.")
+                except ValidationError as e:
+                    self._logger.error(f"Validation failed for internal tool '{tool_name or 'unnamed'}': {e}")
                 except AIToolError as e:
-                     self._logger.warning(f"Skipping registration for tool '{tool_name}' from config: {e}") # Changed to warning
+                     self._logger.warning(f"Skipping registration for internal tool '{tool_name}' from config: {e}")
                 except Exception as e:
-                    self._logger.error(f"Unexpected error creating tool definition '{tool_name}' from config: {e}", exc_info=True)
+                    self._logger.error(f"Unexpected error creating internal tool definition '{tool_name}' from config: {e}", exc_info=True)
 
         except Exception as e:
-            self._logger.error(f"Failed to load tools from configuration: {e}", exc_info=True)
+            self._logger.error(f"Failed to load internal tools from configuration: {e}", exc_info=True)
 
 
-    def register_tool(self, 
-                     tool_name: str, 
-                     tool_definition: ToolDefinition,
-                     category: Optional[str] = None) -> None:
+    def register_internal_tool(self, tool_definition: ToolDefinition) -> None:
         """
-        Register a tool in the registry.
+        Register an internal tool definition in the registry.
+        Ensures the source is 'internal'.
         
         Args:
-            tool_name: Unique name for the tool
-            tool_definition: Tool definition object
-            category: Optional category to assign the tool to
+            tool_definition: Tool definition object (source must be 'internal')
             
         Raises:
-            AIToolError: If registration fails (e.g., name already exists)
+            AIToolError: If registration fails (e.g., name exists, wrong source)
         """
+        if tool_definition.source != 'internal':
+             raise AIToolError(f"Cannot register tool '{tool_definition.name}' with source '{tool_definition.source}' in Internal ToolRegistry.")
+             
+        tool_name = tool_definition.name
+        category = tool_definition.category # Get category from definition
+        
         if tool_name in self._tools_metadata:
-            raise AIToolError(f"Tool '{tool_name}' already registered")
+            raise AIToolError(f"Internal tool '{tool_name}' already registered")
         
         try:
             # Store the definition
@@ -150,176 +133,123 @@ class ToolRegistry:
                 if category not in self._tool_categories:
                     # Create category if it doesn't exist (or wasn't in config)
                     self._tool_categories[category] = set()
-                    self._logger.debug(f"Created new tool category during registration: {category}")
+                    self._logger.debug(f"Created new internal tool category during registration: {category}")
                 
                 self._tool_categories[category].add(tool_name)
-                self._logger.debug(f"Tool {tool_name} added to category {category}")
+                self._logger.debug(f"Internal tool {tool_name} added to category {category}")
             
-            self._logger.info(f"Tool registered: {tool_name}")
+            self._logger.info(f"Internal tool registered: {tool_name}")
             
         except Exception as e:
-            self._logger.error(f"Tool registration failed for {tool_name}: {str(e)}", exc_info=True)
+            self._logger.error(f"Internal tool registration failed for {tool_name}: {str(e)}", exc_info=True)
             # Remove potentially partially registered data
             if tool_name in self._tools_metadata:
                 del self._tools_metadata[tool_name]
             if category and tool_name in self._tool_categories.get(category, set()):
                  self._tool_categories[category].remove(tool_name)
                  
-            raise AIToolError(f"Failed to register tool {tool_name}: {str(e)}")
-    
-    def get_tool_names(self) -> List[str]:
+            raise AIToolError(f"Failed to register internal tool {tool_name}: {str(e)}")
+
+    # --- Methods to retrieve internal tools/definitions ---
+
+    def list_internal_tool_definitions(self) -> List[ToolDefinition]:
+        """Returns a list of all registered internal tool definitions."""
+        return list(self._tools_metadata.values())
+
+    def get_internal_tool_definition(self, tool_name: str) -> Optional[ToolDefinition]:
         """
-        Get names of all registered tools.
-        
-        Returns:
-            List of tool names
-        """
-        return list(self._tools_metadata.keys())
-    
-    def get_category_tools(self, category: str) -> List[str]:
-        """
-        Get all tool names in a specific category.
+        Get an internal tool definition by name.
         
         Args:
-            category: Category name
-            
-        Returns:
-            List of tool names in the category
-        """
-        return list(self._tool_categories.get(category, set()))
-    
-    def get_categories(self) -> List[str]:
-        """
-        Get all available tool categories.
-        
-        Returns:
-            List of category names
-        """
-        return list(self._tool_categories.keys())
-    
-    def has_tool(self, tool_name: str) -> bool:
-        """
-        Check if a tool exists in the registry.
-        
-        Args:
-            tool_name: Name of the tool to check
-            
-        Returns:
-            True if the tool exists, False otherwise
-        """
-        return tool_name in self._tools_metadata
-    
-    def get_tool(self, tool_name: str) -> Optional[ToolDefinition]:
-        """
-        Get a tool definition by name.
-        
-        Args:
-            tool_name: Name of the tool to retrieve
+            tool_name: Name of the internal tool to retrieve
             
         Returns:
             Tool definition or None if not found
         """
         return self._tools_metadata.get(tool_name)
+
+    # --- Deprecate or remove methods that don't make sense for internal-only registry? ---
+    # get_tool_names, has_tool could be kept, others might be removed/renamed
+    # get_tool_description, get_tool_schema can use get_internal_tool_definition
+    # get_category_tools, get_categories relate to internal tools
+
+    # Keep for now, but they only operate on internal tools:
+    def get_tool_names(self) -> List[str]:
+        return list(self._tools_metadata.keys())
+    
+    def get_category_tools(self, category: str) -> List[str]:
+        return list(self._tool_categories.get(category, set()))
+    
+    def get_categories(self) -> List[str]:
+        return list(self._tool_categories.keys())
+    
+    def has_tool(self, tool_name: str) -> bool:
+        return tool_name in self._tools_metadata
     
     def get_tool_description(self, tool_name: str) -> Optional[str]:
-        """
-        Get the description of a tool.
-        
-        Args:
-            tool_name: Name of the tool
-            
-        Returns:
-            Tool description or None if not found
-        """
-        tool_def = self.get_tool(tool_name)
+        tool_def = self.get_internal_tool_definition(tool_name)
         return tool_def.description if tool_def else None
     
     def get_tool_schema(self, tool_name: str) -> Optional[Dict[str, Any]]:
-        """
-        Get the parameters schema of a tool.
-        
-        Args:
-            tool_name: Name of the tool
-            
-        Returns:
-            Tool parameters schema or None if not found
-        """
-        tool_def = self.get_tool(tool_name)
+        tool_def = self.get_internal_tool_definition(tool_name)
+        # Use .model_dump() for schema if Pydantic v2, or access directly
         return tool_def.parameters_schema if tool_def else None
     
-    def get_all_tools(self) -> Dict[str, ToolStrategy]:
-        """
-        Get all registered tools.
-        
-        Returns:
-            Dictionary mapping tool names to implementations
-        """
-        self._logger.warning("get_all_tools() called, returning internal _tools dict. Consider using get_all_tool_definitions().")
-        # This internal dict _tools was populated by DefaultToolStrategy, which was removed.
-        # This method might be dead code or needs refactoring if still used.
-        # Returning empty for safety as _tools isn't populated anymore.
-        return {} # Return empty as _tools is no longer populated correctly
+    # Remove get_all_tools as it returned ToolStrategy which seems unused
+    # def get_all_tools(self) -> Dict[str, ToolStrategy]: ...
     
-    def get_all_tool_definitions(self) -> Dict[str, ToolDefinition]:
-        """
-        Get all tool definitions.
-        
-        Returns:
-            Dictionary mapping tool names to definitions
-        """
+    # Rename get_all_tool_definitions
+    def get_all_internal_tool_definitions(self) -> Dict[str, ToolDefinition]:
+        """Gets a dictionary of all registered internal tool definitions."""
         return self._tools_metadata.copy()
     
     def format_tools_for_provider(self,
                                  provider_name: str,
                                  tool_names: Optional[Set[str]] = None) -> List[Dict[str, Any]]:
         """
-        Format tool definitions for a specific provider's API.
-
-        Args:
-            provider_name: Name of the provider (e.g., "ANTHROPIC", "OPENAI", "GOOGLE").
-            tool_names: Optional set of specific tools to format. If None, format all.
-
-        Returns:
-            List of tool definitions formatted for the provider.
-            Returns an empty list if the provider is unknown or formatting fails.
+        Formats the specified internal tool definitions for a given provider.
+        # ... (rest of the logic - ensure it uses self._tools_metadata)
         """
         formatted_tools = []
+        target_tool_names = tool_names if tool_names is not None else self.get_tool_names()
 
-        # Filter tools if specific ones requested
-        tools_to_format = {
-            name: defn for name, defn in self._tools_metadata.items()
-            if tool_names is None or name in tool_names
-        }
+        # Normalize provider name for matching (e.g., handle case, map synonyms)
+        provider_name = provider_name.upper()
 
-        for tool_name, tool_def in tools_to_format.items():
+        for name in target_tool_names:
+            tool_def = self.get_internal_tool_definition(name)
+            if not tool_def:
+                self._logger.warning(f"Tool '{name}' requested for formatting not found in registry.")
+                continue
+
             try:
-                # Common structure
-                base_tool_format = {
-                    "name": tool_name,
+                # Basic format suitable for most providers (OpenAI, Anthropic)
+                provider_format = {
+                    "name": tool_def.name,
                     "description": tool_def.description,
+                    "input_schema": tool_def.parameters_schema # Use the alias for compatibility
                 }
+                
+                # Provider-specific adjustments (Example: Gemini needs 'functionDeclarations')
+                if "GEMINI" in provider_name:
+                    # Gemini requires a specific FunctionDeclaration structure
+                    # Note: This might need the 'google-generativeai' library or manual construction
+                     provider_format = {
+                         "name": tool_def.name,
+                         "description": tool_def.description,
+                         "parameters": {
+                             "type": "object",
+                             "properties": tool_def.parameters_schema.get('properties', {}),
+                             "required": tool_def.parameters_schema.get('required', [])
+                         }
+                     }
+                # elif "ANTHROPIC" in provider_name:
+                # Anthropic schema seems compatible with the default structure
+                # elif "OPENAI" in provider_name:
+                # OpenAI schema seems compatible with the default structure
 
-                # Provider-specific parameter schema structure
-                if "OPENAI" in provider_name:
-                    base_tool_format["parameters"] = tool_def.parameters_schema
-                    formatted_tools.append({"type": "function", "function": base_tool_format})
-                elif "ANTHROPIC" in provider_name:
-                     # Anthropic uses 'input_schema'
-                    base_tool_format["input_schema"] = tool_def.parameters_schema
-                    formatted_tools.append(base_tool_format)
-                elif "GEMINI" in provider_name:
-                     # Gemini uses 'parameters'
-                    base_tool_format["parameters"] = tool_def.parameters_schema
-                    # Wrap in 'function_declaration' for Gemini
-                    formatted_tools.append({"function_declaration": base_tool_format})
-                else:
-                    # Fallback for other providers or default
-                    self._logger.warning(f"Using default tool format for provider: {provider_name}")
-                    base_tool_format["parameters"] = tool_def.parameters_schema
-                    formatted_tools.append(base_tool_format)
-
+                formatted_tools.append(provider_format)
             except Exception as e:
-                 self._logger.error(f"Failed to format tool '{tool_name}' for provider '{provider_name}': {e}")
-                 # Optionally skip this tool or return [] depending on desired robustness
+                 self._logger.error(f"Error formatting tool '{name}' for provider '{provider_name}': {e}", exc_info=True)
 
         return formatted_tools 

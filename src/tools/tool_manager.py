@@ -1,7 +1,8 @@
 """
 Tool Manager Module
 
-This module provides a manager for coordinating tool operations in the Agentic-AI framework.
+This module provides the central manager for discovering and executing all tools,
+whether internal or external (MCP).
 """
 from typing import Dict, Any, List, Optional, Set, Union, TYPE_CHECKING
 import json
@@ -12,9 +13,10 @@ from src.utils.logger import LoggerFactory, LoggerInterface
 from src.tools.tool_registry import ToolRegistry
 from src.tools.tool_executor import ToolExecutor
 from src.tools.tool_stats_manager import ToolStatsManager
-from src.tools.models import ToolDefinition, ToolResult, ToolExecutionStatus
+from src.tools.models import ToolDefinition, ToolResult, ToolExecutionStatus, ToolCall
 from src.exceptions import AIToolError, ErrorHandler
 from src.config.unified_config import UnifiedConfig
+from src.mcp.mcp_client_manager import MCPClientManager
 
 if TYPE_CHECKING:
     from src.agents.tool_finder_agent import ToolFinderAgent
@@ -23,219 +25,241 @@ if TYPE_CHECKING:
 
 class ToolManager:
     """
-    Manager for coordinating tool operations in the Agentic-AI framework.
+    Manager for coordinating tool discovery and execution across all sources.
     
-    This class coordinates tool registration, discovery, and execution.
-    It works with the ToolRegistry for definitions and ToolStatsManager for usage statistics.
-    (Removed ToolFinderAgent dependency)
+    This class aggregates tool definitions from ToolRegistry (internal) 
+    and MCPClientManager (external MCP) and handles dispatching execution.
     """
     
     def __init__(self, unified_config: Optional[UnifiedConfig] = None, 
                  logger: Optional[LoggerInterface] = None, 
                  tool_registry: Optional[ToolRegistry] = None, 
                  tool_executor: Optional[ToolExecutor] = None,
-                 tool_stats_manager: Optional[ToolStatsManager] = None):
+                 tool_stats_manager: Optional[ToolStatsManager] = None,
+                 mcp_client_manager: Optional[MCPClientManager] = None):
         """
         Initialize the tool manager.
-        
-        Args:
-            unified_config: Optional UnifiedConfig instance
-            logger: Optional logger instance
-            tool_registry: Optional tool registry
-            tool_executor: Optional tool executor
-            tool_stats_manager: Optional stats manager instance
         """
         self.logger = logger or LoggerFactory.create("tool_manager")
         self.config = unified_config or UnifiedConfig.get_instance()
+        self.tool_config = self.config.get_tool_config() # General tool config (execution, stats)
         
-        # Load tool configuration
-        self.tool_config = self.config.get_tool_config()
-        
-        # Initialize registry and executor
+        # Initialize dependencies (dependency injection)
         self.tool_registry = tool_registry or ToolRegistry(logger=self.logger)
+        self.mcp_client_manager = mcp_client_manager or MCPClientManager(config=self.config, logger=self.logger)
         
-        # Configure tool executor with settings from config
         executor_config = self.tool_config.get("execution", {})
         self.tool_executor = tool_executor or ToolExecutor(
             logger=self.logger,
             timeout=executor_config.get("timeout", 30),
             max_retries=executor_config.get("max_retries", 3)
         )
-        
-        # Initialize stats manager (it handles loading stats internally if configured)
         self.tool_stats_manager = tool_stats_manager or ToolStatsManager(logger=self.logger, unified_config=self.config)
         
-        self.logger.info("Tool manager initialized (AIToolFinder removed)")
+        # Aggregate tool definitions from all sources
+        self._all_tools: Dict[str, ToolDefinition] = {}
+        self._load_all_tool_definitions()
         
-    def register_tool(self, tool_name: str, tool_definition: ToolDefinition) -> None:
+        self.logger.info(f"Tool manager initialized with {len(self._all_tools)} tools.")
+
+    def _load_all_tool_definitions(self):
+        """Load internal tools from ToolRegistry and declared MCP tools from MCPClientManager."""
+        self._all_tools = {}
+        
+        # Load internal tools
+        internal_tools = self.tool_registry.list_internal_tool_definitions()
+        for tool_def in internal_tools:
+            if tool_def.name in self._all_tools:
+                 self.logger.warning(f"Duplicate tool name '{tool_def.name}' found (internal). Overwriting previous definition.")
+            self._all_tools[tool_def.name] = tool_def
+        self.logger.info(f"Loaded {len(internal_tools)} internal tool definitions.")
+            
+        # Load declared MCP tools
+        mcp_tools = self.mcp_client_manager.list_mcp_tool_definitions()
+        for tool_def in mcp_tools:
+            if tool_def.name in self._all_tools:
+                 self.logger.warning(f"Duplicate tool name '{tool_def.name}' found (MCP tool from server '{tool_def.mcp_server_name}'). Overwriting previous definition (maybe internal?).")
+            self._all_tools[tool_def.name] = tool_def
+        self.logger.info(f"Loaded {len(mcp_tools)} declared MCP tool definitions.")
+        
+    def reload_tools(self):
+        """Reload tool definitions from configuration sources."""
+        self.logger.info("Reloading tool definitions...")
+        # Re-initialize registries/managers if they depend on config that might change?
+        # For now, just reload the definitions into the manager
+        # TODO: Consider if ToolRegistry/MCPClientManager need re-init if config changes
+        self._load_all_tool_definitions()
+        self.logger.info(f"Tool definitions reloaded. Total tools: {len(self._all_tools)}.")
+
+    # --- Tool Discovery Methods --- 
+
+    def list_available_tools(self) -> List[ToolDefinition]:
+        """Returns a list of all available tool definitions (internal and MCP)."""
+        return list(self._all_tools.values())
+
+    def get_tool_definition(self, tool_name: str) -> Optional[ToolDefinition]:
+        """Get the definition for a specific tool by name."""
+        return self._all_tools.get(tool_name)
+
+    def get_all_tools(self) -> Dict[str, ToolDefinition]:
+        """Get definitions for all registered tools (internal and MCP)."""
+        return self._all_tools.copy()
+
+    # --- Tool Execution Method --- 
+        
+    async def execute_tool(self, tool_call: ToolCall) -> ToolResult:
         """
-        Register a tool with the tool registry.
+        Execute a tool based on a ToolCall object asynchronously.
+        Dispatches execution to the appropriate handler (internal executor or MCP client).
         
         Args:
-            tool_name: Name of the tool
-            tool_definition: Tool definition object
-        """
-        self.tool_registry.register_tool(tool_name, tool_definition)
-        
-    async def execute_tool(self, tool_name: str, **kwargs) -> ToolResult:
-        """
-        Execute a tool with the given parameters asynchronously.
-        
-        Args:
-            tool_name: Name of the tool to execute
-            **kwargs: Parameters for the tool
+            tool_call: The ToolCall object containing name and arguments.
             
         Returns:
-            ToolResult object with execution results
+            ToolResult object with execution results.
         """
-        # Use monotonic clock for reliable duration measurement
+        tool_name = tool_call.name
+        tool_args = tool_call.arguments
+        request_id = getattr(tool_call, 'id', None) # Use tool_call.id if available
         start_time = time.monotonic()
         
+        tool_definition = self.get_tool_definition(tool_name)
+
+        if not tool_definition:
+            error_message = f"Tool not found: {tool_name}"
+            self.logger.error(error_message)
+            # TODO: Improve error ToolResult structure?
+            return ToolResult(success=False, error=error_message, result=None, tool_name=tool_name)
+            
+        result: Optional[ToolResult] = None
         try:
-            # Get the tool definition
-            tool_definition = self.tool_registry.get_tool(tool_name)
-            
-            if not tool_definition:
-                error_message = f"Tool not found: {tool_name}"
-                self.logger.error(error_message)
-                return ToolResult(
-                    success=False,
-                    error=error_message,
-                    result=None,
-                    tool_name=tool_name
+            if tool_definition.source == "internal":
+                self.logger.debug(f"Executing internal tool '{tool_name}'...")
+                # Pass definition for context if executor needs it, otherwise just module/func
+                result = await self.tool_executor.execute(
+                    tool_definition, 
+                    **tool_args
                 )
+            elif tool_definition.source == "mcp":
+                self.logger.debug(f"Executing MCP tool '{tool_name}' via server '{tool_definition.mcp_server_name}'...")
+                if not tool_definition.mcp_server_name:
+                     # This shouldn't happen due to validation, but defensive check
+                     raise AIToolError(f"MCP tool '{tool_name}' definition is missing mcp_server_name.")
                 
-            # Prepare execution parameters (including potential tool-specific config)
-            # Correctly handle request_id separation from execution_params sent to tool
-            request_id = kwargs.get("request_id")
-            execution_params = kwargs.copy() # Start with original kwargs
-            
-            # Get tool-specific config from unified config
-            tool_specific_config = self.config.get_tool_config(tool_name)
-            if tool_specific_config:
-                # Merge tool-specific config, prioritizing kwargs passed to the function
-                for param, value in tool_specific_config.items():
-                    execution_params.setdefault(param, value) # Use setdefault to not overwrite kwargs
+                # Get the MCP client session (connects/launches if needed)
+                session = await self.mcp_client_manager.get_tool_client(tool_definition.mcp_server_name)
+                
+                # Call the tool via the session
+                mcp_response = await session.call_tool(tool_name, tool_args)
+                
+                # Convert MCP response to our ToolResult format
+                # Assuming mcp_response has attributes like .content, .error etc.
+                # This needs mapping based on the actual mcp SDK response structure
+                if hasattr(mcp_response, 'error') and mcp_response.error:
+                     result = ToolResult(success=False, error=str(mcp_response.error), result=None, tool_name=tool_name)
+                else:
+                     # Assuming successful response content is in mcp_response.content
+                     result_content = getattr(mcp_response, 'content', None)
+                     result = ToolResult(success=True, result=result_content, error=None, tool_name=tool_name)
+                     
+            else:
+                raise AIToolError(f"Unknown tool source '{tool_definition.source}' for tool '{tool_name}'")
 
-            # Remove request_id from params passed to tool function itself, if present
-            if "request_id" in execution_params:
-                del execution_params["request_id"]
-
-            # Execute the tool asynchronously
-            self.logger.debug(f"Executing tool '{tool_name}' with params: {execution_params}")
-            result: ToolResult = await self.tool_executor.execute(tool_definition, **execution_params)
-
-            # Calculate execution time using monotonic clock
-            end_time = time.monotonic()
-            execution_time_ms = int((end_time - start_time) * 1000)
-            
-            # Delegate stats update to ToolStatsManager
-            # ToolStatsManager checks internally if tracking is enabled
-            self.tool_stats_manager.update_stats(
-                tool_name=tool_name,
-                success=result.success,
-                duration_ms=execution_time_ms,
-                request_id=request_id # Pass request_id if needed by stats manager
-            )
-            
-            return result
         except Exception as e:
-            # Log full traceback for unexpected errors during execution coordination
-            self.logger.error(f"Error during ToolManager.execute_tool for '{tool_name}': {e}", exc_info=True)
-            
-            # Use error handler for standardized error handling
+            self.logger.error(f"Error during ToolManager execution dispatch for '{tool_name}': {e}", exc_info=True)
             tool_error = AIToolError(f"Error executing tool {tool_name}: {str(e)}", tool_name=tool_name)
             error_response = ErrorHandler.handle_error(tool_error, self.logger)
+            result = ToolResult(success=False, error=error_response["message"], result=None, tool_name=tool_name)
+
+        # Ensure we always have a result object
+        if result is None:
+             self.logger.error(f"Tool execution for '{tool_name}' resulted in None result. Returning error.")
+             result = ToolResult(success=False, error="Tool execution failed to produce a result.", result=None, tool_name=tool_name)
+
+        # Record stats
+        end_time = time.monotonic()
+        execution_time_ms = int((end_time - start_time) * 1000)
+        self.tool_stats_manager.update_stats(
+            tool_name=tool_name,
+            success=result.success,
+            duration_ms=execution_time_ms,
+            request_id=request_id 
+        )
             
-            # Return a tool result with the error
-            return ToolResult(
-                success=False,
-                error=error_response["message"],
-                result=None,
-                tool_name=tool_name
-            )
-    
-    def get_tool_info(self, tool_name: str) -> Optional[Dict[str, Any]]:
-        """
-        Get information about a tool.
+        return result
         
-        Args:
-            tool_name: Name of the tool
-            
-        Returns:
-            Dictionary with tool information or None if not found
-        """
-        tool_definition = self.tool_registry.get_tool(tool_name)
-        
-        if not tool_definition:
-            return None
-            
-        # Get usage stats
-        usage_stats = self.tool_stats_manager.get_stats(tool_name)
-        
-        # Get any additional tool configuration
-        tool_config = self.config.get_tool_config(tool_name)
-        
-        return {
-            "name": tool_name,
-            "description": tool_definition.description,
-            "parameters": tool_definition.parameters_schema,
-            "usage_stats": usage_stats,
-            "config": tool_config
-        }
-    
-    def get_all_tools(self) -> Dict[str, ToolDefinition]:
-        """
-        Get definitions for all registered tools.
-        
-        Returns:
-            Dictionary mapping tool names to ToolDefinition objects.
-        """
-        # Directly return the definitions from the registry
-        return self.tool_registry.get_all_tool_definitions()
-    
+    # --- Other Methods (Potentially delegate more to specific managers) --- 
+
     def format_tools_for_model(self, model_id: str, tool_names: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         """
         Format tools for use with a specific model.
-        
-        Args:
-            model_id: Model identifier
-            tool_names: Optional list of tool names to format
-            
-        Returns:
-            List of formatted tools for the model's provider
+        Considers tools from all sources.
         """
-        # Get the model configuration
         model_config = self.config.get_model_config(model_id)
         if not model_config or "provider" not in model_config:
-            self.logger.warning(f"Unable to determine provider for model {model_id}, using default tool format")
+            self.logger.warning(f"Unable to determine provider for model {model_id}, cannot format tools.")
             return []
             
-        # Get the provider from the model configuration
         provider_name = model_config["provider"].upper()
             
-        # Convert list to set if provided
-        tool_names_set = set(tool_names) if tool_names else None
+        target_tool_names = set(tool_names) if tool_names else set(self._all_tools.keys())
         
-        # Format tools for the provider
-        return self.tool_registry.format_tools_for_provider(provider_name, tool_names_set)
+        formatted_tools = []
+        for name in target_tool_names:
+            tool_def = self.get_tool_definition(name)
+            if not tool_def:
+                self.logger.warning(f"Tool '{name}' requested for formatting not found.")
+                continue
+
+            try:
+                # Basic format suitable for most providers (OpenAI, Anthropic)
+                # Uses alias 'input_schema' for parameters_schema field in ToolDefinition
+                provider_format = tool_def.model_dump(by_alias=True, include={'name', 'description', 'parameters_schema'})
+                
+                # Provider-specific adjustments
+                if "GEMINI" in provider_name:
+                     # Reformat parameters for Gemini's FunctionDeclaration structure
+                     provider_format = {
+                         "name": tool_def.name,
+                         "description": tool_def.description,
+                         "parameters": {
+                             "type": "object",
+                             "properties": tool_def.parameters_schema.get('properties', {}),
+                             "required": tool_def.parameters_schema.get('required', [])
+                         }
+                     }
+                elif "OPENAI" in provider_name:
+                     # OpenAI expects {"type": "function", "function": {...}} structure
+                     provider_format = {"type": "function", "function": provider_format}
+                
+                # elif "ANTHROPIC" in provider_name:
+                # Anthropic seems compatible with the base format (name, desc, input_schema)
+
+                formatted_tools.append(provider_format)
+            except Exception as e:
+                 self.logger.error(f"Error formatting tool '{name}' for provider '{provider_name}': {e}", exc_info=True)
+
+        return formatted_tools
     
+    # Delegate stats methods directly to stats manager
     def save_usage_stats(self, file_path: Optional[str] = None) -> None:
-        """
-        Save usage statistics to a file.
-        
-        Args:
-            file_path: Optional path to save stats. Uses configured path if None.
-        """
-        # Delegate to ToolStatsManager
         self.tool_stats_manager.save_stats(file_path)
     
     def load_usage_stats(self, file_path: Optional[str] = None) -> None:
-        """
-        Load usage statistics from a file.
+        self.tool_stats_manager.load_stats(file_path)
         
-        Args:
-            file_path: Optional path to load stats from. Uses configured path if None.
-        """
-        # Delegate to ToolStatsManager
-        self.tool_stats_manager.load_stats(file_path) 
+    # get_tool_info might need updating if stats/config keys change
+    def get_tool_info(self, tool_name: str) -> Optional[Dict[str, Any]]:
+        tool_definition = self.get_tool_definition(tool_name)
+        if not tool_definition:
+            return None
+        usage_stats = self.tool_stats_manager.get_stats(tool_name)
+        # Tool-specific config might need rethinking - how is it stored/retrieved now?
+        # Let's just return definition + stats for now
+        return {
+            "definition": tool_definition.model_dump(), # Return the full definition
+            "usage_stats": usage_stats,
+        }
+        
+    # Remove old register_tool method - registration happens in ToolRegistry/MCPClientManager
+    # def register_tool(self, ...) -> None: ... 

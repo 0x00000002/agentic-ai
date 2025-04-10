@@ -9,6 +9,9 @@ tools:
     function: "get_datetime"              
     parameters_schema: {}                  
     category: "core_utils"
+    source: "internal"
+    speed: "instant"
+    safety: "native"
 
   - name: "calculator"
     description: "Perform mathematical calculations. Input should be a valid mathematical expression string (e.g., '2 * (3+4)'). Uses asteval for safe evaluation."
@@ -22,6 +25,9 @@ tools:
           description: "The mathematical expression to evaluate (e.g., '2 + 2 * 5')."
       required: ["expression"]
     category: "core_utils"
+    source: "internal"
+    speed: "fast"
+    safety: "sandboxed"
 
   # We can add the dummy tool here if needed for testing/demo
   - name: "dummy_tool"
@@ -36,6 +42,9 @@ tools:
           description: "The input query for the dummy tool."
       required: ["query"]
     category: "built_in"
+    source: "internal"
+    speed: "fast"
+    safety: "native"
 
 # Built-in tools configuration
 built_in:

@@ -19,9 +19,69 @@ The base configurations are stored in several YAML files located in the `src/con
 - `providers.yml`: Configures API providers (e.g., OpenAI, Anthropic, Ollama) including base URLs and potentially API key environment variable names.
 - `agents.yml`: Contains configurations specific to different agent types or roles.
 - `use_cases.yml`: Defines settings presets for different task types (e.g., chat, coding, solidity_coding), often specifying default models or parameters.
-- `tools.yml`: Configures available tools that agents can use.
+- `tools.yml`: Configures available **internal** tools (Python functions within the project) that agents can use. See below for structure.
+- `mcp.yml`: Configures connections to external **Model-Centric Protocol (MCP)** servers and declares the tools those servers are expected to provide. See below for structure.
 
 These files provide the default settings for the framework.
+
+### `tools.yml` Structure
+
+This file defines tools that are implemented as Python functions within this framework.
+
+```yaml
+# src/config/tools.yml
+tools:
+  - name: "tool_name" # Unique identifier
+    description: "Description for LLM" # How the AI understands the tool
+    module: "src.path.to.module" # Python module containing the function
+    function: "function_name" # Name of the sync or async Python function
+    parameters_schema: { ... } # JSON schema for arguments
+    category: "grouping_category" # Optional: for organization
+    source: "internal" # Must be "internal" for this file
+    speed: "fast" # Optional: fast, medium, slow (default: medium)
+    safety: "native" # Optional: native, sandboxed, external (default: native)
+
+# Tool execution settings (optional)
+execution:
+  timeout: 30 # Default timeout in seconds
+  max_retries: 3
+
+# Tool statistics settings (optional)
+stats:
+  storage_path: "data/tool_stats.json"
+  track_usage: true
+```
+
+The `ToolRegistry` component is responsible for loading and managing these internal tool definitions.
+
+### `mcp.yml` Structure
+
+This file defines connections to external MCP servers and _declares_ the tools they provide. This declaration helps the LLM know about the tool, but the actual available tools might differ when connecting to the server.
+
+```yaml
+# src/config/mcp.yml
+mcp_servers:
+  unique_server_name_1: # Identifier for this MCP server connection
+    description: "Description of server" # Optional
+    command: "python" # Command to start the server (e.g., python, node)
+    script_path: "path/to/server.py" # Path to the server script
+    env: { VAR: "value" } # Optional: Environment variables for the server
+    provides_tools: # List of tools *declared* by this server
+      - name: "mcp_tool_name_a" # Unique name across ALL tools (internal & MCP)
+        description: "Description for LLM"
+        inputSchema: { ... } # JSON schema for arguments (or parameters_schema)
+        speed: "medium" # Optional: (default: medium)
+        safety: "external" # Optional: (default: external)
+        # 'source' and 'mcp_server_name' are added automatically
+
+  unique_server_name_2:
+    # ... other server config ...
+    provides_tools:
+      - name: "mcp_tool_name_b"
+        # ... tool definition ...
+```
+
+The `MCPClientManager` component is responsible for loading these configurations, managing connections to the servers, and providing the declared tool definitions.
 
 ## Usage
 

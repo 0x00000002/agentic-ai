@@ -36,6 +36,15 @@ Agentic-AI is a modular framework for building AI applications with integrated t
   - `ToolExecutor`: Executes the actual tool functions with timeout/retry logic.
   - `models`: Defines `ToolDefinition`, `ToolCall`, `ToolResult`.
 
+- **Tools (`src/tools`)**: Manages function calling (internal tools) and external API interactions (MCP tools).
+
+  - `ToolManager`: Central service coordinating tool discovery, formatting, and **asynchronous execution** (`async def execute_tool`). Loads definitions from `ToolRegistry` (internal) and `MCPClientManager` (MCP). Dispatches execution calls to `ToolExecutor` or `MCPClientManager` based on tool `source`.
+  - `ToolRegistry`: Loads, validates, and stores **internal** tool definitions (`source='internal'`) from `tools.yml`. Provides access to these definitions.
+  - `MCPClientManager`: Loads MCP server configurations and **declared MCP** tool definitions (`source='mcp'`) from `mcp.yml`. Manages `ClientSession` connections to external MCP servers and handles MCP `call_tool` requests.
+  - `ToolExecutor`: Executes **only internal** Python tool functions (`source='internal'`) with asyncio-based timeout/retry logic.
+  - `ToolStatsManager`: Tracks usage statistics for all tools.
+  - `models`: Defines `ToolDefinition`, `ToolCall`, `ToolResult`.
+
 - **Agents (`src/agents`)**: Enables specialized processing and workflows.
 
   - `Coordinator`: Central agent orchestrating request handling based on intent analysis (`RequestAnalyzer`), often delegating to specialized agents.
@@ -171,6 +180,49 @@ graph TD
        ToolManager -- Uses --> UnifiedConfig["UnifiedConfig"]
        ToolRegistry -- Uses --> UnifiedConfigRef %% Show registry uses config
     end
+
+    subgraph "Users Of Tools"
+        ToolEnabledAI -- Calls Execute (await) --> ToolManager
+        BaseAgent -- Calls Execute (await) --> ToolManager %% Agents can also use tools
+    end
+
+    subgraph "Tools Subsystem"
+        ToolManager -- Gets All Definitions --> ToolRegistry[\"ToolRegistry (Internal Tools)\"]
+        ToolManager -- Gets All Definitions --> MCPClientManager[\"MCPClientManager (MCP Tools)\"]
+
+        ToolManager -- Dispatches --> ToolExecutor[\"ToolExecutor (Internal)\"]
+        ToolManager -- Dispatches --> MCPClientManager %% For MCP execution
+
+        ToolManager -- Records Stats --> ToolStatsManager
+
+        ToolExecutor -- Returns (awaitable) --> ToolResult[\"ToolResult Model\"]
+        MCPClientManager -- Returns MCP Response --> ToolManager %% ToolManager maps to ToolResult
+
+        ToolRegistry -- Stores/Provides --> InternalToolDef[\"ToolDefinition (source='internal')\"]
+        MCPClientManager -- Stores/Provides --> MCPToolDef[\"ToolDefinition (source='mcp')\"]
+
+        ToolStatsManager -- Persists --> StatsFile[\"Tool Stats JSON\"]
+
+        UnifiedConfigRef[\"UnifiedConfig\"] -- Provides Config --> ToolRegistry
+        UnifiedConfigRef -- Provides Config --> MCPClientManager
+        UnifiedConfigRef -- Provides Config --> ToolExecutor
+        UnifiedConfigRef -- Provides Config --> ToolStatsManager
+
+        ToolsYAML[\"tools.yml\"] -- Read By --> UnifiedConfigRef
+        MCPYAML[\"mcp.yml\"] -- Read By --> UnifiedConfigRef
+    end
+
+    subgraph \"Dependencies\"
+       ToolManager -- Uses --> LoggerFactory[\"LoggerFactory\"]
+       ToolRegistry -- Uses --> LoggerFactory
+       MCPClientManager -- Uses --> LoggerFactory
+       ToolExecutor -- Uses --> LoggerFactory
+       ToolStatsManager -- Uses --> LoggerFactory
+       ToolManager -- Uses --> UnifiedConfigRef
+    end
+
+    %% AI Interaction Flow (Simplified)
+    ToolEnabledAI -- Gets Formatted Tools --> ToolManager %% Manager handles formatting request
 ```
 
 ### 4. Agent System
