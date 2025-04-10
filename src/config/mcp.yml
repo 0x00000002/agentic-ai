@@ -1,5 +1,5 @@
 # src/config/mcp.yml
-# Configuration for launching external Model Context Protocol (MCP) servers 
+# Configuration for connecting to external Model Context Protocol (MCP) servers 
 # and declaring the tools they provide.
 
 mcp_servers:
@@ -7,10 +7,11 @@ mcp_servers:
   # Each key is a unique server identifier (mcp_server_name)
 
   example_mcp_server_1: # Key is the mcp_server_name
-    description: "Example server providing tools X and Y."
-    command: "python" # Command to run the script (e.g., python, node)
-    script_path: "path/to/your/example_server1.py" # Relative or absolute path to the server script
-    # env: { "API_KEY": "..." } # Optional environment variables
+    description: "Example MCP server running locally via HTTP"
+    url: "http://localhost:8081/mcp" # URL for the MCP endpoint (HTTP/HTTPS/WS/WSS)
+    # auth: (Optional) - Define if authentication is needed
+    #   type: "bearer" 
+    #   token_env_var: "EXAMPLE_SERVER_1_TOKEN" # Environment variable name
     provides_tools:
       - name: "mcp_tool_x"
         description: "Description for MCP tool X."
@@ -28,13 +29,15 @@ mcp_servers:
         speed: "slow"
         safety: "external"
 
-  # --- Placeholder Servers for Requested Tools --- 
-  # These require actual script paths, commands, and tool schemas from the 
-  # modelcontextprotocol/servers repository or implementations.
+  # --- Example Servers (Update URLs and potentially add auth) --- 
+  # These require actual URLs for running MCP servers (local or remote).
+  
   brave_search_server:
-    description: "Server for Brave Search"
-    command: "npx" # Common for JS servers in repo
-    script_path: "@modelcontextprotocol/server-brave-search" # Example using npx package name
+    description: "Server for Brave Search (Requires running server)"
+    url: "http://localhost:8082/mcp" # Placeholder: Update with actual URL
+    # auth: # Example if authentication is needed
+    #   type: "bearer"
+    #   token_env_var: "BRAVE_MCP_TOKEN" 
     provides_tools:
       - name: "brave_search" # Actual tool name might differ
         description: "Web and local search using Brave's Search API."
@@ -43,10 +46,10 @@ mcp_servers:
         safety: "external"
 
   filesystem_server:
-    description: "Server for Filesystem Operations"
-    command: "npx"
-    script_path: "@modelcontextprotocol/server-filesystem" # Example using npx
-    # Args might be needed here to specify allowed paths, e.g., args: ["/path/to/allowed/dir"]
+    description: "Server for Filesystem Operations (Requires running server)"
+    url: "http://localhost:8083/mcp" # Placeholder: Update with actual URL
+    # Note: Filesystem server might need startup args configured *on the server side* 
+    # to specify allowed paths, rather than client-side config.
     provides_tools:
       - name: "fs_read_file"
         description: "Read content from an allowed file."
@@ -60,8 +63,20 @@ mcp_servers:
         safety: "external"
       # Add list_dir, etc. based on actual server tools
 
+  # --- Example WebSocket Server ---
+  websocket_example_server:
+    description: "Example server using WebSocket transport (Requires running server)"
+    url: "ws://localhost:9000/mcp" # Placeholder: Update with actual WS/WSS URL
+    provides_tools:
+     - name: "websocket_tool_example"
+       description: "An example tool via WebSocket."
+       inputSchema: {}
+       speed: "medium"
+       safety: "external"
+
   # Add Fetch, EverArt, Google Drive, Maps, Memory, Puppeteer servers similarly
   # Ensure the tool names, descriptions, and schemas match the actual MCP server implementations.
-  # Update command and script_path based on how you install/run those servers.
+  # Update the 'url' field for each server based on where it is running.
+  # Add 'auth' section if required by the server.
 
 # Add more tool definitions here as needed 

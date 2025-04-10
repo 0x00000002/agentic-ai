@@ -115,13 +115,14 @@ tools:
 
 ### MCP Servers and Declared Tools (`src/config/mcp.yml`)
 
-This file defines how to connect to external MCP servers and which tools those servers _declare_ they provide. The framework uses this declaration to inform the LLM; the actual tool list might differ when connecting to the server.
+This file defines how to connect to external MCP servers and which tools those servers _declare_ they provide. The framework uses this declaration to inform the LLM; the actual tool list might differ when connecting to the server. The MCP server process must be running independently and accessible at the specified network address.
 
 - `mcp_servers`: A dictionary where each key is a unique server name.
   - `description` (optional): Description of the server.
-  - `command`: The command to launch the MCP server (e.g., `python`, `node`).
-  - `script_path`: The path to the server's main script.
-  - `env` (optional): Environment variables for the server process.
+  - `url`: Network endpoint (e.g., `http://localhost:8001`) where the MCP server is listening. **Required**.
+  - `auth` (optional): Authentication details for the server.
+    - `type`: The authentication type (e.g., `bearer`).
+    - `token_env_var`: The name of the environment variable containing the authentication token.
   - `provides_tools`: A list of _declared_ tool definitions for this server.
     - `name`: Unique name for the tool (must be unique across _all_ tools).
     - `description`: Clear description for the LLM.
@@ -139,8 +140,10 @@ This file defines how to connect to external MCP servers and which tools those s
 mcp_servers:
   code_execution_server:
     description: "Server for executing Python code snippets securely."
-    command: "python"
-    script_path: "path/to/mcp-servers/python-code-executor/main.py" # Example path
+    url: "http://localhost:8001" # Example URL
+    auth:
+      type: "bearer"
+      token_env_var: "CODE_EXEC_AUTH_TOKEN"
     provides_tools:
       - name: "execute_python_code"
         description: "Executes a given Python code snippet in a restricted environment and returns the output."
@@ -160,8 +163,8 @@ mcp_servers:
 
   web_search_server:
     description: "Server for performing web searches."
-    command: "/path/to/web_search_mcp_server" # Example executable path
-    script_path: "" # Not needed if command is the executable
+    url: "http://localhost:8002" # Example URL
+    # No auth specified for this example
     provides_tools:
       - name: "perform_web_search"
         description: "Searches the web for a given query."
@@ -241,72 +244,4 @@ The framework includes a dedicated component for tracking and analyzing tool usa
 
 ### Configuration
 
-Tool statistics tracking can be configured in `src/config/tools.yml` under the `stats` section:
-
-```yaml
-tools:
-  stats:
-    track_usage: true # Enable/disable statistics tracking
-    storage_path: "data/tool_stats.json" # Path for storing statistics
-```
-
-### Usage Statistics Data
-
-For each tool, the following statistics are recorded:
-
-- **Total uses**: Total number of times the tool was called
-- **Successes**: Number of successful executions
-- **Failures**: Number of failed executions
-- **First used**: Timestamp of first recorded use
-- **Last used**: Timestamp of most recent use
-- **Total duration**: Cumulative execution time (ms) of successful calls
-- **Average duration**: Average execution time (ms) of successful calls
-
-### Example
-
-```python
-import asyncio
-
-# Assuming async setup to get manager
-async def main():
-    # Get the ToolManager instance (normally accessed via ToolEnabledAI)
-    # Requires async initialization if dependencies are async
-    # Simplified example assumes sync creation for stats_manager
-    stats_manager = ToolStatsManager()
-
-    # Record a successful tool execution (update_stats is sync)
-    stats_manager.update_stats(
-        tool_name="weather_tool",
-        success=True,
-        duration_ms=250
-    )
-
-    # Record a failed tool execution
-    stats_manager.update_stats(
-        tool_name="search_tool",
-        success=False
-    )
-
-    # Get statistics for a specific tool
-    weather_stats = stats_manager.get_stats("weather_tool")
-    print(f"Weather tool used {weather_stats['uses']} times with "
-          f"{weather_stats['successes']} successes")
-
-    # Get statistics for all tools
-    all_stats = stats_manager.get_all_stats()
-
-    # Save current statistics to disk
-    stats_manager.save_stats()
-
-# Run the async example
-# asyncio.run(main())
-```
-
-These statistics can be valuable for:
-
-- Monitoring which tools are most frequently used
-- Identifying tools with high failure rates
-- Optimizing performance of slow tools
-- Creating usage reports for system administrators
-
-A complete example demonstrating ToolStatsManager usage is available at `examples/tool_stats_example.py`.
+Tool statistics tracking can be configured in `

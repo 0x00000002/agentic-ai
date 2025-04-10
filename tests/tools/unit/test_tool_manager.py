@@ -478,7 +478,7 @@ class TestToolManager:
             tool_call = ToolCall(id="call-2", name=TOOL_DEF_MCP.name, arguments={"p2": 123})
             mock_mcp_response = MagicMock() # Mock the raw response from session.call_tool
             mock_mcp_response.error = None
-            mock_mcp_response.content = {"mcp_result": "MCP OK"}
+            mock_mcp_response.result = {"mcp_result": "MCP OK"}
             
             # Reset the get_tool_client mock to clear any previous calls
             mock_mcp_manager.get_tool_client.reset_mock()

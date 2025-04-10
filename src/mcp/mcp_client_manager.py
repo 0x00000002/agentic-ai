@@ -4,14 +4,21 @@ Manages the lifecycle and access to MCP (Model Context Protocol) clients.
 
 import logging
 import asyncio
+import os # Added for environment variable access
+from urllib.parse import urlparse # Added for URL parsing
 from contextlib import AsyncExitStack
 from typing import Dict, Any, Optional, List
 
 from pydantic import ValidationError
 
-# Assuming MCPClient is the main class from the SDK
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+# Import necessary MCP SDK components based on confirmed usage
+from mcp import ClientSession
+# from mcp.client import http, websocket # Incorrect module structure
+# from mcp.client.http import HttpClient # Incorrect class/location
+# from mcp.client.websocket import WebSocketClient # Incorrect class/location
+# --- Adding correct imports for mcp v1.6.0 --- 
+from mcp.client.sse import sse_client
+from mcp.client.websocket import websocket_client
 
 # Import config system and exceptions
 from ..config import get_config, UnifiedConfig
@@ -19,6 +26,13 @@ from ..exceptions import AIConfigError, AIToolError
 from ..utils.logger import LoggerFactory
 # Import ToolDefinition model
 from ..tools.models import ToolDefinition
+
+# --- Reverting imports as they are incorrect for mcp v1.6.0 --- 
+# from mcp.client.http import http_client, HttpServerParameters # Invalid in v1.6.0
+# from mcp.client.websocket import websocket_client, WebSocketServerParameters # Invalid in v1.6.0
+# --- Adding correct imports for mcp v1.6.0 --- 
+# from mcp.client.http import HttpClient
+# from mcp.client.websocket import WebSocketClient
 
 
 class MCPClientManager:
@@ -33,7 +47,7 @@ class MCPClientManager:
         """
         self._config = config or get_config()
         self._logger = logger or LoggerFactory.create(name="mcp_client_manager")
-        # Store server configs {server_name: {command: ..., script_path: ...}} 
+        # Store server configs {server_name: {url: ..., auth: ..., description: ...}} 
         self._server_configs: Dict[str, Dict[str, Any]] = {}
         # Store declared tool definitions {tool_name: ToolDefinition}
         self._declared_mcp_tools: Dict[str, ToolDefinition] = {}
@@ -63,22 +77,38 @@ class MCPClientManager:
                     self._logger.warning(f"Skipping invalid MCP server entry for '{server_name}' (not a dictionary): {server_conf}")
                     continue
                 
-                command = server_conf.get("command")
-                script_path = server_conf.get("script_path")
+                # --- Refactored Config Loading --- 
+                url = server_conf.get("url")
+                auth_config = server_conf.get("auth") # Optional auth details
                 provided_tools_list = server_conf.get("provides_tools", [])
                 
-                if not command or not script_path:
-                    self._logger.warning(f"Skipping MCP server '{server_name}': Missing required fields 'command' or 'script_path'.")
+                if not url or not isinstance(url, str):
+                    self._logger.warning(f"Skipping MCP server '{server_name}': Missing or invalid required field 'url'.")
                     continue
                 
-                # Store server launch config
+                # Validate URL scheme (basic check)
+                try:
+                    parsed_url = urlparse(url)
+                    if parsed_url.scheme not in ["http", "https", "ws", "wss"]:
+                         self._logger.warning(f"Skipping MCP server '{server_name}': Unsupported URL scheme '{parsed_url.scheme}'. Supported: http, https, ws, wss.")
+                         continue
+                except Exception as e:
+                    self._logger.warning(f"Skipping MCP server '{server_name}': Could not parse URL '{url}'. Error: {e}")
+                    continue
+                    
+                # Validate auth config if present
+                if auth_config is not None and not isinstance(auth_config, dict):
+                    self._logger.warning(f"Skipping MCP server '{server_name}': 'auth' field must be a dictionary if present, got {type(auth_config)}.")
+                    continue # Or maybe just ignore auth? For now, skip server.
+
+                # Store server connection config
                 self._server_configs[server_name] = {
-                    "command": command,
-                    "script_path": script_path,
-                    "env": server_conf.get("env"), # Optional env vars
+                    "url": url,
+                    "auth": auth_config, # Store the whole auth dict or None
                     "description": server_conf.get("description", ""),
                 }
-                self._logger.debug(f"Loaded config for MCP server: {server_name}")
+                self._logger.debug(f"Loaded config for MCP server: {server_name} (URL: {url})")
+                # --- End Refactored Config Loading --- 
 
                 # Process declared tools for this server
                 if not isinstance(provided_tools_list, list):
@@ -124,8 +154,9 @@ class MCPClientManager:
 
     async def get_tool_client(self, mcp_server_name: str) -> ClientSession:
         """
-        Gets or creates an MCP ClientSession for the specified server name.
-        (Renamed parameter for clarity)
+        Gets or creates an MCP ClientSession for the specified server name
+        by connecting to its configured network URL (HTTP/WS).
+        Handles basic bearer token authentication via environment variables.
         """
         # Check cache first
         if mcp_server_name in self._active_sessions:
@@ -138,41 +169,95 @@ class MCPClientManager:
             raise AIToolError(f"MCP server '{mcp_server_name}' not configured.")
 
         server_config = self._server_configs[mcp_server_name]
-        command = server_config.get("command")
-        script_path = server_config.get("script_path")
-        env = server_config.get("env") # Optional environment variables
+        url = server_config.get("url")
+        auth_config = server_config.get("auth")
 
-        # Command/script_path should have been validated during loading, but double-check
-        if not command or not script_path:
-             # This case should ideally not be reached if loading logic is correct
-             self._logger.error(f"Internal Error: Command or script_path missing for configured MCP server '{mcp_server_name}'.")
+        # URL should have been validated during loading, but double-check
+        if not url:
+             self._logger.error(f"Internal Error: URL missing for configured MCP server '{mcp_server_name}'.")
              raise AIToolError(f"Internal configuration error for MCP server '{mcp_server_name}'.")
 
         try:
-            self._logger.info(f"Instantiating new MCP ClientSession for server: {mcp_server_name} ({command} {script_path})")
+            self._logger.info(f"Establishing new MCP ClientSession for server: {mcp_server_name} at {url}")
             
-            server_params = StdioServerParameters(
-                command=command,
-                args=[script_path],
-                env=env # Pass environment variables if provided
-            )
+            # --- Authentication Handling --- 
+            auth_headers = {}
+            if auth_config:
+                auth_type = auth_config.get("type")
+                if auth_type == "bearer":
+                    token_env_var = auth_config.get("token_env_var")
+                    if token_env_var:
+                        token = os.getenv(token_env_var)
+                        if token:
+                            auth_headers["Authorization"] = f"Bearer {token}"
+                            self._logger.debug(f"Using Bearer token authentication for {mcp_server_name} from env var '{token_env_var}'.")
+                        else:
+                             self._logger.warning(f"Bearer token environment variable '{token_env_var}' not set for server '{mcp_server_name}'. Attempting connection without auth.")
+                    else:
+                        self._logger.warning(f"Auth type is 'bearer' but 'token_env_var' is not specified for server '{mcp_server_name}'. Attempting connection without auth.")
+                else:
+                     self._logger.warning(f"Unsupported authentication type '{auth_type}' for server '{mcp_server_name}'. Attempting connection without auth.")
+            # --- End Authentication --- 
 
-            # Enter the context for stdio_client and ClientSession using the stack
-            stdio_transport = await self._exit_stack.enter_async_context(stdio_client(server_params))
-            stdio_read, stdio_write = stdio_transport
-            session = await self._exit_stack.enter_async_context(ClientSession(stdio_read, stdio_write))
+           # --- Network Client Selection & Connection ---
+            parsed_url = urlparse(url)
+            transport = None
+            client = None # Define client variable
+            
+            # Prepare headers for the client constructor
+            client_headers = auth_headers if auth_headers else {}
+
+            # Instantiate the correct client based on URL scheme
+            if parsed_url.scheme in ["http", "https"]:
+                self._logger.debug(f"Using sse_client for {url}")
+                # sse_client supports headers
+                transport = await self._exit_stack.enter_async_context(
+                    sse_client(url=url, headers=client_headers)
+                )
+            elif parsed_url.scheme in ["ws", "wss"]:
+                self._logger.debug(f"Using websocket_client for {url}")
+                # websocket_client in v1.6.0 does NOT support headers
+                if client_headers: 
+                    self._logger.warning(
+                        f"MCP v1.6.0 websocket_client does not support headers. Authentication configured for server '{mcp_server_name}' will be ignored."
+                    )
+                transport = await self._exit_stack.enter_async_context(
+                    websocket_client(url=url)
+                )
+            else:
+                # This should have been caught during loading, but belts and braces
+                raise AIToolError(f"Unsupported URL scheme '{parsed_url.scheme}' for server '{mcp_server_name}'.")
+            
+            # Use the client instance as an async context manager via the exit stack
+            # to get the transport (reader, writer)
+            # transport = await self._exit_stack.enter_async_context(client) # Logic moved into if/elif
+            
+            read_stream, write_stream = transport 
+            
+            # Enter the ClientSession context using the stack
+            session = await self._exit_stack.enter_async_context(ClientSession(read_stream, write_stream))
 
             await session.initialize()
+            # --- End Network Client Selection & Connection ---
             
             self._active_sessions[mcp_server_name] = session
             self._logger.info(f"MCP ClientSession initialized successfully for server: {mcp_server_name}")
             return session
+        except ConnectionRefusedError as e: # More specific error handling
+             self._logger.error(f"Connection refused for MCP server '{mcp_server_name}' at {url}. Is the server running and accessible? Error: {e}", exc_info=True)
+             raise AIToolError(f"Connection refused for MCP server '{mcp_server_name}'. Reason: {e}")
+        except asyncio.TimeoutError as e: # Handle timeouts
+             self._logger.error(f"Timeout connecting to MCP server '{mcp_server_name}' at {url}. Error: {e}", exc_info=True)
+             raise AIToolError(f"Timeout connecting to MCP server '{mcp_server_name}'. Reason: {e}")
         except Exception as e:
-            self._logger.error(f"Failed to instantiate or initialize MCP ClientSession for server '{mcp_server_name}': {e}", exc_info=True)
-            raise AIToolError(f"Could not create or initialize client for MCP server '{mcp_server_name}'. Reason: {e}")
+            # Catch potential errors from SDK clients or session initialization
+            self._logger.error(f"Failed to establish or initialize MCP ClientSession for server '{mcp_server_name}' at {url}: {e}", exc_info=True)
+            # Clean up potentially partially entered contexts if initialization fails
+            # await self._exit_stack.aclose() # ExitStack handles this automatically on exception propagation
+            raise AIToolError(f"Could not create or initialize client for MCP server '{mcp_server_name}'. Reason: {type(e).__name__}: {e}")
 
     async def close_all_clients(self):
-        """Clean up resources, closing all managed MCP sessions and transports."""
+        """Clean up resources, closing all managed MCP sessions and network transports."""
         self._logger.info("Closing all active MCP clients and transports via AsyncExitStack.")
         await self._exit_stack.aclose()
         self._active_sessions = {} # Clear cache after closing

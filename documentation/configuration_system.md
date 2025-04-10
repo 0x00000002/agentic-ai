@@ -58,14 +58,19 @@ The `ToolRegistry` component is responsible for loading and managing these inter
 
 This file defines connections to external MCP servers and _declares_ the tools they provide. This declaration helps the LLM know about the tool, but the actual available tools might differ when connecting to the server.
 
+The MCP server itself must be running independently and accessible at the specified network address.
+
 ```yaml
 # src/config/mcp.yml
 mcp_servers:
   unique_server_name_1: # Identifier for this MCP server connection
     description: "Description of server" # Optional
-    command: "python" # Command to start the server (e.g., python, node)
-    script_path: "path/to/server.py" # Path to the server script
-    env: { VAR: "value" } # Optional: Environment variables for the server
+    url: "http://localhost:8001" # REQUIRED: Network endpoint (http, https, ws, wss)
+    auth: # Optional: Authentication details
+      type: "bearer" # Currently only "bearer" is supported
+      token_env_var: "MCP_SERVER_1_TOKEN" # Env var containing the Bearer token
+      # NOTE: Headers (including auth) are NOT currently sent for ws/wss connections
+      # due to limitations in the underlying mcp library (v1.6.0).
     provides_tools: # List of tools *declared* by this server
       - name: "mcp_tool_name_a" # Unique name across ALL tools (internal & MCP)
         description: "Description for LLM"
@@ -75,13 +80,15 @@ mcp_servers:
         # 'source' and 'mcp_server_name' are added automatically
 
   unique_server_name_2:
-    # ... other server config ...
+    description: "Another server"
+    url: "wss://secure.example.com:8002"
+    # No auth section means no authentication required or sent
     provides_tools:
       - name: "mcp_tool_name_b"
         # ... tool definition ...
 ```
 
-The `MCPClientManager` component is responsible for loading these configurations, managing connections to the servers, and providing the declared tool definitions.
+The `MCPClientManager` component is responsible for loading these configurations, establishing connections to the servers using the appropriate network client (`sse_client` for http/https, `websocket_client` for ws/wss), and providing the declared tool definitions.
 
 ## Usage
 

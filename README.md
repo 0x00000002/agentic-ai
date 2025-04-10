@@ -168,3 +168,51 @@ ai.register_tool(
 response = ai.request("What's the weather like in Paris today?")
 print(response)
 ```
+
+### Using MCP Tools (External)
+
+The framework supports integrating external tools via the Model Context Protocol (MCP).
+
+1.  **Configure Servers:** Define your MCP servers in `src/config/mcp.yml`. Each server needs a unique name and its network endpoint URL.
+
+```yaml
+# src/config/mcp.yml
+mcp_servers:
+  example_http_server:
+    description: "Example server running locally via HTTP"
+    url: "http://localhost:8081/mcp" # Required: HTTP/HTTPS/WS/WSS URL
+    # Optional authentication:
+    # auth:
+    #   type: "bearer"
+    #   token_env_var: "EXAMPLE_SERVER_TOKEN" # Name of env var holding the token
+    provides_tools:
+      - name: "mcp_tool_x"
+        description: "Description for MCP tool X."
+        inputSchema: { ... } # Standard JSON schema
+        # speed, safety (optional)
+
+  example_ws_server:
+    description: "Example server using WebSocket"
+    url: "ws://localhost:9000/mcp"
+    # Note: Authentication headers are currently NOT supported for WebSocket (ws/wss)
+    # connections with the installed mcp library (v1.6.0).
+    provides_tools:
+      - name: "mcp_tool_y"
+        description: "Description for MCP tool Y."
+        inputSchema: {}
+```
+
+2.  **Run Servers:** Ensure the MCP servers defined in the config are running and accessible at their specified URLs.
+
+3.  **Use AI:** The `ToolEnabledAI` will automatically discover tools declared in `mcp.yml` alongside internal tools.
+
+```python
+from src.core.tool_enabled_ai import ToolEnabledAI
+
+# AI discovers tools from both internal registry and mcp.yml
+ai = ToolEnabledAI()
+
+# Request that might use an MCP tool
+response = ai.request("Execute MCP tool X with parameter foo.")
+print(response)
+```
