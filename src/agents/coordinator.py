@@ -59,12 +59,12 @@ class Coordinator(BaseAgent):
         
         self.logger.info(f"Coordinator initialized. Default handler agent: '{self.default_handler_agent_id}'")
 
-    def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Main entry point for processing user requests.
+        Main entry point for processing user requests asynchronously.
         Routes based on classified intent.
         """
-        self.logger.info(f"--- Coordinator process_request starting ---")
+        self.logger.info(f"--- Coordinator async process_request starting ---")
         self.logger.debug(f"Received request: {request}")
 
         try:
@@ -72,46 +72,46 @@ class Coordinator(BaseAgent):
             request_type = request.get("type")
             if request_type == "audio_transcription":
                 self.logger.info("Identified audio transcription request type.")
-                return self._handle_audio_transcription_request(request)
+                # Use await when calling the async handler
+                return await self._handle_audio_transcription_request(request)
             
             # --- If not a specific type, proceed with intent classification ---
             self.logger.info("Request type not specified or not audio, proceeding with intent classification.")
             
             # --- 1. Classify Intent ---
-            # Use a fresh call to RequestAnalyzer - avoid shared state issues
-            # Pass the *original* request for classification
-            # Re-create analyzer to ensure it uses its own config/state if needed
+            # Assuming classify_request_intent is sync for now. If it calls an LLM, it needs to be async.
             analyzer = RequestAnalyzer(unified_config=self.config, logger=self.logger)
             intent = analyzer.classify_request_intent(request)
             self.logger.info(f"Request Analyzer classified intent as: '{intent}'")
 
             # --- 2. Route based on Intent ---
             if intent == "META":
-                # Handle directly, no LLM needed for this
-                return self._handle_meta_request(request)
+                # Use await when calling the async handler
+                return await self._handle_meta_request(request)
             elif intent == "QUESTION":
-                # Delegate simple questions to a default agent
-                return self._handle_delegated_request(request, self.default_handler_agent_id, "QUESTION")
+                # Use await when calling the async handler
+                return await self._handle_delegated_request(request, self.default_handler_agent_id, "QUESTION")
             elif intent == "TASK":
-                # Handle complex tasks involving multiple potential agents
-                return self._handle_task_request(request)
+                # Use await when calling the async handler
+                return await self._handle_task_request(request)
             else: # Includes "UNKNOWN"
                 self.logger.warning(f"Unknown or failed intent classification ('{intent}'). Handling via default agent.")
-                # Fallback to default handler agent
-                return self._handle_delegated_request(request, self.default_handler_agent_id, "UNKNOWN_FALLBACK")
+                # Use await when calling the async handler
+                return await self._handle_delegated_request(request, self.default_handler_agent_id, "UNKNOWN_FALLBACK")
 
         except Exception as e:
             # Log with traceback
             err_logger = LoggerFactory.create("coordinator_process_error")
-            err_logger.error(f"Critical error during Coordinator process_request: {e}", exc_info=True) # RESTORED exc_info
+            err_logger.error(f"Critical error during Coordinator async process_request: {e}", exc_info=True)
             return self._create_error_response(f"Coordination failed due to unexpected error: {e}")
 
-    # --- Intent Handlers ---
+    # --- Intent Handlers (now async) ---
 
-    def _handle_meta_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Handles META requests directly by formatting available config info."""
-        self.logger.info("Handling META request directly...")
+    async def _handle_meta_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Handles META requests directly by formatting available config info (async)."""
+        self.logger.info("Handling META request directly (async)...")
         try:
+            # These helper methods are sync, okay to call directly
             agents_info = self._get_available_agents_info()
             tools_info = self._get_available_tools_info()
 
@@ -127,12 +127,12 @@ class Coordinator(BaseAgent):
         except Exception as e:
             # Log with traceback
             err_logger = LoggerFactory.create("coordinator_meta_error")
-            err_logger.error(f"Error retrieving info for META request: {e}", exc_info=True) # RESTORED exc_info
+            err_logger.error(f"Error retrieving info for META request: {e}", exc_info=True)
             return self._create_error_response(f"Failed to retrieve system info for META request: {e}")
 
-    def _handle_delegated_request(self, request: Dict[str, Any], agent_id: str, handling_reason: str) -> Dict[str, Any]:
-        """Handles simple QUESTION or fallback requests by delegating to a specified agent."""
-        self.logger.info(f"Delegating request to single agent '{agent_id}' (Reason: {handling_reason})")
+    async def _handle_delegated_request(self, request: Dict[str, Any], agent_id: str, handling_reason: str) -> Dict[str, Any]:
+        """Handles simple QUESTION or fallback requests by delegating to a specified agent (async)."""
+        self.logger.info(f"Delegating request to single agent '{agent_id}' (Reason: {handling_reason}) (async)")
         if not self.agent_factory:
             return self._create_error_response("Agent factory not configured, cannot delegate request.")
 
@@ -141,30 +141,29 @@ class Coordinator(BaseAgent):
             if not agent:
                  return self._create_error_response(f"Could not create agent '{agent_id}' for delegation.")
 
-            # Process request using the chosen agent
-            agent_response = agent.process_request(request.copy()) # Pass a copy
+            # Await the process_request call on the delegated agent
+            agent_response = await agent.process_request(request.copy()) # Pass a copy
 
-            # Ensure response is a dict (basic normalization)
-            if not isinstance(agent_response, dict):
-                 agent_response = {"content": str(agent_response), "status": "success"}
-            
+            # Ensure response is a dict (basic normalization) - _normalize_response is sync
+            normalized_response = self._normalize_response(agent_response)
+
             # Add coordinator metadata
-            if "metadata" not in agent_response: agent_response["metadata"] = {}
-            agent_response["metadata"]["delegated_to"] = agent_id
-            agent_response["metadata"]["delegation_reason"] = handling_reason
-            agent_response["metadata"]["coordinator_id"] = self.agent_id # Add coordinator id
+            if "metadata" not in normalized_response: normalized_response["metadata"] = {}
+            normalized_response["metadata"]["delegated_to"] = agent_id
+            normalized_response["metadata"]["delegation_reason"] = handling_reason
+            normalized_response["metadata"]["coordinator_id"] = self.agent_id # Add coordinator id
 
-            return agent_response
+            return normalized_response
 
         except Exception as e:
             # Log with traceback
             err_logger = LoggerFactory.create("coordinator_delegate_error")
-            err_logger.error(f"Error delegating request to agent '{agent_id}': {e}", exc_info=True) # RESTORED exc_info
+            err_logger.error(f"Error delegating request to agent '{agent_id}': {e}", exc_info=True)
             return self._create_error_response(f"Failed during delegated handling by '{agent_id}': {e}")
 
-    def _handle_task_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Handles TASK requests potentially involving multiple agents and aggregation."""
-        self.logger.info("Handling TASK request...")
+    async def _handle_task_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Handles TASK requests potentially involving multiple agents and aggregation (async)."""
+        self.logger.info("Handling TASK request (async)...")
         if not self.agent_factory or not self.request_analyzer or not self.response_aggregator:
              return self._create_error_response("Required components (AgentFactory, RequestAnalyzer, ResponseAggregator) not available.")
 
@@ -175,9 +174,10 @@ class Coordinator(BaseAgent):
             # For now, assume TASK always goes to default handler or needs specific logic here.
             # Let's simply delegate to default for now to test the flow.
             self.logger.warning("Agent assignment logic for TASK not yet implemented in Coordinator V2. Delegating to default handler.")
-            return self._handle_delegated_request(request, self.default_handler_agent_id, "TASK_DEFAULT_DELEGATION")
+            # Await the delegated call
+            return await self._handle_delegated_request(request, self.default_handler_agent_id, "TASK_DEFAULT_DELEGATION")
 
-            # --- OLD V1 Logic Below (Requires Re-evaluation/Implementation) ---
+            # --- OLD V1 Logic Below (Requires Re-evaluation/Implementation with async) ---
             # # Use a fresh analyzer instance if concerned about state, or reuse self.request_analyzer
             # analyzer = RequestAnalyzer(unified_config=self.config, logger=self.logger)
             # available_agents = self.agent_factory.registry.get_all_agents() if hasattr(self.agent_factory, 'registry') else []
@@ -197,32 +197,29 @@ class Coordinator(BaseAgent):
             # # Limit parallel execution
             # selected_assignments = agent_assignments[:self.max_parallel_agents]
 
-            # # --- 2. Execute Assigned Agents ---
-            # # (Consider parallel execution here for performance - ThreadPoolExecutor, asyncio etc.)
+            # # --- 2. Execute Assigned Agents (Example with asyncio for potential parallelism) ---
+            # tasks = []
             # for agent_id, confidence in selected_assignments:
-            #     self.logger.info(f"Executing agent: {agent_id} (Confidence: {confidence:.2f})")
-            #     try:
-            #         agent = self.agent_factory.create(agent_id)
-            #         if not agent:
-            #             raise AIAgentError(f"Could not create agent instance for '{agent_id}'")
-
-            #         # Pass a copy of the request to avoid cross-contamination if needed
-            #         # TODO: Enrich request with context? (e.g., relevant tools, use case) - Needs ToolFinder integration maybe
-            #         response = agent.process_request(request.copy())
-
-            #         # Basic normalization before adding
-            #         normalized_response = self._normalize_response(response)
-            #         agent_responses.append({"agent_id": agent_id, "response": normalized_response, "status": normalized_response.get("status", "unknown")})
-
-            #     except Exception as agent_err:
-            #         # Log with traceback
+            #     tasks.append(self._execute_single_agent_task(request, agent_id, confidence))
+            #
+            # # Execute tasks concurrently
+            # results = await asyncio.gather(*tasks, return_exceptions=True) # Capture exceptions
+            #
+            # agent_responses = []
+            # for i, result in enumerate(results):
+            #     agent_id = selected_assignments[i][0]
+            #     if isinstance(result, Exception):
+            #         # Log with traceback if exception occurred during agent execution
             #         err_logger = LoggerFactory.create("coordinator_task_agent_error")
-            #         err_logger.error(f"Error executing agent '{agent_id}': {agent_err}", exc_info=True) # RESTORED exc_info
+            #         err_logger.error(f"Error executing agent '{agent_id}' in gather: {result}", exc_info=result)
             #         agent_responses.append({
             #             "agent_id": agent_id,
-            #             "response": self._create_error_response(f"Agent failed execution: {agent_err}", agent_id),
+            #             "response": self._create_error_response(f"Agent failed execution: {result}", agent_id),
             #             "status": "error"
             #         })
+            #     else:
+            #         # Result should be the normalized response dict from _execute_single_agent_task
+            #         agent_responses.append(result) # Add successful result
 
             # # --- 3. Aggregate Responses ---
             # if not agent_responses:
@@ -256,13 +253,28 @@ class Coordinator(BaseAgent):
         except Exception as e:
             # Log with traceback
             err_logger = LoggerFactory.create("coordinator_task_error")
-            err_logger.error(f"Critical error handling TASK request: {e}", exc_info=True) # RESTORED exc_info
+            err_logger.error(f"Critical error handling TASK request: {e}", exc_info=True)
             return self._create_error_response(f"Failed during task handling pipeline: {e}")
 
-    # --- Add Audio Transcription Handler ---
-    def _handle_audio_transcription_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Handles audio transcription requests by delegating to the ListenerAgent."""
-        self.logger.info(f"Delegating audio transcription request to listener agent.")
+    # --- Optional Helper for Parallel Task Execution (Example) ---
+    # async def _execute_single_agent_task(self, request: Dict[str, Any], agent_id: str, confidence: float) -> Dict[str, Any]:
+    #     """Executes a single agent as part of a task (internal helper for async gather)."""
+    #     self.logger.info(f"Executing agent: {agent_id} (Confidence: {confidence:.2f})")
+    #     agent = self.agent_factory.create(agent_id)
+    #     if not agent:
+    #         raise AIAgentError(f"Could not create agent instance for '{agent_id}'")
+    #     # Await the agent's process_request
+    #     response = await agent.process_request(request.copy())
+    #     # Normalize response
+    #     normalized_response = self._normalize_response(response)
+    #     # Return dict structure expected by the main task handler
+    #     return {"agent_id": agent_id, "response": normalized_response, "status": normalized_response.get("status", "unknown")}
+    # --- End Optional Helper ---
+
+    # --- Add Audio Transcription Handler (now async) ---
+    async def _handle_audio_transcription_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Handles audio transcription requests by delegating to the ListenerAgent (async)."""
+        self.logger.info(f"Delegating audio transcription request to listener agent (async).")
         if not self.agent_factory:
             return self._create_error_response("Agent factory not configured, cannot delegate audio request.")
         
@@ -273,33 +285,29 @@ class Coordinator(BaseAgent):
         # --- End Extract ---
 
         try:
-            # Pass self.ai_instance explicitly to the factory create method
-            agent = self.agent_factory.create(listener_agent_id, ai_instance=self.ai_instance)
+            # Pass self.ai_instance explicitly to the factory create method if needed
+            # Assuming create method doesn't need ai_instance here unless Listener requires it directly
+            agent = self.agent_factory.create(listener_agent_id) # Pass ai_instance=self.ai_instance if needed
             if not agent:
                  return self._create_error_response(f"Could not create agent '{listener_agent_id}' for transcription.")
 
-            # Process request using the listener agent
-            # The ListenerAgent expects 'audio_path' and now optionally 'language'
-            # Create a copy to potentially pass modified data, though just passing original should be fine here
-            request_copy = request.copy()
-            # No need to explicitly add language_code here, as it's already in the original request
-            agent_response = agent.process_request(request_copy)
+            # Await the process_request call on the listener agent
+            agent_response = await agent.process_request(request.copy())
 
-            # Ensure response is a dict (basic normalization)
-            if not isinstance(agent_response, dict):
-                 agent_response = {"content": str(agent_response), "status": "success"}
-            
+            # Normalize response
+            normalized_response = self._normalize_response(agent_response)
+
             # Add coordinator metadata
-            if "metadata" not in agent_response: agent_response["metadata"] = {}
-            agent_response["metadata"]["delegated_to"] = listener_agent_id
-            agent_response["metadata"]["delegation_reason"] = "AUDIO_TRANSCRIPTION"
+            if "metadata" not in normalized_response: normalized_response["metadata"] = {}
+            normalized_response["metadata"]["delegated_to"] = listener_agent_id
+            normalized_response["metadata"]["delegation_reason"] = "AUDIO_TRANSCRIPTION"
             # --- Add requested language to metadata ---
             if language_code:
-                agent_response["metadata"]["requested_language"] = language_code
+                normalized_response["metadata"]["requested_language"] = language_code
             # --- End Add ---
-            agent_response["metadata"]["coordinator_id"] = self.agent_id # Add coordinator id
+            normalized_response["metadata"]["coordinator_id"] = self.agent_id # Add coordinator id
 
-            return agent_response
+            return normalized_response
 
         except Exception as e:
             # Log with traceback
@@ -308,7 +316,7 @@ class Coordinator(BaseAgent):
             return self._create_error_response(f"Failed during audio transcription handling by '{listener_agent_id}': {e}")
     # --- End Add ---
 
-    # --- Helper Methods (Copied from original, verify imports/dependencies) ---
+    # --- Helper Methods (Remain Synchronous) ---
 
     def _get_available_agents_info(self) -> str:
         self.logger.debug("Retrieving available agents info...")

@@ -65,17 +65,27 @@ class TestBaseProvider:
         assert provider.provider_config == mock_provider_config
         assert provider.model_config == mock_model_config
 
-    def test_request_not_implemented(self, provider: BaseProvider, mock_messages: List[Dict[str, str]], mock_logger):
-        """Test that request method returns a response with error for not implemented _make_api_request."""
-        response = provider.request(mock_messages)
-        assert response.error is not None
-        assert "Subclasses must implement _make_api_request" in response.error
+    @pytest.mark.asyncio
+    async def test_request_not_implemented(self, provider: BaseProvider, mock_messages: List[Dict[str, str]], mock_logger):
+        """Test that async request method raises AIProviderError if _make_api_request not implemented."""
+        # Patch the internal _make_api_request to simulate non-implementation
+        with patch.object(provider, '_make_api_request', side_effect=NotImplementedError("Subclasses must implement _make_api_request")):
+            # Expect AIProviderError because request catches and wraps internal errors
+            # Update match pattern to include provider prefix
+            expected_error_msg = "PROVIDER_BASEPROVIDER: Provider request failed: Subclasses must implement _make_api_request"
+            with pytest.raises(AIProviderError, match=expected_error_msg):
+                await provider.request(mock_messages)
+        # Verify error was logged
         mock_logger.error.assert_called_once()
 
-    def test_stream_not_implemented(self, provider: BaseProvider, mock_messages: List[Dict[str, str]], mock_logger):
-        """Test that stream method raises NotImplementedError."""
-        with pytest.raises(NotImplementedError, match="Subclasses must implement stream"):
-            provider.stream(mock_messages)
+    @pytest.mark.asyncio
+    async def test_stream_not_implemented(self, provider: BaseProvider, mock_messages: List[Dict[str, str]], mock_logger):
+        """Test that async stream method raises NotImplementedError by default."""
+        # stream method directly raises NotImplementedError if not overridden
+        # Update the match string to the actual error message
+        with pytest.raises(NotImplementedError, match="BaseProvider does not support streaming."):
+            # Await the coroutine directly instead of using async for
+            await provider.stream(mock_messages)
         mock_logger.error.assert_not_called()
 
     def test_map_role(self, provider: BaseProvider):
@@ -90,11 +100,6 @@ class TestBaseProvider:
         formatted = provider._format_messages(mock_messages)
         assert formatted == mock_messages
 
-    @pytest.mark.skip(reason="Post process is now handled by MessageFormatter")
-    def test_post_process_formatted_message(self, provider: BaseProvider):
-        """Test post-processing of formatted messages."""
-        pass
-
     def test_prepare_request_payload(self, provider: BaseProvider, mock_messages: List[Dict[str, str]]):
         """Test request payload preparation."""
         payload = provider._prepare_request_payload(mock_messages, {})
@@ -102,11 +107,6 @@ class TestBaseProvider:
             "messages": mock_messages,
             "model": "test_model"
         }
-
-    @pytest.mark.skip(reason="Convert messages is now handled by MessageFormatter")
-    def test_convert_messages(self, provider: BaseProvider):
-        """Test message conversion."""
-        pass
 
     def test_convert_response_not_implemented(self, provider: BaseProvider):
         """Test that convert_response method raises NotImplementedError."""

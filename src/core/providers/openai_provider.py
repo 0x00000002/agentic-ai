@@ -11,8 +11,11 @@ from ...tools.models import ToolResult, ToolCall, ToolDefinition
 from ..models import ProviderResponse, TokenUsage
 from .base_provider import BaseProvider
 import openai
+# Import async client
+from openai import AsyncOpenAI # Add async client
 import os
 import json
+import asyncio # Add asyncio
 
 
 class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProviderInterface):
@@ -64,6 +67,9 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
         if 'output_limit' in model_config:
             self.parameter_manager.update_defaults({'max_tokens': model_config['output_limit']})
             
+        # Client will be initialized asynchronously if needed, or keep sync init?
+        # For now, let's assume sync initialization is fine, but API calls are async.
+        # self.client: Optional[AsyncOpenAI] = None # Initialize as None
         self.logger.debug(f"Initialized OpenAI provider with model {self.model_id}")
     
     def _initialize_credentials(self) -> None:
@@ -72,8 +78,8 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
             # Get client initialization arguments
             client_kwargs = self.credential_manager.get_client_kwargs()
             
-            # Set up OpenAI client
-            self.client = openai.OpenAI(**client_kwargs)
+            # Set up OpenAI client - Use AsyncOpenAI
+            self.client = AsyncOpenAI(**client_kwargs) # Changed to AsyncOpenAI
             
         except openai.AuthenticationError as e:
             self.logger.error(f"OpenAI Authentication Error: {e}")
@@ -86,9 +92,9 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
             self.logger.error(f"Failed to initialize OpenAI credentials: {str(e)}", exc_info=True)
             raise AICredentialsError(f"Failed to initialize OpenAI credentials: {str(e)}", provider="openai") from e
     
-    def _make_api_request(self, payload: Dict[str, Any]) -> openai.types.chat.ChatCompletion:
+    async def _make_api_request(self, payload: Dict[str, Any]) -> openai.types.chat.ChatCompletion: # Changed to async def
         """
-        Make a request to the OpenAI API.
+        Make an asynchronous request to the OpenAI API.
         
         Args:
             payload: Request payload dictionary
@@ -104,14 +110,40 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
                                "tools", "tool_choice", "response_format"]:
                     del payload[key]
             
-            # Make the API call
-            response = self.client.chat.completions.create(**payload)
+            # Make the API call using the async client
+            self.logger.debug(f"Making async API call to OpenAI with payload: {payload}")
+            response = await self.client.chat.completions.create(**payload) # Use await
+            self.logger.debug("Async API call to OpenAI completed.")
             return response
             
-        except openai.APIError as e:
-            raise AIRequestError(f"OpenAI API error: {str(e)}")
+        except openai.APIConnectionError as e:
+             self.logger.error(f"OpenAI API Connection Error: {e}")
+             raise AIProviderError(f"Failed to connect to OpenAI API: {e}", provider="openai") from e
+        except openai.RateLimitError as e:
+             self.logger.error(f"OpenAI Rate Limit Error: {e}")
+             raise AIRateLimitError(f"OpenAI rate limit exceeded: {e}", provider="openai") from e
+        except openai.AuthenticationError as e: # Catch auth errors during request too
+             self.logger.error(f"OpenAI Authentication Error during request: {e}")
+             raise AIAuthenticationError(f"OpenAI authentication failed during request: {e}", provider="openai") from e
+        except openai.NotFoundError as e: # Model not found
+             self.logger.error(f"OpenAI Model Not Found Error: {e}")
+             raise ModelNotFoundError(f"OpenAI model not found: {self.model_id} - {e}", provider="openai", model=self.model_id) from e
+        except openai.BadRequestError as e:
+             # Differentiate between content moderation and other bad requests
+             if "content_filter" in str(e):
+                 self.logger.error(f"OpenAI Content Moderation Error: {e}")
+                 raise ContentModerationError(f"OpenAI content moderation triggered: {e}", provider="openai") from e
+             else:
+                 self.logger.error(f"OpenAI Invalid Request Error: {e}")
+                 raise InvalidRequestError(f"OpenAI invalid request: {e}", provider="openai") from e
+        except openai.APIStatusError as e:
+             # Catch broader API status errors (like 500s)
+             self.logger.error(f"OpenAI API Status Error: {e.status_code} - {e.response}")
+             raise AIRequestError(f"OpenAI API returned status {e.status_code}: {e}", provider="openai") from e
         except Exception as e:
-            raise AIProviderError(f"Error making OpenAI request: {str(e)}")
+            # Catch any other unexpected errors
+            self.logger.error(f"Unexpected error making OpenAI async request: {str(e)}", exc_info=True)
+            raise AIProviderError(f"Unexpected error during OpenAI request: {str(e)}", provider="openai") from e
     
     def _convert_response(self, raw_response: openai.types.chat.ChatCompletion) -> ProviderResponse:
         """
@@ -177,9 +209,11 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
                 error=f"Error processing response: {str(e)}"
             )
     
-    def stream(self, messages: List[Dict[str, str]], **options) -> str:
+    async def stream(self, messages: List[Dict[str, str]], **options) -> str: # Changed to async def
         """
-        Stream a response from the OpenAI API.
+        Stream a response asynchronously from the OpenAI API.
+        NOTE: Returns the aggregated response string. For true streaming,
+        use the stream property of the ChatCompletion object.
         
         Args:
             messages: List of message dictionaries
@@ -195,27 +229,25 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
             # Add streaming flag
             payload["stream"] = True
             
-            # Make the streaming API call
-            response = self.client.chat.completions.create(**payload)
+            # Make the async streaming API call
+            stream = await self.client.chat.completions.create(**payload) # Use await
             
-            # Collect the chunks
+            # Collect the chunks asynchronously
             chunks = []
             
-            for chunk in response:
-                if chunk.choices and chunk.choices[0].delta.content:
+            async for chunk in stream: # Use async for
+                if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
                     chunks.append(chunk.choices[0].delta.content)
                     
             # Join all chunks
             return "".join(chunks)
             
-        except openai.APIError as e:
-            raise AIRequestError(f"OpenAI API error in streaming: {str(e)}")
         except Exception as e:
             raise AIProviderError(f"Error streaming from OpenAI: {str(e)}")
     
-    def analyze_image(self, image_data: Union[str, BinaryIO], prompt: str) -> str:
+    async def analyze_image(self, image_data: Union[str, BinaryIO], prompt: str) -> str: # Changed to async def
         """
-        Analyze an image with the model.
+        Analyze an image with the model asynchronously.
         
         Args:
             image_data: Image data (file path, URL, or file-like object)
@@ -258,22 +290,20 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
                 ]}
             ]
             
-            # Make API call
-            response = self.client.chat.completions.create(
-                model=self.model_id,
+            # Make the async API call
+            response = await self.client.chat.completions.create( # Use await
+                model=self.model_id, # Ensure correct model is used
                 messages=messages
             )
             
             return response.choices[0].message.content or ""
             
-        except openai.APIError as e:
-            raise AIRequestError(f"OpenAI API error in image analysis: {str(e)}")
         except Exception as e:
             raise AIProviderError(f"Error analyzing image with OpenAI: {str(e)}")
     
-    def generate_image(self, prompt: str, size: str = "1024x1024", quality: str = "standard") -> str:
+    async def generate_image(self, prompt: str, size: str = "1024x1024", quality: str = "standard") -> str: # Changed to async def
         """
-        Generate an image with DALL-E.
+        Generate an image using DALL-E asynchronously.
         
         Args:
             prompt: Prompt describing the image to generate
@@ -284,9 +314,9 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
             URL of the generated image
         """
         try:
-            # Make API call to DALL-E
-            response = self.client.images.generate(
-                model="dall-e-3",  # or other model id
+            # Make the async API call
+            response = await self.client.images.generate( # Use await
+                model=self.model_config.get("image_generation_model", "dall-e-3"), # Use configured or default model
                 prompt=prompt,
                 size=size,
                 quality=quality,
@@ -296,14 +326,12 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
             # Return URL
             return response.data[0].url
             
-        except openai.APIError as e:
-            raise AIRequestError(f"OpenAI API error in image generation: {str(e)}")
         except Exception as e:
             raise AIProviderError(f"Error generating image with OpenAI: {str(e)}")
     
-    def transcribe_audio(self, audio_data: Union[str, BinaryIO]) -> str:
+    async def transcribe_audio(self, audio_data: Union[str, BinaryIO]) -> str: # Changed to async def
         """
-        Transcribe audio using Whisper API.
+        Transcribe audio using Whisper model asynchronously.
         
         Args:
             audio_data: Audio data (file path or file-like object)
@@ -312,78 +340,71 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
             Transcribed text
         """
         try:
-            # Handle file path or file-like object
+            # Ensure audio_data is a file-like object for the client
             if isinstance(audio_data, str):
-                # File path
-                with open(audio_data, "rb") as f:
-                    audio_file = f
-                    response = self.client.audio.transcriptions.create(
-                        model="whisper-1",
+                # If it's a path, open it
+                with open(audio_data, "rb") as audio_file:
+                    # Make the async API call
+                    transcript = await self.client.audio.transcriptions.create( # Use await
+                        model=self.model_config.get("audio_transcription_model", "whisper-1"), 
                         file=audio_file
                     )
             else:
-                # File-like object
-                response = self.client.audio.transcriptions.create(
-                    model="whisper-1",
-                    file=audio_data
-                )
+                # Assume it's already a file-like object (e.g., BytesIO)
+                 transcript = await self.client.audio.transcriptions.create( # Use await
+                     model=self.model_config.get("audio_transcription_model", "whisper-1"), 
+                     file=audio_data
+                 )
             
-            return response.text
+            return transcript.text
             
-        except openai.APIError as e:
-            raise AIRequestError(f"OpenAI API error in transcription: {str(e)}")
         except Exception as e:
             raise AIProviderError(f"Error transcribing audio with OpenAI: {str(e)}")
     
-    def text_to_speech(self, 
+    async def text_to_speech(self, # Changed to async def
                       text: str, 
                       **options) -> Union[bytes, str]:
         """
-        Convert text to speech using OpenAI TTS API.
-        
+        Convert text to speech using OpenAI TTS model asynchronously.
+
         Args:
-            text: Text to convert to speech
-            **options: Additional options
-                voice: Voice to use (default: alloy)
-                model: TTS model ID (default: tts-1)
-                response_format: Format of the response (default: mp3)
-                output_file: Optional path to save output
-                
+            text: Text to convert.
+            **options: Additional options like 'voice' (alloy, echo, fable, onyx, nova, shimmer)
+                       and 'output_format' (mp3, opus, aac, flac). Can also include 'output_path' to save to file.
+
         Returns:
-            Audio data as bytes or path to saved file
+            Audio data as bytes if 'output_path' is not provided, otherwise path to saved file.
         """
         try:
-            # Get options
             voice = options.get("voice", "alloy")
-            model = options.get("model", "tts-1")
-            response_format = options.get("response_format", "mp3")
-            output_file = options.get("output_file")
+            output_format = options.get("output_format", "mp3")
+            output_path = options.get("output_path")
+
+            self.logger.debug(f"Generating speech for text: '{text[:30]}...' with voice: {voice}")
             
-            # Make API call
-            response = self.client.audio.speech.create(
-                model=model,
+            # Make the async API call
+            response = await self.client.audio.speech.create( # Use await
+                model=self.model_config.get("tts_model", "tts-1"), 
                 voice=voice,
                 input=text,
-                response_format=response_format
+                response_format=output_format
             )
-            
-            # Save to file if output_file is specified
-            if output_file:
-                # Make sure the directory exists
-                os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
-                
-                # Write to file
-                with open(output_file, "wb") as f:
-                    f.write(response.content)
-                return output_file
-            
-            # Otherwise, return the bytes
-            return response.content
-            
-        except openai.APIError as e:
-            raise AIRequestError(f"OpenAI API error in text-to-speech: {str(e)}")
+
+            # Handle output
+            if output_path:
+                 # Stream response content to a file asynchronously
+                 await response.astream_to_file(output_path)
+                 self.logger.info(f"Saved speech output to {output_path}")
+                 return output_path
+            else:
+                # Read the entire content into bytes asynchronously
+                audio_bytes = await response.aread()
+                self.logger.info(f"Generated speech audio bytes (length: {len(audio_bytes)})")
+                return audio_bytes
+
         except Exception as e:
-            raise AIProviderError(f"Error with OpenAI text-to-speech: {str(e)}")
+             self.logger.error(f"Error generating speech with OpenAI: {e}", exc_info=True)
+             raise AIProviderError(f"Error generating speech with OpenAI: {str(e)}")
 
 
 def load_openai_client():

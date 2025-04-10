@@ -2,19 +2,21 @@
 Core interfaces for AI and provider implementations.
 """
 from typing import Protocol, List, Dict, Any, Optional, Union, Tuple, BinaryIO
+import asyncio # Added asyncio
 from typing_extensions import runtime_checkable
 # Import necessary types for tool handling
 from src.tools.models import ToolCall
 from ..tools.models import ToolResult
+from .models import ProviderResponse # Added ProviderResponse import
 
 
 @runtime_checkable
 class AIInterface(Protocol):
-    """Interface for synchronous AI interactions."""
+    """Interface for AI interactions (now potentially asynchronous)."""
     
-    def request(self, prompt: str, **options) -> str:
+    async def request(self, prompt: str, **options) -> str: # Changed to async def
         """
-        Make a request to the AI model.
+        Make an asynchronous request to the AI model.
         
         Args:
             prompt: The user prompt
@@ -25,9 +27,9 @@ class AIInterface(Protocol):
         """
         ...
     
-    def stream(self, prompt: str, **options) -> str:
+    async def stream(self, prompt: str, **options) -> str: # Changed to async def
         """
-        Stream a response from the AI model.
+        Stream a response asynchronously from the AI model.
         
         Args:
             prompt: The user prompt
@@ -54,25 +56,25 @@ class AIInterface(Protocol):
 
 @runtime_checkable
 class ProviderInterface(Protocol):
-    """Interface for AI providers."""
+    """Interface for AI providers (now potentially asynchronous)."""
     
-    def request(self, messages: Union[str, List[Dict[str, Any]]], **options) -> Union[str, Dict[str, Any]]:
+    async def request(self, messages: Union[str, List[Dict[str, Any]]], **options) -> ProviderResponse: # Changed to async def and return type ProviderResponse
         """
-        Make a request to the AI model.
+        Make an asynchronous request to the AI model provider.
         
         Args:
             messages: The conversation messages or a simple string prompt
             options: Additional options for the request
             
         Returns:
-            Either a string response (when no tools are called) or 
-            a dictionary with 'content' and possibly 'tool_calls' for further processing
+            A ProviderResponse object containing the response content, potential tool calls,
+            and other metadata.
         """
         ...
     
-    def stream(self, messages: Union[str, List[Dict[str, Any]]], **options) -> str:
+    async def stream(self, messages: Union[str, List[Dict[str, Any]]], **options) -> str: # Changed to async def
         """
-        Stream a response from the AI model.
+        Stream a response asynchronously from the AI model provider.
         
         Args:
             messages: The conversation messages or a simple string prompt
@@ -86,12 +88,13 @@ class ProviderInterface(Protocol):
 
 @runtime_checkable
 class ToolCapableProviderInterface(ProviderInterface, Protocol):
-    """Interface for providers that support tools/functions."""
+    """Interface for providers that support tools/functions (async methods)."""
     
-    def add_tool_message(self, messages: List[Dict[str, Any]], 
+    async def add_tool_message(self, messages: List[Dict[str, Any]], # Changed to async def
                          name: str, content: str) -> List[Dict[str, Any]]:
         """
-        Add a tool message to the conversation history.
+        Add a tool message to the conversation history asynchronously.
+        (Method signature might need adjustment based on provider needs)
         
         Args:
             messages: The current conversation history
@@ -103,11 +106,11 @@ class ToolCapableProviderInterface(ProviderInterface, Protocol):
         """
         ...
 
-    def build_tool_result_messages(self, 
+    async def build_tool_result_messages(self, # Changed to async def
                                   tool_calls: List['ToolCall'], 
                                   tool_results: List['ToolResult']) -> List[Dict[str, Any]]:
         """
-        Builds the list of message dictionaries representing tool results, 
+        Builds the list of message dictionaries representing tool results asynchronously,
         formatted correctly for the specific provider's API.
 
         This might return multiple messages (e.g., one per tool for OpenAI)

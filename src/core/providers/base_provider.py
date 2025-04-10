@@ -18,6 +18,8 @@ from .parameter_manager import ParameterManager
 from .credential_manager import CredentialManager
 from .provider_tool_handler import ProviderToolHandler
 
+import asyncio # Add asyncio
+
 
 class BaseProvider(ProviderInterface):
     """Base implementation for AI providers with common message handling."""
@@ -248,19 +250,20 @@ class BaseProvider(ProviderInterface):
     
     def _convert_response(self, raw_response: Any) -> ProviderResponse:
         """
-        Convert the raw provider response to a standardized ProviderResponse.
+        Converts the raw response from the underlying provider API into a standardized ProviderResponse object.
+        This method MUST be implemented by subclasses.
         
         Args:
-            raw_response: Raw response from the provider's API
+            raw_response: The raw data returned by the provider's API call.
             
         Returns:
-            Standardized ProviderResponse object
+            A ProviderResponse object.
         """
-        raise NotImplementedError(f"Subclasses must implement _convert_response")
+        raise NotImplementedError("Subclasses must implement _convert_response")
     
-    def request(self, messages: Union[str, List[Dict[str, Any]]], **options) -> ProviderResponse:
+    async def request(self, messages: Union[str, List[Dict[str, Any]]], **options) -> ProviderResponse:
         """
-        Make a request to the AI model.
+        Make an asynchronous request to the AI model provider.
         
         Args:
             messages: The conversation messages or a simple string prompt
@@ -273,48 +276,41 @@ class BaseProvider(ProviderInterface):
              # Convert simple prompt string to messages list
              messages = [{"role": "user", "content": messages}]
         
-        # Prepare the payload
-        payload = self._prepare_request_payload(messages, options)
-        
         try:
-            # Make the API request
-            raw_response = self._make_api_request(payload)
+            # Prepare payload (remains synchronous)
+            payload = self._prepare_request_payload(messages, options)
             
-            # Convert to standardized response
+            # Make the API request asynchronously
+            raw_response = await self._make_api_request(payload)
+            
+            # Convert raw response to standardized ProviderResponse (remains synchronous)
             provider_response = self._convert_response(raw_response)
-            
-            # Ensure the return type is ProviderResponse
-            if not isinstance(provider_response, ProviderResponse):
-                 self.logger.error(f"{self.__class__.__name__}._convert_response did not return a ProviderResponse object (returned {type(provider_response)}). Attempting conversion.")
-                 # Attempt to create the model from the dict if possible
-                 try:
-                      provider_response = ProviderResponse(**provider_response)
-                 except Exception as conversion_error:
-                      self.logger.error(f"Failed to convert provider response dict to ProviderResponse model: {conversion_error}")
-                      raise AIProviderError(f"Invalid response format from {self.__class__.__name__}._convert_response")
             
             return provider_response
             
         except Exception as e:
              # Catch potential API errors or conversion errors
              self.logger.error(f"Error during {self.__class__.__name__} request: {e}", exc_info=True)
-             return ProviderResponse(error=str(e))
+             raise AIProviderError(f"Provider request failed: {e}", provider=self.__class__.__name__) from e
              
-    def _make_api_request(self, payload: Dict[str, Any]) -> Any:
+    async def _make_api_request(self, payload: Dict[str, Any]) -> Any:
         """
-        Make the actual API request to the provider.
+        Makes the actual asynchronous API request to the provider.
+        This method MUST be implemented by subclasses.
         
         Args:
-            payload: Request payload dictionary
+            payload: The request payload.
             
         Returns:
-            Raw response from the provider's API
+            The raw response from the provider API.
         """
-        raise NotImplementedError(f"Subclasses must implement _make_api_request")
+        raise NotImplementedError("Subclasses must implement _make_api_request")
         
-    def stream(self, messages: Union[str, List[Dict[str, Any]]], **options) -> str:
+    async def stream(self, messages: Union[str, List[Dict[str, Any]]], **options) -> str:
         """
-        Stream a response from the AI model.
+        Stream a response asynchronously from the AI model provider.
+        NOTE: This base implementation raises NotImplementedError. Subclasses must provide
+        the actual async streaming logic.
         
         Args:
             messages: The conversation messages or a simple string prompt
@@ -323,7 +319,12 @@ class BaseProvider(ProviderInterface):
         Returns:
             Streamed response as a string
         """
-        raise NotImplementedError(f"Subclasses must implement stream")
+        # Basic message handling
+        if isinstance(messages, str):
+            messages = [{"role": "user", "content": messages}]
+            
+        # Subclasses need to implement the actual async streaming logic
+        raise NotImplementedError(f"{self.__class__.__name__} does not support streaming.")
     
     def build_tool_result_messages(self, 
                                  tool_calls: List[ToolCall], 

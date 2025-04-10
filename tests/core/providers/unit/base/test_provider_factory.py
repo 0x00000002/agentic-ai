@@ -133,15 +133,15 @@ class TestProviderFactory:
             # Assert GenerativeModel was called once (during __init__)
             mock_genai.GenerativeModel.assert_called_once()
 
-    @patch("ollama.Client")
-    def test_create_ollama_provider(self, mock_client, factory: ProviderFactory, mock_provider_config: Dict[str, Any], mock_model_config: Dict[str, Any]):
-        """Test creating an Ollama provider."""
-        mock_instance = Mock()
-        mock_client.return_value = mock_instance
-        
+    @patch("src.core.providers.ollama_provider.AsyncClient")
+    def test_create_ollama_provider(self, mock_async_client, factory: ProviderFactory, mock_provider_config: Dict[str, Any], mock_model_config: Dict[str, Any]):
+        """Test creating an Ollama provider using AsyncClient."""
+        # The factory will instantiate OllamaProvider, which in turn instantiates AsyncClient
         provider = factory.create("ollama", "test_model", mock_provider_config, mock_model_config)
+        
         assert isinstance(provider, OllamaProvider)
-        mock_client.assert_called_once()
+        # Check that AsyncClient was instantiated (called)
+        mock_async_client.assert_called_once()
 
     def test_create_provider_with_invalid_config(self, factory: ProviderFactory, mock_logger):
         """Test creating a provider with invalid configuration (missing API key)."""

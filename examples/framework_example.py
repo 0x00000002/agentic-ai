@@ -15,6 +15,7 @@ import time
 import warnings
 from pathlib import Path
 import uuid
+import asyncio
 
 # Suppress the specific NotOpenSSLWarning from urllib3
 warnings.filterwarnings(
@@ -43,7 +44,7 @@ from src.tools.tool_registry import ToolRegistry
 from src.tools.tool_manager import ToolManager
 from src.agents.agent_factory import AgentFactory
 
-def example_basic_framework_usage():
+async def example_basic_framework_usage():
     """Example of basic framework usage with configuration and agent creation."""
     from src.config import configure, get_config, UseCasePreset
     from src.agents.agent_factory import AgentFactory
@@ -90,9 +91,9 @@ def example_basic_framework_usage():
         "conversation_history": []
     }
     
-    start_time = time.time()
-    response = coordinator.process_request(request)
-    end_time = time.time()
+    start_time = time.monotonic()
+    response = await coordinator.process_request(request)
+    end_time = time.monotonic()
     
     logger.info(f"Response received in {end_time - start_time:.2f} seconds")
     
@@ -107,7 +108,7 @@ def example_basic_framework_usage():
     
     return coordinator
 
-def example_tool_usage():
+async def example_tool_usage():
     """Example of using tools with the framework."""
     from src.config import configure, get_config, UseCasePreset
     from src.agents.agent_factory import AgentFactory
@@ -166,9 +167,9 @@ def example_tool_usage():
         "conversation_history": []
     }
     
-    start_time = time.time()
-    response = coordinator.process_request(request)
-    end_time = time.time()
+    start_time = time.monotonic()
+    response = await coordinator.process_request(request)
+    end_time = time.monotonic()
     
     logger.info(f"Response received in {end_time - start_time:.2f} seconds")
     
@@ -183,7 +184,7 @@ def example_tool_usage():
     
     return coordinator
 
-def example_ui_interaction():
+async def example_ui_interaction():
     """Example of using the UI components of the framework."""
     from src.config import configure, get_config, UseCasePreset
     from src.ui.simple_chat import SimpleChatUI
@@ -238,7 +239,7 @@ def example_ui_interaction():
     # Process the message
     logger.info(f"Processing user message: {user_message}")
     history = []
-    updated_history, _ = chat_ui.process_message(user_message, history)
+    updated_history, _ = await chat_ui.process_message(user_message, history)
     
     # Display the response
     if updated_history and len(updated_history) > 0:
@@ -253,7 +254,7 @@ def example_ui_interaction():
     logger.info("UI interaction example completed")
     logger.info("Note: In a real application, you would launch the UI with chat_ui.launch()")
 
-def example_custom_agent():
+async def example_custom_agent():
     """Example of creating and using a custom agent."""
     from src.config import configure, get_config, UseCasePreset
     from src.agents.agent_factory import AgentFactory
@@ -286,8 +287,8 @@ def example_custom_agent():
                 agent_id=agent_id or "solidity_expert"
             )
         
-        def process_request(self, request):
-            """Process a request for Solidity expertise."""
+        async def process_request(self, request):
+            """Process a request asynchronously for Solidity expertise."""
             # Extract the user prompt
             prompt = request.get("prompt", "")
             conversation_history = request.get("conversation_history", [])
@@ -304,23 +305,26 @@ def example_custom_agent():
             # Log the enhanced prompt
             self.logger.debug(f"Enhanced prompt for Solidity expert: {enhanced_prompt}")
             
-            # Process with the AI instance
+            # Process with the AI instance asynchronously
             if self.ai_instance:
-                # Use the 'request' method instead of 'process'
-                response = self.ai_instance.request(
-                    enhanced_prompt, 
-                    # Note: BaseAI.request doesn't explicitly take conversation_history
-                    # It uses its internal ConversationManager
+                # Use await for the 'request' method
+                response_content = await self.ai_instance.request(
+                    enhanced_prompt,
                 )
-                # The response from BaseAI.request is usually a string (content)
-                # Wrap it in the standard agent response format
+                # Return the standard response format
                 return {
-                    "content": response,
+                    "content": response_content,
                     "agent_id": self.agent_id,
                     "status": "success"
                 }
             else:
-                return {"error": "No AI instance available for processing"}
+                # Return an error in the standard format
+                return {
+                    "content": "Error: No AI instance available for processing",
+                    "agent_id": self.agent_id,
+                    "status": "error",
+                    "error": "No AI instance available for processing"
+                }
     
     # Get configuration
     config = get_config()
@@ -360,9 +364,9 @@ def example_custom_agent():
         "conversation_history": []
     }
     
-    start_time = time.time()
-    response = solidity_agent.process_request(request)
-    end_time = time.time()
+    start_time = time.monotonic()
+    response = await solidity_agent.process_request(request)
+    end_time = time.monotonic()
     
     logger.info(f"Response received in {end_time - start_time:.2f} seconds")
     
@@ -377,71 +381,71 @@ def example_custom_agent():
     
     return solidity_agent
 
-def simple_chat():
+async def simple_chat():
     """Run a simple chat example."""
     from src.config import configure
     configure(model="phi3-mini", use_case="chat")
     from src.ui.simple_chat import run_simple_chat
     run_simple_chat()
 
-def chat_with_local_model():
+async def chat_with_local_model():
     """Run a chat with a local model."""
     from src.config import configure
     configure(model="llamacpp://llama3-8b", use_case="chat", system_prompt="You are a helpful AI assistant.")
     from src.ui.simple_chat import run_simple_chat
     run_simple_chat()
 
-def chat_with_override():
+async def chat_with_override():
     """Run a chat with temperature override."""
     from src.config import configure
     configure(model="claude-3-haiku", use_case="chat", temperature=0.9, show_thinking=True)
     from src.ui.simple_chat import run_simple_chat
     run_simple_chat()
 
-def chat_with_tools():
+async def chat_with_tools():
     """Run a chat with tools enabled."""
     from src.config import configure
     configure(model="claude-3-5-sonnet", use_case="coding")
     from src.ui.tool_chat import run_tool_chat
     run_tool_chat()
 
-def run_examples():
+async def run_examples():
     """Run all examples."""
     print("\n=== Basic Framework Usage ===\n")
-    example_basic_framework_usage()
+    await example_basic_framework_usage()
     
     print("\n=== Tool Usage ===\n")
-    example_tool_usage()
+    await example_tool_usage()
     
     print("\n=== Custom Agent ===\n")
-    example_custom_agent()
+    await example_custom_agent()
     
     print("\n=== UI Interaction (Simulated) ===\n")
-    example_ui_interaction()
+    await example_ui_interaction()
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         # Run a specific example
         example_name = sys.argv[1]
         if example_name == "basic":
-            example_basic_framework_usage()
+            asyncio.run(example_basic_framework_usage())
         elif example_name == "tools":
-            example_tool_usage()
+            asyncio.run(example_tool_usage())
         elif example_name == "ui":
-            example_ui_interaction()
+            asyncio.run(example_ui_interaction())
         elif example_name == "custom":
-            example_custom_agent()
+            asyncio.run(example_custom_agent())
         elif example_name == "chat":
-            simple_chat()
+            asyncio.run(simple_chat())
         elif example_name == "local":
-            chat_with_local_model()
+            asyncio.run(chat_with_local_model())
         elif example_name == "override":
-            chat_with_override()
+            asyncio.run(chat_with_override())
         elif example_name == "tool_chat":
-            chat_with_tools()
+            asyncio.run(chat_with_tools())
         else:
             print(f"Unknown example: {example_name}")
             print("Available examples: basic, tools, ui, custom, chat, local, override, tool_chat")
     else:
         # Run all examples
-        run_examples() 
+        asyncio.run(run_examples()) 

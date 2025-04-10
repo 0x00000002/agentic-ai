@@ -97,25 +97,29 @@ class TestToolManager:
         mock_registry.register_tool.assert_called_once_with(TOOL_DEF_WEATHER.name, TOOL_DEF_WEATHER)
         
     # --- Execute Tool Tests ---
-    def test_execute_tool_success(self, manager: ToolManager, mock_registry, mock_executor, mock_stats_manager):
+    @pytest.mark.asyncio # Mark as async
+    async def test_execute_tool_success(self, manager: ToolManager, mock_registry, mock_executor, mock_stats_manager):
         """Test successful execution flow including stats update."""
         # Setup
         tool_name = "get_weather"
         tool_def = TOOL_DEF_WEATHER
-        args = {"loc": "London", "request_id": "req-123"}
+        args = {"loc": "London"}
+        exec_args_no_request_id = args.copy() # Args passed to executor shouldn't include request_id
+        call_args = {**args, "request_id": "req-123"} # Args passed to manager include request_id
         mock_result = ToolResult(success=True, result="Rainy", tool_name=tool_name)
         
         mock_registry.get_tool.return_value = tool_def
-        mock_executor.execute.return_value = mock_result
+        # Ensure the executor's execute is an AsyncMock if not already set by fixture
+        mock_executor.execute = AsyncMock(return_value=mock_result)
         manager.config.get_tool_config.return_value = {} # No specific config
 
-        # Mock time for duration calculation (optional but good practice)
-        with patch('time.time', side_effect=[100.0, 100.5]): # Start time, End time
-             # Execute
-             result = manager.execute_tool(tool_name=tool_name, **args)
+        # Mock time for duration calculation
+        with patch('time.monotonic', side_effect=[100.0, 100.5]): # Use monotonic clock
+             # Execute with await
+             result = await manager.execute_tool(tool_name=tool_name, **call_args)
 
-        # Assert Executor Call
-        mock_executor.execute.assert_called_once_with(tool_def, **args)
+        # Assert Executor Call (without request_id)
+        mock_executor.execute.assert_called_once_with(tool_def, **exec_args_no_request_id)
         assert result == mock_result
 
         # Assert Stats Update Call
@@ -125,26 +129,29 @@ class TestToolManager:
             duration_ms=500, # 100.5 - 100.0 = 0.5s = 500ms
             request_id="req-123"
         )
-        # Reset mock for get_tool_config if it was called per-tool
+        # Check get_tool_config called to find tool-specific config
         manager.config.get_tool_config.assert_called_with(tool_name)
         
-    def test_execute_tool_failure(self, manager: ToolManager, mock_registry, mock_executor, mock_stats_manager):
+    @pytest.mark.asyncio # Mark as async
+    async def test_execute_tool_failure(self, manager: ToolManager, mock_registry, mock_executor, mock_stats_manager):
         """Test failure execution flow including stats update."""
         # Setup
         tool_name = "get_weather"
         tool_def = TOOL_DEF_WEATHER
-        args = {"loc": "London", "request_id": "req-abc"}
+        args = {"loc": "London"}
+        exec_args_no_request_id = args.copy()
+        call_args = {**args, "request_id": "req-abc"}
         mock_result = ToolResult(success=False, error="Executor Failed", tool_name=tool_name)
         
         mock_registry.get_tool.return_value = tool_def
-        mock_executor.execute.return_value = mock_result # Executor returns failure result
+        mock_executor.execute = AsyncMock(return_value=mock_result) # Executor returns failure result
         manager.config.get_tool_config.return_value = {} # No specific config
 
-        with patch('time.time', side_effect=[200.0, 200.8]): # Start time, End time
-             result = manager.execute_tool(tool_name=tool_name, **args)
+        with patch('time.monotonic', side_effect=[200.0, 200.8]): # Use monotonic clock
+             result = await manager.execute_tool(tool_name=tool_name, **call_args) # Await
 
         # Assert Executor Call
-        mock_executor.execute.assert_called_once_with(tool_def, **args)
+        mock_executor.execute.assert_called_once_with(tool_def, **exec_args_no_request_id)
         assert result == mock_result
 
         # Assert Stats Update Call (success=False)
@@ -156,7 +163,8 @@ class TestToolManager:
         )
         manager.config.get_tool_config.assert_called_with(tool_name)
 
-    def test_execute_tool_adds_config_params(self, manager: ToolManager, mock_registry, mock_executor, mock_stats_manager):
+    @pytest.mark.asyncio # Mark as async
+    async def test_execute_tool_adds_config_params(self, manager: ToolManager, mock_registry, mock_executor, mock_stats_manager):
         """Test that execute_tool adds tool-specific config parameters."""
         # Setup
         tool_name = "get_weather"
@@ -165,13 +173,13 @@ class TestToolManager:
         mock_result = ToolResult(success=True, result="Sunny", tool_name=tool_name)
         
         mock_registry.get_tool.return_value = tool_def
-        mock_executor.execute.return_value = mock_result
+        mock_executor.execute = AsyncMock(return_value=mock_result)
         
         # Mock config to return specific params for this tool
         manager.config.get_tool_config.return_value = {"units": "metric", "source": "api"}
 
-        with patch('time.time', side_effect=[300.0, 300.1]):
-            result = manager.execute_tool(tool_name=tool_name, **args)
+        with patch('time.monotonic', side_effect=[300.0, 300.1]): # Use monotonic clock
+            result = await manager.execute_tool(tool_name=tool_name, **args) # Await
 
         # Assert Executor Call includes merged params
         expected_executor_args = {"loc": "Paris", "units": "metric", "source": "api"}
@@ -187,14 +195,15 @@ class TestToolManager:
         )
         manager.config.get_tool_config.assert_called_with(tool_name)
 
-    def test_execute_tool_handles_tool_not_found(self, manager: ToolManager, mock_registry, mock_stats_manager):
+    @pytest.mark.asyncio # Mark as async
+    async def test_execute_tool_handles_tool_not_found(self, manager: ToolManager, mock_registry, mock_stats_manager):
         """Test execute_tool handles tool not found before executor or stats calls."""
         # Setup
         tool_name = "nonexistent_tool"
         mock_registry.get_tool.return_value = None # Tool not found
         
         # Execute
-        result = manager.execute_tool(tool_name=tool_name, arg1="val1")
+        result = await manager.execute_tool(tool_name=tool_name, arg1="val1") # Await
         
         # Assert
         assert result.success is False
@@ -205,7 +214,8 @@ class TestToolManager:
         # Stats manager should NOT have been called
         mock_stats_manager.update_stats.assert_not_called()
 
-    def test_execute_tool_handles_manager_exception(self, manager: ToolManager, mock_registry, mock_stats_manager):
+    @pytest.mark.asyncio # Mark as async
+    async def test_execute_tool_handles_manager_exception(self, manager: ToolManager, mock_registry, mock_stats_manager):
         """Test execute_tool handles exceptions during its own processing (e.g., config access)."""
         # Setup: Make config access raise an error AFTER getting tool def
         tool_name = "get_weather"
@@ -218,7 +228,7 @@ class TestToolManager:
             mock_error_handler.return_value = {"message": "Handled Config Error"}
             
             # Execute
-            result = manager.execute_tool(tool_name=tool_name, loc="Berlin")
+            result = await manager.execute_tool(tool_name=tool_name, loc="Berlin") # Await
 
         # Assert
         assert result.success is False

@@ -40,9 +40,9 @@ class BaseAgent:
         
         self.logger.debug(f"Initialized {self.agent_id} agent")
         
-    def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Process a request with this agent.
+        Process a request asynchronously with this agent.
         
         Args:
             request: The request object containing prompt and metadata
@@ -50,7 +50,7 @@ class BaseAgent:
         Returns:
             Response object with content and metadata
         """
-        self.logger.info(f"Processing request with {self.agent_id} agent")
+        self.logger.info(f"Processing request with {self.agent_id} agent (async)")
         
         # Handle string input first
         if isinstance(request, str):
@@ -112,7 +112,8 @@ class BaseAgent:
                 
             # Process with AI instance
             if self.ai_instance:
-                response_content = self.ai_instance.request(prompt)
+                # Use await for the AI instance's request method
+                response_content = await self.ai_instance.request(prompt)
                 response = {
                         "content": response_content,
                         "agent_id": self.agent_id,

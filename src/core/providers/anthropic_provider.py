@@ -12,10 +12,11 @@ from .base_provider import BaseProvider
 import json
 import os
 import httpx
+import asyncio # Add asyncio
 
 try:
     import anthropic
-    from anthropic import Anthropic
+    from anthropic import Anthropic, AsyncAnthropic # Import Async client
     from anthropic.types import Message
     ANTHROPIC_AVAILABLE = True
 except ImportError:
@@ -90,13 +91,13 @@ class AnthropicProvider(BaseProvider, ToolCapableProviderInterface):
                 
             self.logger.info("Found Anthropic API key")
                 
-            # Set up Anthropic client
+            # Set up Anthropic client - Use Async
             try:
-                self.client = Anthropic(api_key=api_key)
-                self.logger.info("Successfully initialized Anthropic client")
+                self.client = AsyncAnthropic(api_key=api_key) # Use AsyncAnthropic
+                self.logger.info("Successfully initialized AsyncAnthropic client")
             except Exception as e:
-                self.logger.error(f"Failed to create Anthropic client: {str(e)}")
-                raise AICredentialsError(f"Failed to create Anthropic client: {str(e)}")
+                self.logger.error(f"Failed to create AsyncAnthropic client: {str(e)}")
+                raise AICredentialsError(f"Failed to create AsyncAnthropic client: {str(e)}")
             
         except anthropic.AuthenticationError as e:
              self.logger.error(f"Anthropic Authentication Error: {e}")
@@ -195,14 +196,14 @@ class AnthropicProvider(BaseProvider, ToolCapableProviderInterface):
         
     # --- IMPLEMENT Required Abstract Methods --- 
 
-    def _make_api_request(self, payload: Dict[str, Any]) -> Message:
-        """Makes the actual API call to Anthropic messages endpoint."""
+    async def _make_api_request(self, payload: Dict[str, Any]) -> Message: # Changed to async def
+        """Makes the actual asynchronous API call to Anthropic messages endpoint."""
         if not ANTHROPIC_AVAILABLE:
              raise AIProviderError("Anthropic SDK not available.")
              
-        self.logger.debug(f"Making Anthropic API request with model {self.model_id}...")
+        self.logger.debug(f"Making async Anthropic API request with model {self.model_id}...")
         try:
-            response = self.client.messages.create(**payload)
+            response = await self.client.messages.create(**payload) # Use await
             self.logger.debug(f"Received Anthropic API response. Stop Reason: {response.stop_reason}")
             return response
         # --- Specific Anthropic Error Handling --- 
@@ -353,9 +354,10 @@ class AnthropicProvider(BaseProvider, ToolCapableProviderInterface):
         
         return messages_to_add
 
-    def stream(self, messages: List[Dict[str, str]], **options) -> str:
+    async def stream(self, messages: List[Dict[str, str]], **options) -> str: # Changed to async def
         """
-        Stream a response from the Anthropic API.
+        Stream a response asynchronously from the Anthropic API.
+        NOTE: Aggregates the response. For true streaming, handle the async generator.
         
         Args:
             messages: List of message dictionaries
@@ -364,43 +366,30 @@ class AnthropicProvider(BaseProvider, ToolCapableProviderInterface):
         Returns:
             Aggregated response as a string
         """
+        if not ANTHROPIC_AVAILABLE:
+             raise AIProviderError("Anthropic SDK not available.")
+             
+        # Prepare payload (sync)
+        payload = self._prepare_request_payload(messages, options)
+        payload["stream"] = True
+        
+        self.logger.debug(f"Making async streaming call to Anthropic. Payload keys: {list(payload.keys())}")
+        
         try:
-            # Format messages for Anthropic API
-            formatted_messages = self._format_messages(messages)
+            full_response_content = ""
+            async with self.client.messages.stream(**payload) as stream: # Use async context manager
+                async for text in stream.text_stream: # Iterate through text stream
+                    full_response_content += text
             
-            # Extract system message
-            system = self._extract_system_message(messages)
+            # Note: This simple aggregation misses potential tool_use events in the stream.
+            # A more robust implementation would need to handle different stream event types.
+            self.logger.debug(f"Anthropic stream finished. Aggregated length: {len(full_response_content)}")
+            return full_response_content
             
-            # Merge model parameters with options
-            params = self.parameters.copy()
-            params.update(options)
-            
-            # Remove any non-Anthropic parameters
-            for key in list(params.keys()):
-                if key not in ["temperature", "max_tokens", "top_p", "top_k", 
-                              "stop_sequences"]:
-                    del params[key]
-            
-            # Make the streaming API call
-            chunks = []
-            with self.client.messages.stream(
-                model=self.model_id,
-                messages=formatted_messages,
-                system=system,
-                max_tokens=params.get("max_tokens", 4096),
-                temperature=params.get("temperature", 0.7),
-                # Add other params? stop_sequences, top_p, top_k?
-            ) as stream:
-                for text in stream.text_stream:
-                    chunks.append(text)
-                    
-            # Join all chunks
-            return "".join(chunks)
-            
-        except anthropic.APIError as e:
-            raise AIRequestError(f"Anthropic API error in streaming: {str(e)}")
         except Exception as e:
-            raise AIProviderError(f"Error streaming from Anthropic: {str(e)}")
+             # Catch errors during streaming
+             self.logger.error(f"Error streaming from Anthropic: {e}", exc_info=True)
+             raise AIProviderError(f"Error streaming from Anthropic: {e}", provider="anthropic") from e
     
     def build_tool_result_messages(self,
                                   tool_calls: List[ToolCall],

@@ -72,9 +72,9 @@ class CodingAssistantAgent(BaseAgent):
         
         self.logger.info("Initialized coding assistant agent")
     
-    def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Process a request with coding-specific context.
+        Process a request asynchronously with coding-specific context.
         
         Args:
             request: The request object containing prompt and metadata
@@ -105,5 +105,5 @@ class CodingAssistantAgent(BaseAgent):
             "conversation_history": request.get("conversation_history", [])
         }
         
-        # Process the enhanced request using the base agent's method
-        return super().process_request(enhanced_request) 
+        # Process the enhanced request using the base agent's async method
+        return await super().process_request(enhanced_request) 

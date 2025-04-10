@@ -9,8 +9,9 @@ import time
 
 # Import necessary components from src/tools
 from src.tools.models import ToolCall, ToolResult, ToolDefinition
-from src.tools.tool_executor import ToolExecutor, timeout_handler, TimeoutError
+from src.tools.tool_executor import ToolExecutor
 from src.exceptions import AIToolError, RetryableToolError
+from asyncio import TimeoutError # Import TimeoutError from asyncio
 
 # --- Test Functions --- 
 def simple_sync_tool(a: int, b: int) -> int:
@@ -48,8 +49,8 @@ class TestToolExecutor:
 
     # --- Execution Tests --- 
     @pytest.mark.asyncio
-    async def test_execute_sync_tool_success(self, executor: ToolExecutor): # Remove mock_registry
-        """Test successful execution of a synchronous tool."""
+    async def test_execute_sync_tool_success(self, executor: ToolExecutor):
+        """Test successful execution of a synchronous tool (run via async execute)."""
         tool_def = ToolDefinition(
             name="simple_sync_tool",
             description="",
@@ -58,14 +59,16 @@ class TestToolExecutor:
             function_name="simple_sync_tool",
             function=simple_sync_tool
         )
-        # Call execute directly, it's synchronous
-        result = executor.execute(tool_def, a=1, b=2)
+        # Call execute with await as the execute method is async
+        result = await executor.execute(tool_def, a=1, b=2)
         assert isinstance(result, ToolResult)
         assert result.success is True
         assert result.result == 3 # 1 + 2 = 3
+        assert result.error is None
 
-    def test_execute_sync_tool_success_sync(self, executor: ToolExecutor):
-        """Test successful execution of a synchronous tool (Sync Test)."""
+    @pytest.mark.asyncio # Mark as async
+    async def test_execute_sync_tool_success_sync(self, executor: ToolExecutor):
+        """Test successful execution of a synchronous tool (run via async execute)."""
         tool_def = ToolDefinition(
             name="simple_sync_tool", 
             description="Test", 
@@ -74,15 +77,16 @@ class TestToolExecutor:
             function_name="simple_sync_tool",
             function=simple_sync_tool
         )
-        result = executor.execute(tool_def, a=1, b=2)
+        result = await executor.execute(tool_def, a=1, b=2) # Await the async execute method
         assert isinstance(result, ToolResult)
         assert result.success is True
         assert result.error is None
         assert result.result == 3
 
 
-    def test_execute_tool_internal_error(self, executor: ToolExecutor):
-        """Test execution when the tool function itself raises an error (Sync Test)."""
+    @pytest.mark.asyncio # Mark as async
+    async def test_execute_tool_internal_error(self, executor: ToolExecutor):
+        """Test execution when the tool function itself raises an error (run via async execute)."""
         tool_def = ToolDefinition(
             name="error_tool",
             description="Test",
@@ -91,15 +95,15 @@ class TestToolExecutor:
             function_name="error_tool",
             function=error_tool
         )
-        # Call execute without the unexpected argument 'x'
-        result = executor.execute(tool_def)
+        result = await executor.execute(tool_def) # Await the async execute method
         assert isinstance(result, ToolResult)
         assert result.success is False
-        # Check for the specific error raised by the error_tool function
+        assert result.result is None
         assert "Tool execution failed!" in result.error
 
-    def test_execute_tool_missing_arguments(self, executor: ToolExecutor):
-        """Test execution when required arguments are missing (Sync Test)."""
+    @pytest.mark.asyncio # Mark as async
+    async def test_execute_tool_missing_arguments(self, executor: ToolExecutor):
+        """Test execution when required arguments are missing (run via async execute)."""
         tool_def = ToolDefinition(
             name="simple_sync_tool", 
             description="Test", 
@@ -108,116 +112,124 @@ class TestToolExecutor:
             function_name="simple_sync_tool",
             function=simple_sync_tool
         )
-        # The execute method catches the TypeError and returns a ToolResult
-        # with pytest.raises(TypeError, match="missing 1 required positional argument: 'b'"):
-        #      executor.execute(tool_def, a=5)
-        result = executor.execute(tool_def, a=5)
+        result = await executor.execute(tool_def, a=5) # Await the async execute method
         assert isinstance(result, ToolResult)
         assert result.success is False
+        assert result.result is None
         assert result.error is not None
-        assert "missing 1 required positional argument: 'b'" in result.error
+        assert "missing 1 required positional argument: \'b\'" in result.error
 
     # --- Timeout Tests (Need careful handling due to signals) ---
     # Signals don't work well with pytest, especially across threads/async. 
     # Consider refactoring ToolExecutor to use asyncio.wait_for or threading if async support needed.
     # For now, test the timeout logic carefully, possibly patching time.sleep or signal.
 
-    @patch('src.tools.tool_executor.signal')
-    @patch('src.tools.tool_executor.time.sleep')  # Patch time.sleep to avoid actual waiting
-    def test_execute_tool_timeout(self, mock_sleep, mock_signal, executor: ToolExecutor):
-        """Test tool execution timing out (Sync Test)."""
-        # Mock the timeout handler raising the exception
-        def alarm_side_effect(duration):
-            if duration > 0: # If setting the alarm
-                # Simulate the timeout happening by raising the error directly
-                # Use the imported TimeoutError
-                raise TimeoutError("Tool execution timed out") 
-            # Ignore signal.alarm(0)
-            
-        mock_signal.alarm.side_effect = alarm_side_effect
-        # timeout is already set to 1 in the fixture
-        
+    # Remove tests relying on the old signal-based timeout_handler and signal patching
+    # @patch('src.tools.tool_executor.signal')
+    # @patch('src.tools.tool_executor.time.sleep')
+    # def test_execute_tool_timeout(self, mock_sleep, mock_signal, executor: ToolExecutor):
+    #     ...
+
+    # @patch('src.tools.tool_executor.signal')
+    # @patch('time.sleep')
+    # def test_execute_tool_no_timeout(self, mock_sleep, mock_signal, executor: ToolExecutor):
+    #     ...
+
+    # New test for asyncio timeout
+    @pytest.mark.asyncio
+    async def test_execute_asyncio_timeout(self, executor: ToolExecutor):
+        """Test tool execution timing out using asyncio.wait_for."""
         tool_def = ToolDefinition(
-            name="timeout_tool", 
-            description="Test", 
+            name="timeout_tool",
+            description="Test",
             parameters_schema={}, 
             module_path="tests.tools.unit.test_tool_executor",
             function_name="timeout_tool",
             function=timeout_tool
         )
-        result = executor.execute(tool_def, duration=5) 
-        
+        # Set a duration longer than the executor's timeout (1s)
+        result = await executor.execute(tool_def, duration=1.5)
+
         assert isinstance(result, ToolResult)
         assert result.success is False
-        assert "Tool execution timed out" in result.error
-        # Use the imported timeout_handler in assertion
-        mock_signal.signal.assert_called_with(mock_signal.SIGALRM, timeout_handler)
-        # Assert alarm was set
-        mock_signal.alarm.assert_any_call(executor.timeout)
-        # Verify sleep wasn't called (since max_retries is 0)
-        mock_sleep.assert_not_called()
+        assert result.error is not None
+        assert "TimeoutError: Tool execution exceeded" in result.error # Check for asyncio timeout message
 
-    @patch('src.tools.tool_executor.signal')
-    @patch('time.sleep')  # Patch the global time.sleep to avoid actual waiting
-    def test_execute_tool_no_timeout(self, mock_sleep, mock_signal, executor: ToolExecutor):
-        """Test tool execution completing before timeout (Sync Test)."""
-        # timeout is already set to 1 in the fixture
+    @pytest.mark.asyncio
+    async def test_execute_asyncio_no_timeout(self, executor: ToolExecutor):
+        """Test tool execution completing before asyncio timeout."""
         tool_def = ToolDefinition(
-            name="timeout_tool", 
-            description="Test", 
-            parameters_schema={}, 
+            name="timeout_tool",
+            description="Test",
+            parameters_schema={},
             module_path="tests.tools.unit.test_tool_executor",
             function_name="timeout_tool",
             function=timeout_tool
         )
-        
-        # Ensure the mock alarm doesn't raise TimeoutError prematurely
-        def alarm_side_effect(duration):
-            pass # Do nothing, let the tool run
-        mock_signal.alarm.side_effect = alarm_side_effect
-        
-        # duration is short, should complete
-        result = executor.execute(tool_def, duration=0.5)
-        
+        # Set a duration shorter than the executor's timeout (1s)
+        result = await executor.execute(tool_def, duration=0.1)
+
         assert isinstance(result, ToolResult)
         assert result.success is True
         assert result.error is None
         assert result.result == "Finished sleeping"
-        mock_signal.alarm.assert_has_calls([call(executor.timeout), call(0)])
-        # Our implementation of time.sleep in the tool itself is still being called,
-        # so we can't assert that sleep wasn't called
 
-    @patch('src.tools.tool_executor.time.sleep')  # Patch sleep to avoid delays
-    def test_execute_tool_with_retries(self, mock_sleep, retry_executor):
-        """Test that retry logic works properly but doesn't cause delays."""
-        # Create a tool that fails on first two calls, succeeds on third
-        call_count = [0]
-        
-        def flaky_tool():
-            call_count[0] += 1
-            if call_count[0] <= 2:  # Fail first two calls
-                # Use RetryableToolError to correctly test retry logic
-                raise RetryableToolError(f"Failing on attempt {call_count[0]}", tool_name="flaky_tool") 
-            return "Success on third try"
-        
+    @pytest.mark.asyncio
+    async def test_execute_async_tool_success(self, executor: ToolExecutor):
+        """Test successful execution of an asynchronous tool."""
         tool_def = ToolDefinition(
-            name="flaky_tool", 
+            name="simple_async_tool",
             description="Test",
-            parameters_schema={}, 
+            parameters_schema={},
             module_path="tests.tools.unit.test_tool_executor",
-            function_name="flaky_tool",
-            function=flaky_tool
+            function_name="simple_async_tool",
+            function=simple_async_tool
         )
-        
-        result = retry_executor.execute(tool_def)
-        
+        result = await executor.execute(tool_def, name="World")
         assert result.success is True
-        assert result.result == "Success on third try"
-        assert call_count[0] == 3 # Should be called 3 times (2 failures + 1 success)
-        # Check sleep was called twice (after first and second failures)
-        assert mock_sleep.call_count == 2 
-        # Check backoff delays (optional)
-        # mock_sleep.assert_has_calls([
-        #     call(min(2 ** 1, 10)),
-        #     call(min(2 ** 2, 10))
-        # ])
+        assert result.result == "Hello, World"
+        
+    @pytest.mark.asyncio
+    async def test_execute_tool_internal_error_async(self, executor: ToolExecutor):
+        """Test execution when an async tool function raises an error."""
+        async def async_error_tool():
+            raise ValueError("Async tool error!")
+            
+        tool_def = ToolDefinition(
+            name="async_error_tool", 
+            description="Test", 
+            parameters_schema={},
+            module_path="tests.tools.unit.test_tool_executor", # Placeholder
+            function_name="async_error_tool",
+            function=async_error_tool
+        )
+        result = await executor.execute(tool_def)
+        assert result.success is False
+        assert "Async tool error!" in result.error
+        
+    @pytest.mark.asyncio
+    @patch('src.tools.tool_executor.asyncio.sleep') # Patch asyncio sleep
+    async def test_execute_tool_with_retries_async(self, mock_sleep, retry_executor):
+        """Test async retry logic with patched asyncio.sleep."""
+        call_count = [0]
+        async def async_flaky_tool():
+            call_count[0] += 1
+            if call_count[0] <= 2:
+                raise RetryableToolError(f"Failing async on attempt {call_count[0]}", tool_name="async_flaky_tool")
+            return "Async Success"
+
+        tool_def = ToolDefinition(
+            name="async_flaky_tool",
+            description="Test",
+            parameters_schema={},
+            module_path="tests.tools.unit.test_tool_executor",
+            function_name="async_flaky_tool",
+            function=async_flaky_tool
+        )
+
+        result = await retry_executor.execute(tool_def)
+
+        assert result.success is True
+        assert result.result == "Async Success"
+        assert call_count[0] == 3
+        assert mock_sleep.call_count == 2 # Check asyncio.sleep was called twice

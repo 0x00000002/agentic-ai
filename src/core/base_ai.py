@@ -13,6 +13,7 @@ from .providers.base_provider import BaseProvider
 import uuid
 from ..prompts.prompt_template import PromptTemplate
 from ..config.unified_config import AIConfigError
+import asyncio
 
 # Default system prompt if none provided
 DEFAULT_SYSTEM_PROMPT = """You are a helpful AI assistant. Answer the user's questions accurately and concisely."""
@@ -137,9 +138,9 @@ class AIBase(AIInterface):
             self._logger.warning("System prompt template not found, using fallback")
             return f"You are a helpful AI assistant using the {self._model_config.get('model_id', 'default')} model."
     
-    def request(self, prompt: str, **options) -> str:
+    async def request(self, prompt: str, **options) -> str:
         """
-        Make a request to the AI model.
+        Make an asynchronous request to the AI model.
         
         Args:
             prompt: The user prompt
@@ -157,21 +158,19 @@ class AIBase(AIInterface):
             # Add user message
             self._conversation_manager.add_message(role="user", content=prompt)
             
-            # Get response from provider
-            response = self._provider.request(self._conversation_manager.get_messages(), **options)
+            # Get response from async provider request
+            response: ProviderResponse = await self._provider.request(self._conversation_manager.get_messages(), **options)
             
-            # --- Corrected Response Handling ---
+            # --- Response Handling (ProviderResponse expected) ---
             content = ""
-            if hasattr(response, 'content'): # Check if it has a content attribute
+            if response.error:
+                self._logger.error(f"Provider returned error in AIBase request: {response.error}")
+                raise AIProcessingError(f"Provider error: {response.error}")
+            
+            if response.content is not None:
                 content = response.content
-            elif isinstance(response, dict): # Handle if it's unexpectedly a dict
-                content = response.get('content', '')
-                self._logger.warning("Provider returned a dict instead of ProviderResponse object.")
-            elif isinstance(response, str): # Handle if it's unexpectedly a string
-                content = response
-                self._logger.warning("Provider returned a string instead of ProviderResponse object.")
             else:
-                self._logger.error(f"Received unexpected response type from provider: {type(response)}")
+                self._logger.warning("Provider response content was None in AIBase request.")
             # ----------------------------------
             
             # Add assistant message with thoughts handling
@@ -198,9 +197,9 @@ class AIBase(AIInterface):
             # Raise the specific error type, chaining the original exception cause
             raise ai_error from e
     
-    def stream(self, prompt: str, **options) -> str:
+    async def stream(self, prompt: str, **options) -> str:
         """
-        Stream a response from the AI model.
+        Stream a response asynchronously from the AI model.
         
         Args:
             prompt: The user prompt
@@ -218,21 +217,16 @@ class AIBase(AIInterface):
             # Add user message
             self._conversation_manager.add_message(role="user", content=prompt)
             
-            # Stream the response
-            response = self._provider.stream(self._conversation_manager.get_messages(), **options)
+            # Stream the response - ASSUME provider.stream is async
+            # The actual handling of async streams needs careful implementation
+            # For now, let's assume it returns the full string eventually for simplicity
+            # A proper implementation would yield chunks.
+            response_content: str = await self._provider.stream(self._conversation_manager.get_messages(), **options)
             
-            # --- Corrected Response Handling ---
-            content = ""
-            if hasattr(response, 'content'): # Check if it has a content attribute
-                content = response.content
-            elif isinstance(response, dict): # Handle if it's unexpectedly a dict
-                content = response.get('content', '')
-                self._logger.warning("Provider returned a dict instead of ProviderResponse object during streaming.")
-            elif isinstance(response, str): # Handle if it's unexpectedly a string
-                content = response
-                self._logger.warning("Provider returned a string instead of ProviderResponse object during streaming.")
-            else:
-                self._logger.error(f"Received unexpected response type from provider during streaming: {type(response)}")
+            # --- Simplified Stream Handling (adjust later if provider yields chunks) ---
+            content = response_content if isinstance(response_content, str) else ""
+            if not content:
+                 self._logger.warning("Provider stream returned empty content.")
             # ----------------------------------
             
             # Add assistant message with thoughts handling

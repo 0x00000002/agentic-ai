@@ -20,6 +20,7 @@ from .models import ProviderResponse
 from .interfaces import ToolCapableProviderInterface 
 # Import specific providers to check for Anthropic type if needed
 from .providers.anthropic_provider import AnthropicProvider
+import asyncio # Add asyncio import
 
 
 class ToolEnabledAI(AIBase):
@@ -76,9 +77,9 @@ class ToolEnabledAI(AIBase):
         # Tool history tracking - perhaps per request? Resetting here for now.
         self._tool_history = [] 
     
-    def request_basic(self, prompt: str, **options) -> ProviderResponse:
+    async def request_basic(self, prompt: str, **options) -> ProviderResponse: # Changed to async def
         """
-        Makes a basic request to the underlying provider, returning the standardized response.
+        Makes a basic request to the underlying provider asynchronously, returning the standardized response.
 
         Handles formatting messages with history and sending to the provider.
         Does NOT automatically execute tool calls. Returns the standardized ProviderResponse object
@@ -98,8 +99,9 @@ class ToolEnabledAI(AIBase):
         self._logger.debug(f"ToolEnabledAI.request_basic: Calling provider with {len(messages)} messages. Options: {options}")
         
         try:
-            # Call provider's request method - it now returns a ProviderResponse object
-            provider_response = self._provider.request(messages=messages, **options)
+            # Call provider's async request method
+            # Assume provider.request is also made async or wrapped appropriately
+            provider_response = await self._provider.request(messages=messages, **options) # Use await
             
             # Check for errors in the response object itself
             if provider_response.error:
@@ -135,7 +137,7 @@ class ToolEnabledAI(AIBase):
             # return ProviderResponse(error=str(e))
             raise AIProcessingError(f"Failed processing basic request: {e}") from e
 
-    def process_prompt(self, 
+    async def process_prompt(self, # Changed to async def
                        prompt: str, 
                        max_tool_iterations: int = 5, 
                        **options) -> str:
@@ -158,7 +160,7 @@ class ToolEnabledAI(AIBase):
         if not self._supports_tools:
              self._logger.warning("Provider does not support tools. Performing basic request using AIBase.request.")
              # Fallback to base class request if tools aren't supported
-             response_str = super().request(prompt, **options) 
+             response_str = await super().request(prompt, **options) # Use await
              return response_str
 
         self._logger.info(f"Processing prompt with tool support: '{prompt[:50]}...' (Max Iterations: {max_tool_iterations})")
@@ -173,6 +175,14 @@ class ToolEnabledAI(AIBase):
         while iteration_count < max_tool_iterations:
             iteration_count += 1
             self._logger.info(f"Tool Loop Iteration {iteration_count}/{max_tool_iterations}")
+
+            # >>> ADD CHECK HERE <<<
+            if not self._tool_manager:
+                # This state should ideally not be reached if _supports_tools is True,
+                # but adding a safeguard.
+                self._logger.error("Tool manager is not initialized, cannot proceed with tool loop.")
+                raise ValueError("Tool manager not initialized")
+            # >>> END CHECK <<<
 
             current_messages = self._conversation_manager.get_messages()
 
@@ -194,8 +204,8 @@ class ToolEnabledAI(AIBase):
             try:
                 # --- Call Provider ---
                 self._logger.debug(f"Calling provider. Request messages count: {len(current_messages)}")
-                # Provider now returns a ProviderResponse object
-                provider_response = self._provider.request(messages=current_messages, **provider_options)
+                # Provider now returns a ProviderResponse object - assume request is async
+                provider_response = await self._provider.request(messages=current_messages, **provider_options) # Use await
                 self._logger.debug(f"Provider response received. Stop reason: {provider_response.stop_reason}")
 
                 # --- Check for Errors in Response Object --- 
@@ -236,22 +246,47 @@ class ToolEnabledAI(AIBase):
                 
                 # --- Execute Tools ---
                 tool_results: List[ToolResult] = []
+                # If multiple tool calls, consider executing them concurrently
+                # For simplicity now, execute sequentially
+                tool_execution_tasks = []
                 for tool_call in tool_calls:
                     if not isinstance(tool_call, ToolCall):
-                         self._logger.error(f"Provider returned invalid tool call object type: {type(tool_call)}. Skipping.")
-                         tool_results.append(ToolResult(success=False, error="Invalid tool call format from provider", tool_name="unknown"))
-                         continue
+                        self._logger.error(f"Provider returned invalid tool call object type: {type(tool_call)}. Skipping.")
+                        # Add an error result directly
+                        tool_results.append(ToolResult(success=False, error="Invalid tool call format from provider", tool_name="unknown"))
+                        continue
+                        
+                    # Create an awaitable task for each tool call
+                    tool_execution_tasks.append(self._execute_tool_call(tool_call))
                     
-                    result = self._execute_tool_call(tool_call)
-                    tool_results.append(result)
-                    self._tool_history.append({
-                         "tool_name": tool_call.name,
-                         "arguments": tool_call.arguments,
-                         "result": result.result if result.success else None,
-                         "error": result.error if not result.success else None,
-                         "tool_call_id": tool_call.id
-                     })
-
+                # Execute tool calls concurrently using asyncio.gather
+                if tool_execution_tasks:
+                    self._logger.info(f"Executing {len(tool_execution_tasks)} tool calls concurrently...")
+                    executed_results = await asyncio.gather(*tool_execution_tasks, return_exceptions=True)
+                    self._logger.info("Concurrent tool execution finished.")
+                    
+                    # Process results (handle potential exceptions returned by gather)
+                    for i, result_or_exception in enumerate(executed_results):
+                        tool_call = tool_calls[i] # Get corresponding tool call
+                        if isinstance(result_or_exception, Exception):
+                             self._logger.error(f"Exception during concurrent execution of tool '{tool_call.name}': {result_or_exception}", exc_info=result_or_exception)
+                             result = ToolResult(success=False, error=f"Execution exception: {result_or_exception}", tool_name=tool_call.name)
+                        elif not isinstance(result_or_exception, ToolResult):
+                            # Should not happen if _execute_tool_call always returns ToolResult
+                            self._logger.error(f"Unexpected result type from concurrent execution of tool '{tool_call.name}': {type(result_or_exception)}")
+                            result = ToolResult(success=False, error="Unexpected execution result type", tool_name=tool_call.name)
+                        else:
+                             result = result_or_exception # It's a valid ToolResult
+                             
+                        tool_results.append(result)
+                        self._tool_history.append({
+                            "tool_name": tool_call.name,
+                            "arguments": tool_call.arguments,
+                            "result": result.result if result.success else None,
+                            "error": result.error,
+                            "tool_call_id": tool_call.id # Include ID if available
+                        })
+                
                 # --- Add Tool Results to History ---
                 needs_last_assistant_message = isinstance(self._provider, AnthropicProvider)
                 messages_to_add_to_history = []
@@ -310,21 +345,12 @@ class ToolEnabledAI(AIBase):
         self._logger.warning(f"Exceeded maximum tool iterations ({max_tool_iterations}). Returning last assistant content.")
         return last_assistant_content or "" # Return the last text content received
 
-    def _execute_tool_call(self, tool_call: ToolCall) -> ToolResult:
-        """
-        Executes a single tool call using the ToolManager.
-        
-        Args:
-            tool_call: The ToolCall object (containing name, args, id).
-            
-        Returns:
-            ToolResult object.
-        """
+    async def _execute_tool_call(self, tool_call: ToolCall) -> ToolResult:
+        self._logger.critical(f"--- Entered _execute_tool_call for {tool_call.name}") # Log entry
         tool_name = tool_call.name
-        tool_args = tool_call.arguments # Arguments should already be parsed dict by provider._convert_response
-        tool_id = tool_call.id
+        tool_args = tool_call.arguments
         
-        self._logger.info(f"Executing tool via ToolManager: '{tool_name}' (Call ID: {tool_id}) Args: {tool_args}")
+        self._logger.info(f"Executing tool: {tool_call.name} with arguments: {tool_call.arguments}")
         
         if not isinstance(tool_args, dict):
             self._logger.warning(f"Tool arguments for '{tool_name}' are not a dictionary ({type(tool_args)}). Attempting execution anyway.")
@@ -332,35 +358,33 @@ class ToolEnabledAI(AIBase):
             # For now, pass as is, ToolExecutor might handle it or fail.
             
         try:
-            # Execute the tool using ToolManager
-            # Pass request_id if available on self?
-            exec_options = {}
-            if self.request_id:
-                 exec_options['request_id'] = self.request_id
+            self._logger.critical("--- Entered try block") # Log try entry
+            exec_args = tool_call.arguments.copy()
+            self._logger.critical("--- Copied args") # Log copy
+            exec_args['request_id'] = self._request_id # Use protected attribute
+            self._logger.critical(f"--- Added request_id: {self._request_id}") # Log request_id add
+            
+            self._logger.critical(f"--- About to await tool_manager.execute_tool for {tool_name}") # Existing debug log
+            # Check if self._tool_manager is valid right before the call
+            if self._tool_manager:
+                 self._logger.critical(f"--- self._tool_manager type: {type(self._tool_manager)}")
+            else:
+                 self._logger.critical("--- self._tool_manager is None!!!")
                  
-            result = self._tool_manager.execute_tool(
-                tool_name=tool_name, 
-                tool_definition=None, # execute_tool can find definition by name
-                **tool_args, 
-                **exec_options 
+            result: ToolResult = await self._tool_manager.execute_tool( # Use await
+                tool_name=tool_name,
+                **exec_args
             )
-            # Ensure the result includes the tool name and call ID for context
-            result.tool_name = tool_name 
-            # result.tool_call_id = tool_id # Add if ToolResult model supports it
-            
-            self._logger.info(f"Tool '{tool_name}' execution result status: {result.status}")
+            self._logger.critical("--- Awaited execute_tool successfully") # Log success
             return result
-            
         except Exception as e:
-            self._logger.error(f"Error executing tool '{tool_name}' via ToolManager: {e}", exc_info=True)
-            # Return a standardized ToolResult error
+            self._logger.critical(f"--- EXCEPTION in _execute_tool_call: {e}", exc_info=True) # Log exception
+            # Handle unexpected errors during the execution call itself (less likely now with ToolManager handling)
+            self._logger.error(f"Unexpected error executing tool '{tool_call.name}': {e}", exc_info=True)
             return ToolResult(
                 success=False,
-                status="error", # Use status enum if available
-                error=f"Error executing tool '{tool_name}': {str(e)}",
-                result=None,
-                tool_name=tool_name
-                # tool_call_id=tool_id # Add if ToolResult model supports it
+                error=f"Unexpected error in ToolEnabledAI._execute_tool_call: {str(e)}",
+                tool_name=tool_call.name
             )
 
     def get_tool_history(self) -> List[Dict[str, Any]]:

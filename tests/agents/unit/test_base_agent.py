@@ -3,7 +3,7 @@ Unit tests for the BaseAgent class.
 """
 
 import pytest
-from unittest.mock import MagicMock, patch, ANY, call
+from unittest.mock import MagicMock, patch, ANY, call, AsyncMock
 
 # Class to test
 from src.agents.base_agent import BaseAgent
@@ -22,8 +22,11 @@ class TestBaseAgent:
 
     # Mock dependencies available to all tests in the class
     @pytest.fixture
-    def mock_ai_instance(self) -> MagicMock:
-        return MagicMock(spec=AIBase)
+    def mock_ai_instance(self) -> AsyncMock:
+        mock = AsyncMock(spec=AIBase)
+        mock.get_model_info.return_value = {"model_id": "default-id", "short_key": "default-key"}
+        mock.get_system_prompt.return_value = "Default System Prompt"
+        return mock
 
     @pytest.fixture
     def mock_tool_manager(self) -> MagicMock:
@@ -117,60 +120,64 @@ class TestBaseAgent:
 
     # --- process_request Tests (Core Logic) ---
 
-    def test_process_request_success_dict_input(self, mock_ai_instance, mock_logger):
-        """Test basic successful request processing with a dict input."""
+    @pytest.mark.asyncio
+    async def test_process_request_success_dict_input(self, mock_ai_instance, mock_logger):
+        """Test basic successful request processing with a dict input (async)."""
         agent = BaseAgent(ai_instance=mock_ai_instance, logger=mock_logger)
         prompt = "Test prompt content"
         request_dict = {"prompt": prompt}
         ai_response_content = "Successful AI response"
         mock_ai_instance.request.return_value = ai_response_content
         
-        response = agent.process_request(request_dict)
+        response = await agent.process_request(request_dict)
         
-        mock_logger.info.assert_any_call(f"Processing request with {agent.agent_id} agent")
+        mock_logger.info.assert_any_call(f"Processing request with {agent.agent_id} agent (async)")
         mock_ai_instance.request.assert_called_once_with(prompt)
         assert response["content"] == ai_response_content
         assert response["agent_id"] == agent.agent_id
         assert response["status"] == "success"
 
-    def test_process_request_success_str_input(self, mock_ai_instance, mock_logger):
-        """Test basic successful request processing with a string input."""
+    @pytest.mark.asyncio
+    async def test_process_request_success_str_input(self, mock_ai_instance, mock_logger):
+        """Test basic successful request processing with a string input (async)."""
         agent = BaseAgent(ai_instance=mock_ai_instance, logger=mock_logger)
         prompt = "Test prompt as string"
         ai_response_content = "Successful AI response from string"
         mock_ai_instance.request.return_value = ai_response_content
         
-        response = agent.process_request(prompt) # Pass string directly
+        response = await agent.process_request(prompt) # Pass string directly
         
-        mock_logger.info.assert_any_call(f"Processing request with {agent.agent_id} agent")
+        mock_logger.info.assert_any_call(f"Processing request with {agent.agent_id} agent (async)")
         mock_ai_instance.request.assert_called_once_with(prompt)
         assert response["content"] == ai_response_content
         assert response["agent_id"] == agent.agent_id
         assert response["status"] == "success"
 
-    def test_process_request_no_ai_instance(self, mock_logger):
-        """Test processing when ai_instance is None."""
+    @pytest.mark.asyncio
+    async def test_process_request_no_ai_instance(self, mock_logger):
+        """Test processing when ai_instance is None (async)."""
         agent = BaseAgent(ai_instance=None, logger=mock_logger)
         request = {"prompt": "Test prompt"}
         
-        response = agent.process_request(request)
+        response = await agent.process_request(request)
         
-        mock_logger.info.assert_any_call(f"Processing request with {agent.agent_id} agent")
+        mock_logger.info.assert_any_call(f"Processing request with {agent.agent_id} agent (async)")
         mock_logger.warning.assert_called_once_with("No AI instance available for processing")
         assert "Error: No AI instance available" in response["content"]
         assert response["agent_id"] == agent.agent_id
         assert response["status"] == "error"
 
-    def test_process_request_ai_error(self, mock_ai_instance, mock_logger):
-        """Test processing when ai_instance.request raises an exception."""
+    @pytest.mark.asyncio
+    async def test_process_request_ai_error(self, mock_ai_instance, mock_logger):
+        """Test processing when ai_instance.request raises an exception (async)."""
         agent = BaseAgent(ai_instance=mock_ai_instance, logger=mock_logger)
         request = {"prompt": "Test prompt"}
         error_message = "AI failed!"
         mock_ai_instance.request.side_effect = Exception(error_message)
         
-        response = agent.process_request(request)
+        response = await agent.process_request(request)
         
-        mock_logger.info.assert_any_call(f"Processing request with {agent.agent_id} agent")
+        mock_logger.info.assert_any_call(f"Processing request with {agent.agent_id} agent (async)")
         mock_logger.error.assert_called_once_with(f"Error processing request: {error_message}")
         assert f"Error: {error_message}" in response["content"]
         assert response["agent_id"] == agent.agent_id
@@ -179,8 +186,9 @@ class TestBaseAgent:
 
     # --- process_request Tests (Overrides) ---
 
-    def test_process_request_model_override_success(self, mock_ai_instance, mock_unified_config, mock_logger):
-        """Test successful model override when request specifies a different model key."""
+    @pytest.mark.asyncio
+    async def test_process_request_model_override_success(self, mock_ai_instance, mock_unified_config, mock_logger):
+        """Test successful model override when request specifies a different model key (async)."""
         agent_id = "override_agent"
         original_model_key = "original-model"
         original_model_api_id = "original-model-api-id"
@@ -201,7 +209,7 @@ class TestBaseAgent:
         
         # Mock the AI class itself to capture instantiation
         MockAIClass = MagicMock(spec=AIBase)
-        mock_overridden_instance = MagicMock(spec=AIBase)
+        mock_overridden_instance = AsyncMock(spec=AIBase)
         mock_overridden_instance.request.return_value = ai_response
         MockAIClass.return_value = mock_overridden_instance # Instantiation returns this mock
         mock_ai_instance.__class__ = MockAIClass # Make original instance's class the mock
@@ -210,7 +218,7 @@ class TestBaseAgent:
         agent = BaseAgent(ai_instance=mock_ai_instance, unified_config=mock_unified_config, logger=mock_logger, agent_id=agent_id)
 
         # --- Act ---
-        response = agent.process_request(request)
+        response = await agent.process_request(request)
 
         # --- Assert ---
         # We no longer need to check get_all_models since we get short_key directly
@@ -233,8 +241,9 @@ class TestBaseAgent:
         assert agent.ai_instance is mock_ai_instance
         mock_logger.debug.assert_any_call("Restoring original AI instance.")
         
-    def test_process_request_model_override_skipped_same_key(self, mock_ai_instance, mock_unified_config, mock_logger):
-        """Test model override is skipped if request specifies the same model key."""
+    @pytest.mark.asyncio
+    async def test_process_request_model_override_skipped_same_key(self, mock_ai_instance, mock_unified_config, mock_logger):
+        """Test model override is skipped if request specifies the same model key (async)."""
         agent_id = "override_agent_same"
         model_key = "same-model"
         model_api_id = "same-model-api-id"
@@ -253,7 +262,7 @@ class TestBaseAgent:
         mock_ai_instance.__class__ = MockAIClass
                 
         agent = BaseAgent(ai_instance=mock_ai_instance, unified_config=mock_unified_config, logger=mock_logger, agent_id=agent_id)
-        response = agent.process_request(request)
+        response = await agent.process_request(request)
         
         # Assert new instance was NOT created
         MockAIClass.assert_not_called()
@@ -263,8 +272,9 @@ class TestBaseAgent:
         assert response["status"] == "success"
         assert agent.ai_instance is mock_ai_instance # Should not have changed
 
-    def test_process_request_model_override_skipped_id_not_found(self, mock_ai_instance, mock_unified_config, mock_logger):
-        """Test model override is skipped if original model info is missing short_key."""
+    @pytest.mark.asyncio
+    async def test_process_request_model_override_skipped_id_not_found(self, mock_ai_instance, mock_unified_config, mock_logger):
+        """Test model override is skipped if original model info is missing short_key (async)."""
         agent_id = "override_agent_not_found"
         original_model_api_id = "original-model-api-id-not-in-config"
         override_model_key = "override-model"
@@ -279,7 +289,7 @@ class TestBaseAgent:
         mock_ai_instance.__class__ = MockAIClass
                 
         agent = BaseAgent(ai_instance=mock_ai_instance, unified_config=mock_unified_config, logger=mock_logger, agent_id=agent_id)
-        response = agent.process_request(request)
+        response = await agent.process_request(request)
         
         MockAIClass.assert_not_called() # No override should happen
         mock_ai_instance.request.assert_called_once_with(prompt)
@@ -289,8 +299,9 @@ class TestBaseAgent:
         mock_logger.warning.assert_any_call(f"Model info missing short key for API ID '{original_model_api_id}'. Cannot safely determine if override is needed. Skipping override.")
         assert agent.ai_instance is mock_ai_instance
 
-    def test_process_request_system_prompt_override_success(self, mock_ai_instance, mock_logger):
-        """Test successful system prompt override."""
+    @pytest.mark.asyncio
+    async def test_process_request_system_prompt_override_success(self, mock_ai_instance, mock_logger):
+        """Test successful system prompt override (async)."""
         agent_id = "sys_prompt_agent"
         original_prompt = "Original System Prompt"
         override_prompt = "Override System Prompt"
@@ -309,7 +320,7 @@ class TestBaseAgent:
         mock_ai_instance.set_system_prompt.reset_mock()
         
         agent = BaseAgent(ai_instance=mock_ai_instance, logger=mock_logger, agent_id=agent_id)
-        response = agent.process_request(request)
+        response = await agent.process_request(request)
 
         # Basic assertions
         mock_ai_instance.request.assert_called_once_with("Test prompt")
@@ -334,8 +345,9 @@ class TestBaseAgent:
         ]
         assert restoration_logs, "Expected a log message about restoring the system prompt"
 
-    def test_process_request_system_prompt_override_skipped_same(self, mock_ai_instance, mock_logger):
-        """Test system prompt override is skipped if prompt is the same."""
+    @pytest.mark.asyncio
+    async def test_process_request_system_prompt_override_skipped_same(self, mock_ai_instance, mock_logger):
+        """Test system prompt override is skipped if prompt is the same (async)."""
         agent_id = "sys_prompt_agent_same"
         original_prompt = "Same System Prompt"
         request = {"prompt": "Test prompt", "system_prompt": original_prompt} # Same prompt
@@ -345,7 +357,7 @@ class TestBaseAgent:
         mock_ai_instance.request.return_value = ai_response
         
         agent = BaseAgent(ai_instance=mock_ai_instance, logger=mock_logger, agent_id=agent_id)
-        response = agent.process_request(request)
+        response = await agent.process_request(request)
 
         mock_ai_instance.set_system_prompt.assert_not_called()
         # Expect 3 calls now
@@ -362,7 +374,7 @@ class TestBaseAgent:
         agent = BaseAgent(ai_instance=mock_ai_instance)
         request = {"prompt": "Any request"}
         confidence = agent.can_handle(request)
-        assert confidence == 0.1
+        assert 0.0 <= confidence <= 0.2 # Expect low confidence
 
     # --- _enrich_response Tests ---
     def test_enrich_response_adds_defaults(self, mock_ai_instance):

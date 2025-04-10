@@ -15,28 +15,30 @@ VALID_TEST_CASES = [
 ]
 
 INVALID_TEST_CASES = [
-    ("2++2", "Error evaluating expression"), # Error expected
-    ("a + b", "Error evaluating expression"), # Symbols not defined
-    ("import os", "Error evaluating expression"), # Safety check
+    # ("2++2", "Error evaluating expression"), # Removed: asteval handles this as 4
+    ("a + b", "Error evaluating expression: name 'a' is not defined"), # Match actual msg
+    ("import os", "Error evaluating expression: Import not supported"), # Match actual msg
+    ("", "Error: Empty expression provided."), # Test empty input
 ]
 
 class TestCalculatorTool:
     """Tests for the calculate function."""
 
-    @pytest.mark.skipif(not ASTEVAL_AVAILABLE, reason="asteval library not installed")
+    # @pytest.mark.skipif(not ASTEVAL_AVAILABLE, reason="asteval library not installed") # Removed skip
     @pytest.mark.parametrize("expression, expected", VALID_TEST_CASES)
     def test_calculate_valid_expressions(self, expression, expected):
         """Test calculate with valid mathematical expressions."""
         result = calculate(expression)
         assert result == expected
 
-    @pytest.mark.skipif(not ASTEVAL_AVAILABLE, reason="asteval library not installed")
-    @pytest.mark.parametrize("expression, error_part", INVALID_TEST_CASES)
-    def test_calculate_invalid_expressions(self, expression, error_part):
+    # @pytest.mark.skipif(not ASTEVAL_AVAILABLE, reason="asteval library not installed") # Removed skip
+    @pytest.mark.parametrize("expression, error_expected_message", INVALID_TEST_CASES)
+    def test_calculate_invalid_expressions(self, expression, error_expected_message):
         """Test calculate with invalid or disallowed expressions."""
         result = calculate(expression)
         assert isinstance(result, str)
-        assert error_part in result # Check if the error message contains the expected part
+        # Use 'in' check for flexibility in exact error message wording
+        assert error_expected_message in result
 
     def test_calculate_without_asteval(self):
         """Test calculate behavior when asteval is not available."""

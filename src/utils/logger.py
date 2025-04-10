@@ -166,9 +166,10 @@ class Logger(LoggerInterface):
         """Log a WARNING level message."""
         self._logger.warning(message, **kwargs)
         
-    def error(self, message: str, **kwargs) -> None:
+    def error(self, message: str, exc_info: bool = False, **kwargs) -> None:
         """Log an ERROR level message."""
-        self._logger.error(message, **kwargs)
+        # Pass exc_info=exc_info if it's True
+        self._logger.error(message, exc_info=exc_info, **kwargs)
         
     def critical(self, message: str, **kwargs) -> None:
         """Log a CRITICAL level message."""

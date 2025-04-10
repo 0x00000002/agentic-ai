@@ -21,8 +21,8 @@ class LoggerInterface(Protocol):
         """Log a warning message."""
         ...
     
-    def error(self, message: str) -> None:
-        """Log an error message."""
+    def error(self, message: str, exc_info: bool = False) -> None:
+        """Log an error message. Set exc_info=True to include exception info."""
         ...
     
     def critical(self, message: str) -> None:

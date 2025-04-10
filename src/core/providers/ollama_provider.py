@@ -1,18 +1,24 @@
 """
 Ollama provider implementation.
 """
-from typing import List, Dict, Any, Optional, Union, BinaryIO
+from typing import List, Dict, Any, Optional
 try:
     import ollama
+    # Import async client
+    from ollama import AsyncClient, ResponseError, RequestError 
 except ImportError:
     ollama = None
+    AsyncClient = None
+    ResponseError = RequestError = Exception # Dummy exceptions
 
-from ..interfaces import ProviderInterface, ToolCapableProviderInterface
+import asyncio # Add asyncio
+from typing import Any, Dict, List, Optional
+
 from ...utils.logger import LoggerInterface, LoggerFactory
 from ...config import get_config
-from ...exceptions import (AIRequestError, AICredentialsError, AIProviderError, AISetupError, 
+from ...exceptions import (AIRequestError, AICredentialsError, AIProviderError, AISetupError, \
                          InvalidRequestError, AIAuthenticationError, ModelNotFoundError)
-from ...tools.models import ToolCall
+from ...tools.models import ToolCall, ToolResult
 from ..models import ProviderResponse, TokenUsage
 from .base_provider import BaseProvider
 
@@ -42,9 +48,9 @@ class OllamaProvider(BaseProvider):
                          model_config=model_config,
                          logger=logger)
         
-        if ollama is None:
+        if ollama is None or AsyncClient is None:
             raise AISetupError(
-                "Ollama SDK not installed. Please install with 'pip install ollama'.",
+                "Ollama SDK not installed or async client unavailable. Please install/update with 'pip install ollama'.",
                 component="ollama"
             )
             
@@ -59,10 +65,10 @@ class OllamaProvider(BaseProvider):
         self.client_options = {}
         if self.provider_config.get("base_url"):
              self.client_options['host'] = self.provider_config["base_url"]
-             self._client = ollama.Client(**self.client_options)
+             self._client = AsyncClient(**self.client_options) # Use AsyncClient
              self.logger.info(f"Using Ollama host: {self.client_options['host']}")
         else:
-             self._client = ollama.Client() # Use default host
+             self._client = AsyncClient() # Use default host with AsyncClient
              self.logger.info("Using default Ollama host.")
              
         self.logger.info(f"Initialized Ollama provider for model: {self.model_id}")
@@ -130,15 +136,18 @@ class OllamaProvider(BaseProvider):
 
     # --- IMPLEMENT Required Abstract Methods --- 
 
-    def _make_api_request(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        """Makes the actual API call to the Ollama chat endpoint."""
-        self.logger.debug("Making Ollama API request...")
+    async def _make_api_request(self, payload: Dict[str, Any]) -> Dict[str, Any]: # Changed to async def
+        """Makes the actual asynchronous API call to the Ollama chat endpoint."""
+        self.logger.debug("Making async Ollama API request...")
+        if not self._client:
+            raise AIProviderError("Ollama client not initialized.", provider="ollama")
+            
         try:
-            # Use the configured client (_client handles custom host if set)
-            response = self._client.chat(**payload)
+            # Use the async client's chat method
+            response = await self._client.chat(**payload) # Use await
             self.logger.debug("Received Ollama API response.")
             return response
-        except ollama.ResponseError as e:
+        except ResponseError as e:
              # Handle specific Ollama response errors based on status code
              self.logger.error(f"Ollama Response Error (Status: {e.status_code}): {e}", exc_info=True)
              if e.status_code == 401: # Unauthorized
@@ -149,7 +158,7 @@ class OllamaProvider(BaseProvider):
                   raise InvalidRequestError(f"Invalid request to Ollama: {e}", provider="ollama", status_code=400) from e
              else: # Other HTTP errors
                   raise AIProviderError(f"Ollama API returned status {e.status_code}: {e}", provider="ollama", status_code=e.status_code) from e
-        except ollama.RequestError as e: # Network or connection errors
+        except RequestError as e: # Network or connection errors
              self.logger.error(f"Ollama Request/Connection Error: {e}", exc_info=True)
              raise AIProviderError(f"Ollama connection error: {e}", provider="ollama") from e
         except Exception as e:
@@ -159,27 +168,42 @@ class OllamaProvider(BaseProvider):
 
     def _convert_response(self, raw_response: Dict[str, Any]) -> ProviderResponse:
         """Converts the raw Ollama response dictionary into a standardized ProviderResponse model."""
-        self.logger.debug("Converting Ollama response to standard ProviderResponse...")
-        content = raw_response.get("message", {}).get("content") # Use None if missing
-        stop_reason = "stop" if raw_response.get("done") else None
-        model_id = raw_response.get("model", self.model_id)
+        self.logger.debug("Converting Ollama response...")
+        content = None
+        stop_reason = None
+        model_id = self.model_id # Use the configured model_id
         error = None
-        
-        # Extract usage if available
         usage_data = None
-        prompt_tokens = raw_response.get("prompt_eval_count")
-        completion_tokens = raw_response.get("eval_count")
-        # Sometimes total_tokens is provided, otherwise calculate
-        total_tokens = raw_response.get("total_tokens")
-        if total_tokens is None and prompt_tokens is not None and completion_tokens is not None:
-            total_tokens = prompt_tokens + completion_tokens
+
+        try:
+             content = raw_response.get("message", {}).get("content")
+             stop_reason = "stop" if raw_response.get("done") else "unknown" # Basic stop reason
+             model_id_resp = raw_response.get("model", self.model_id)
+             # Ensure model ID matches if possible, log warning if different
+             if model_id_resp != self.model_id:
+                  self.logger.warning(f"Ollama response model '{model_id_resp}' differs from requested '{self.model_id}'")
+                  model_id = model_id_resp # Use the one from response
+
+             # Extract usage if available
+             prompt_tokens = raw_response.get("prompt_eval_count")
+             completion_tokens = raw_response.get("eval_count")
+             # total_duration = raw_response.get("total_duration") # Could potentially be added to metadata
+             
+             # Ollama doesn't usually provide total_tokens directly
+             total_tokens = None
+             if prompt_tokens is not None and completion_tokens is not None:
+                  total_tokens = prompt_tokens + completion_tokens
             
-        if prompt_tokens is not None or completion_tokens is not None:
-             usage_data = TokenUsage(
-                  prompt_tokens=prompt_tokens,
-                  completion_tokens=completion_tokens,
-                  total_tokens=total_tokens
-              )
+             if prompt_tokens is not None or completion_tokens is not None:
+                  usage_data = TokenUsage(
+                      prompt_tokens=prompt_tokens,
+                      completion_tokens=completion_tokens,
+                      total_tokens=total_tokens
+                  )
+        except Exception as e:
+             self.logger.error(f"Error processing Ollama response dictionary: {e}", exc_info=True)
+             error = f"Error processing Ollama response: {str(e)}"
+             content = None # Ensure content is None on error
 
         # Create and return ProviderResponse model instance
         provider_response = ProviderResponse(
@@ -214,26 +238,75 @@ class OllamaProvider(BaseProvider):
         }
         return [tool_message] # Return as a list containing one dictionary
 
-    def stream(self, messages: List[Dict[str, Any]], **options) -> str:
+    async def stream(self, messages: List[Dict[str, Any]], **options) -> str: # Changed to async def
         """
-        Stream a response from the Ollama API.
-        (NEEDS REFACTORING to use _prepare_request_payload, _make_api_request structure)
+        Stream a response asynchronously from the Ollama API.
+        Aggregates the text content.
         """
-        self.logger.warning("Ollama stream() method needs refactoring.")
-        # Placeholder implementation - requires significant changes
+        if not self._client:
+            raise AIProviderError("Ollama client not initialized.", provider="ollama")
+            
+        # Prepare payload (sync)
+        payload = self._prepare_request_payload(messages, options)
+        payload["stream"] = True # Ensure stream is set
+        
+        self.logger.debug("Making async Ollama streaming request...")
+        
         try:
-            payload = self._prepare_request_payload(messages, options)
-            payload["stream"] = True # Ensure stream is set
+            # Use the async client's stream method
+            stream = await self._client.chat(**payload) # Use await
             
-            # Use the configured client
-            stream_response = self._client.chat(**payload)
+            full_response_text = ""
+            async for chunk in stream: # Use async for
+                # Extract content from the chunk message
+                if chunk and isinstance(chunk, dict) and "message" in chunk and "content" in chunk["message"]:
+                    full_response_text += chunk["message"]["content"]
+                    
+            self.logger.debug(f"Ollama stream finished. Aggregated length: {len(full_response_text)}")
+            return full_response_text
             
-            chunks = []
-            for chunk in stream_response:
-                if "message" in chunk and "content" in chunk["message"]:
-                    chunks.append(chunk["message"]["content"])
-            return "".join(chunks)
-            
+        except ResponseError as e:
+             self.logger.error(f"Ollama Response Error during stream (Status: {e.status_code}): {e}", exc_info=True)
+             # Re-raise as appropriate framework exception based on status code
+             if e.status_code == 401: raise AIAuthenticationError(f"Ollama authentication error: {e}", provider="ollama") from e
+             if e.status_code == 404: raise ModelNotFoundError(f"Ollama model not found during stream?: {e}", provider="ollama", model_id=payload.get("model")) from e
+             if e.status_code == 400: raise InvalidRequestError(f"Invalid request to Ollama during stream: {e}", provider="ollama", status_code=400) from e
+             raise AIProviderError(f"Ollama API returned status {e.status_code} during stream: {e}", provider="ollama", status_code=e.status_code) from e
+        except RequestError as e: # Network/connection errors
+             self.logger.error(f"Ollama Request/Connection Error during stream: {e}", exc_info=True)
+             raise AIProviderError(f"Ollama connection error during stream: {e}", provider="ollama") from e
         except Exception as e:
-            self.logger.error(f"Ollama streaming failed: {str(e)}", exc_info=True)
-            raise AIRequestError(f"Ollama streaming error: {str(e)}", provider="ollama") from e 
+            self.logger.error(f"Unexpected error during Ollama stream: {str(e)}", exc_info=True)
+            raise AIProviderError(f"Unexpected error streaming from Ollama: {str(e)}", provider="ollama") from e
+
+    # --- Tool-related methods --- 
+    # Although Ollama doesn't support tools natively, 
+    # keep build_tool_result_messages to format results as user messages.
+    def build_tool_result_messages(self,
+                                  tool_calls: List[ToolCall],
+                                  tool_results: List[ToolResult]) -> List[Dict[str, Any]]:
+        """
+        Formats tool results as simple user messages for Ollama.
+        """
+        messages = []
+        if len(tool_calls) != len(tool_results):
+            self.logger.error(f"Mismatch between tool calls ({len(tool_calls)}) and results ({len(tool_results)}). Skipping result formatting for Ollama.")
+            return []
+            
+        for call, result in zip(tool_calls, tool_results):
+            tool_name = call.name or "unknown_tool"
+            # Try to get ID if available, though Ollama won't use it
+            call_id_str = f" (Call ID: {call.id})" if call.id else ""
+            
+            if result.success:
+                content_str = str(result.result) if result.result is not None else "(No output)"
+                message_content = f"[Tool Result for '{tool_name}'{call_id_str}]:\n{content_str}"
+            else:
+                error_str = str(result.error) if result.error else "Execution failed"
+                message_content = f"[Tool Error for '{tool_name}'{call_id_str}]:\n{error_str}"
+                
+            messages.append({
+                "role": "user", # Append result as a user message
+                "content": message_content
+            })
+        return messages 

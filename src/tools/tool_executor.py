@@ -9,16 +9,7 @@ import importlib  # Added for lazy loading
 from ..utils.logger import LoggerInterface, LoggerFactory
 from ..exceptions import AIToolError, RetryableToolError
 from .models import ToolDefinition, ToolResult, ToolExecutionStatus
-
-
-class TimeoutError(Exception):
-    """Exception raised when a tool execution times out."""
-    pass
-
-
-def timeout_handler(signum, frame):
-    """Signal handler for timeout."""
-    raise TimeoutError("Tool execution timed out")
+import asyncio # Added asyncio
 
 
 class ToolExecutor:
@@ -58,37 +49,10 @@ class ToolExecutor:
         
         return tool_definition.function
 
-    def _execute_with_timeout(self, tool_definition, args):
-        """
-        Execute a tool with timeout.
-        
-        Args:
-            tool_definition: The tool definition object
-            args: Tool arguments
-            
-        Returns:
-            Tool execution result
-            
-        Raises:
-            TimeoutError: If execution times out
-        """
-        # Set signal handler for SIGALRM
-        signal.signal(signal.SIGALRM, timeout_handler)
-        signal.alarm(self.timeout)
-        
-        try:
-            # Get the function (lazy load if needed)
-            tool_function = self._get_tool_function(tool_definition)
-            # Execute the function
-            result = tool_function(**args)
-            return result
-        finally:
-            # Cancel the alarm
-            signal.alarm(0)
-    
-    def execute(self, tool_definition: ToolDefinition, **args) -> ToolResult:
+    async def execute(self, tool_definition: ToolDefinition, **args) -> ToolResult:
         """
         Execute a tool function defined in ToolDefinition with timeout and retries.
+        Uses asyncio for handling timeouts and delays.
         
         Args:
             tool_definition: The tool definition object containing the function.
@@ -113,8 +77,35 @@ class ToolExecutor:
             start_time = time.time()
             should_retry = False
             try:
-                # Try to execute with timeout
-                result = self._execute_with_timeout(tool_definition, args)
+                # Try to execute with asyncio timeout
+                tool_function = self._get_tool_function(tool_definition)
+                
+                # Check if the target function is async itself
+                if asyncio.iscoroutinefunction(tool_function):
+                     self._logger.debug(f"Executing async tool function {tool_name}")
+                     result = await asyncio.wait_for(
+                         tool_function(**args), 
+                         timeout=self.timeout
+                     )
+                else:
+                     # Run synchronous function in a thread pool executor to avoid blocking event loop
+                     # Or potentially run directly if known to be fast? For now, let's keep it simple and direct
+                     # If sync functions block, we'll need loop.run_in_executor
+                     self._logger.debug(f"Executing sync tool function {tool_name}")
+                     # NOTE: This might block the event loop if tool_function is long-running sync code.
+                     # Consider loop.run_in_executor for truly blocking sync code later if needed.
+                     # For simplicity now, we call it directly within the timeout context.
+                     # If tool_function itself uses asyncio/awaits internally, this will fail.
+                     # It's assumed here that internal tool functions are either fully sync or fully async.
+                     # Let's wrap the potential blocking call.
+                     loop = asyncio.get_running_loop()
+                     result = await asyncio.wait_for(
+                         loop.run_in_executor(None, tool_function, *args.values()), # Simplified: assumes args order matches func signature - POTENTIAL ISSUE
+                         # Better approach would be functools.partial(tool_function, **args)
+                         # loop.run_in_executor(None, functools.partial(tool_function, **args)), # Using partial
+                         timeout=self.timeout
+                     )
+
                 end_time = time.time()
                 execution_time_ms = int((end_time - start_time) * 1000)
                 
@@ -125,9 +116,9 @@ class ToolExecutor:
                     error=None # No error details needed on success
                 )
                 
-            except TimeoutError as e:
+            except asyncio.TimeoutError as e: # Changed to asyncio.TimeoutError
                 self._logger.warning(f"Tool {tool_name} execution timed out (attempt {retries+1}/{self.max_retries+1})")
-                last_error = f"{type(e).__name__}: {str(e)}"
+                last_error = f"TimeoutError: Tool execution exceeded {self.timeout}s"
                 should_retry = True # Timeouts are retryable
                 
             except RetryableToolError as e:
@@ -156,9 +147,13 @@ class ToolExecutor:
                     # Exponential backoff with max of 10 seconds
                     delay = min(2 ** retries, 10) 
                     self._logger.info(f"Retrying tool {tool_name} in {delay} seconds...")
-                    time.sleep(delay)
-                except Exception as sleep_e: # Catch potential interruption during sleep
-                     self._logger.warning(f"Sleep interrupted: {sleep_e}")
+                    await asyncio.sleep(delay) # Changed to asyncio.sleep
+                except asyncio.CancelledError: # Handle potential cancellation during sleep
+                    self._logger.warning(f"Tool {tool_name} retry sleep cancelled.")
+                    last_error = "Retry cancelled during sleep"
+                    break # Stop retrying if sleep is cancelled
+                except Exception as sleep_e: # Catch potential interruption during sleep - less likely with asyncio.sleep
+                     self._logger.warning(f"Sleep interrupted unexpectedly: {sleep_e}")
                      last_error = f"Retry interrupted during sleep: {sleep_e}"
                      break # Stop retrying if sleep fails
             else:

@@ -2,7 +2,7 @@
 Unit tests for OpenAIProvider with helper classes.
 """
 import pytest
-from unittest.mock import MagicMock, patch, ANY
+from unittest.mock import MagicMock, patch, ANY, AsyncMock
 import json
 
 from src.core.providers.openai_provider import OpenAIProvider
@@ -23,7 +23,7 @@ class TestOpenAIProvider:
         """Fixture for a mock OpenAI client."""
         mock_client = MagicMock()
         mock_completions = MagicMock()
-        mock_completions.create = MagicMock()
+        mock_completions.create = AsyncMock()
         mock_client.chat.completions = mock_completions
         return mock_client
     
@@ -77,12 +77,13 @@ class TestOpenAIProvider:
         # Check that credential manager has the provider config
         assert openai_provider.credential_manager.provider_config == provider_config
     
-    def test_make_api_request(self, openai_provider, mock_openai_client):
-        """Test making API requests with prepared payload."""
-        # Set up mock response
+    @pytest.mark.asyncio
+    async def test_make_api_request(self, openai_provider, mock_openai_client):
+        """Test making API requests asynchronously with prepared payload."""
+        # Set up mock response (needs to be awaitable if the method is async)
         mock_response = MagicMock()
         mock_openai_client.chat.completions.create.return_value = mock_response
-        
+
         # Create test payload
         payload = {
             "model": "gpt-4",
@@ -91,13 +92,13 @@ class TestOpenAIProvider:
             "max_tokens": 100,
             "unsupported_key": "value"  # This should be removed
         }
-        
-        # Call the method
-        result = openai_provider._make_api_request(payload)
-        
+
+        # Call the async method with await
+        result = await openai_provider._make_api_request(payload)
+
         # Check the result
         assert result == mock_response
-        
+
         # Check that unsupported_key was removed
         mock_openai_client.chat.completions.create.assert_called_once()
         call_args = mock_openai_client.chat.completions.create.call_args[1]
@@ -139,8 +140,9 @@ class TestOpenAIProvider:
         assert result.usage.completion_tokens == 20
         assert result.usage.total_tokens == 30
     
-    def test_request(self, openai_provider, mock_openai_client):
-        """Test the request method with string input."""
+    @pytest.mark.asyncio
+    async def test_request(self, openai_provider, mock_openai_client):
+        """Test the async request method with string input."""
         # Mock the API response
         choice = MagicMock()
         choice.message.content = "Hello, I'm an AI assistant."
@@ -154,8 +156,8 @@ class TestOpenAIProvider:
         
         mock_openai_client.chat.completions.create.return_value = response
         
-        # Call the request method with a string
-        result = openai_provider.request("Hello, AI!")
+        # Call the async request method with await
+        result = await openai_provider.request("Hello, AI!")
         
         # Check the result
         assert isinstance(result, ProviderResponse)
@@ -169,11 +171,12 @@ class TestOpenAIProvider:
         assert call_args["messages"][0]["role"] == "user"
         assert call_args["messages"][0]["content"] == "Hello, AI!"
     
-    def test_request_with_tool_calls(self, openai_provider, mock_openai_client):
-        """Test the request method with tool calls in the response."""
+    @pytest.mark.asyncio
+    async def test_request_with_tool_calls(self, openai_provider, mock_openai_client):
+        """Test the async request method with tool calls in the response."""
         # Mock the API response with tool calls
         choice = MagicMock()
-        choice.message.content = None  # Content can be None when there are tool calls
+        choice.message.content = None
         
         # Create mock tool calls
         tool_call = MagicMock()
@@ -192,15 +195,15 @@ class TestOpenAIProvider:
         response.model = "gpt-4"
         response.usage = MagicMock(prompt_tokens=20, completion_tokens=30, total_tokens=50)
         
-        # Set the mock response
+        # Set the mock response for the async method
         mock_openai_client.chat.completions.create.return_value = response
         
-        # Call the request method
-        result = openai_provider.request("What's the weather in New York?")
+        # Call the async request method
+        result = await openai_provider.request("What's the weather in New York?")
         
         # Check the result
         assert isinstance(result, ProviderResponse)
-        assert result.content == ""  # Empty content with tool calls
+        assert result.content == ""
         assert result.tool_calls is not None
         assert len(result.tool_calls) == 1
         assert result.tool_calls[0].id == "call_123"

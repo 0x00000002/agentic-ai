@@ -54,15 +54,15 @@ class SimpleChatUI:
         self.logger = logger
         self.is_transcribing = False
         
-    def process_message(self, message: str, history: List[Tuple[str, str]]) -> Tuple[List[Tuple[str, str]], str]:
+    async def process_message(self, message: str, history: List[Tuple[str, str]]) -> Tuple[List[Tuple[str, str]], str]:
         """
-        Process a user message and return the updated chat history and an empty string
-        to clear the input field.
-        
+        Process a user message asynchronously and return the updated chat history 
+        and an empty string to clear the input field.
+
         Args:
             message: The user message
             history: The chat history
-            
+
         Returns:
             A tuple containing:
              - Updated chat history
@@ -80,9 +80,10 @@ class SimpleChatUI:
             "conversation_history": history
         }
         
-        # Process the request
+        # Process the request asynchronously
         try:
-            response = self.coordinator.process_request(request)
+            # Await the coordinator's process_request method
+            response = await self.coordinator.process_request(request)
             
             # Extract the content from the response
             if isinstance(response, dict):
@@ -101,9 +102,9 @@ class SimpleChatUI:
         # Return updated history and empty string to clear the input
         return history, ""
     
-    def process_audio(self, language: str, audio_input: Optional[str], history: List[Tuple[str, str]]) -> Tuple[str, List[Tuple[str, str]], str, None]:
+    async def process_audio(self, language: str, audio_input: Optional[str], history: List[Tuple[str, str]]) -> Tuple[str, List[Tuple[str, str]], str, None]:
         """
-        Process an audio input, send it for transcription, update the message box,
+        Process an audio input asynchronously, send it for transcription, update the message box,
         and clear the audio input component.
 
         Args:
@@ -142,8 +143,8 @@ class SimpleChatUI:
 
         transcribed_text = ""
         try:
-            # Send request to coordinator
-            response = self.coordinator.process_request(request)
+            # Send request to coordinator asynchronously
+            response = await self.coordinator.process_request(request)
 
             # Extract transcribed text
             if isinstance(response, dict):

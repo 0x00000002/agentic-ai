@@ -6,6 +6,7 @@ This module provides a manager for coordinating tool operations in the Agentic-A
 from typing import Dict, Any, List, Optional, Set, Union, TYPE_CHECKING
 import json
 import time
+import asyncio
 
 from src.utils.logger import LoggerFactory, LoggerInterface
 from src.tools.tool_registry import ToolRegistry
@@ -76,9 +77,9 @@ class ToolManager:
         """
         self.tool_registry.register_tool(tool_name, tool_definition)
         
-    def execute_tool(self, tool_name: str, **kwargs) -> ToolResult:
+    async def execute_tool(self, tool_name: str, **kwargs) -> ToolResult:
         """
-        Execute a tool with the given parameters.
+        Execute a tool with the given parameters asynchronously.
         
         Args:
             tool_name: Name of the tool to execute
@@ -87,6 +88,9 @@ class ToolManager:
         Returns:
             ToolResult object with execution results
         """
+        # Use monotonic clock for reliable duration measurement
+        start_time = time.monotonic()
+        
         try:
             # Get the tool definition
             tool_definition = self.tool_registry.get_tool(tool_name)
@@ -101,27 +105,29 @@ class ToolManager:
                     tool_name=tool_name
                 )
                 
-            # Execute the tool using configs from tool_config if applicable
-            tool_specific_config = self.config.get_tool_config(tool_name)
-            execution_params = {**kwargs}
-            
-            # Add any tool-specific configuration parameters
-            if tool_specific_config:
-                for param, value in tool_specific_config.items():
-                    if param not in execution_params:
-                        execution_params[param] = value
-            
-            # Track start time for metrics
-            start_time = time.time()
-            
-            # Extract request_id if present for metrics tracking
+            # Prepare execution parameters (including potential tool-specific config)
+            # Correctly handle request_id separation from execution_params sent to tool
             request_id = kwargs.get("request_id")
+            execution_params = kwargs.copy() # Start with original kwargs
             
-            # Execute the tool
-            result = self.tool_executor.execute(tool_definition, **execution_params)
-            
-            # Calculate execution time
-            execution_time_ms = int((time.time() - start_time) * 1000)
+            # Get tool-specific config from unified config
+            tool_specific_config = self.config.get_tool_config(tool_name)
+            if tool_specific_config:
+                # Merge tool-specific config, prioritizing kwargs passed to the function
+                for param, value in tool_specific_config.items():
+                    execution_params.setdefault(param, value) # Use setdefault to not overwrite kwargs
+
+            # Remove request_id from params passed to tool function itself, if present
+            if "request_id" in execution_params:
+                del execution_params["request_id"]
+
+            # Execute the tool asynchronously
+            self.logger.debug(f"Executing tool '{tool_name}' with params: {execution_params}")
+            result: ToolResult = await self.tool_executor.execute(tool_definition, **execution_params)
+
+            # Calculate execution time using monotonic clock
+            end_time = time.monotonic()
+            execution_time_ms = int((end_time - start_time) * 1000)
             
             # Delegate stats update to ToolStatsManager
             # ToolStatsManager checks internally if tracking is enabled
@@ -134,6 +140,9 @@ class ToolManager:
             
             return result
         except Exception as e:
+            # Log full traceback for unexpected errors during execution coordination
+            self.logger.error(f"Error during ToolManager.execute_tool for '{tool_name}': {e}", exc_info=True)
+            
             # Use error handler for standardized error handling
             tool_error = AIToolError(f"Error executing tool {tool_name}: {str(e)}", tool_name=tool_name)
             error_response = ErrorHandler.handle_error(tool_error, self.logger)

@@ -22,10 +22,39 @@ def calculate(expression: str) -> str:
         return "Error: Calculator dependency (asteval) not installed."
         
     try:
-        # Evaluate the expression
-        result = aeval(expression)
-        # Return result as string
+        # Create a new interpreter for each call to ensure clean state
+        local_aeval = Interpreter()
+        
+        # Strip whitespace before evaluation
+        clean_expression = expression.strip()
+        if not clean_expression:
+             return "Error: Empty expression provided."
+             
+        # Evaluate the cleaned expression using the local interpreter
+        result = local_aeval(clean_expression)
+        
+        # Check if asteval returned None, often indicating an evaluation error
+        if result is None:
+            error_list = getattr(local_aeval, 'error', None)
+            if error_list and isinstance(error_list, list) and len(error_list) > 0:
+                # Get the message from the first EvalError object
+                error_message = getattr(error_list[0], 'msg', 'Unknown evaluation error')
+                # Format the error message similar to caught exceptions
+                # We might need to parse the error_message further if it includes the type
+                # For now, let's return a generic prefix + the message
+                return f"Error evaluating expression: {error_message}"
+            else:
+                # Fallback if result is None but no specific error info is found
+                return "Error evaluating expression: Unknown (result was None)"
+
+        # Return result as string if evaluation was successful
         return str(result)
+    except NameError:
+        # This might be redundant if asteval handles it via None, but keep for safety
+        return "Error evaluating expression: NameError"
+    except SyntaxError:
+        # This might be redundant if asteval handles it via None, but keep for safety
+        return "Error evaluating expression: SyntaxError"
     except Exception as e:
-        # Return specific error from asteval if possible, otherwise generic error
-        return f"Error evaluating expression: {str(e)}" 
+        # Catch any other unexpected exceptions during the setup or str() conversion
+        return f"Error evaluating expression: {type(e).__name__}" 
