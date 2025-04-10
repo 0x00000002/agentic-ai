@@ -124,59 +124,60 @@ class ToolManager:
         start_time = time.monotonic()
         
         tool_definition = self.get_tool_definition(tool_name)
+        result: Optional[ToolResult] = None # Initialize result
 
         if not tool_definition:
             error_message = f"Tool not found: {tool_name}"
             self.logger.error(error_message)
-            # TODO: Improve error ToolResult structure?
-            return ToolResult(success=False, error=error_message, result=None, tool_name=tool_name)
-            
-        result: Optional[ToolResult] = None
-        try:
-            if tool_definition.source == "internal":
-                self.logger.debug(f"Executing internal tool '{tool_name}'...")
-                # Pass definition for context if executor needs it, otherwise just module/func
-                result = await self.tool_executor.execute(
-                    tool_definition, 
-                    **tool_args
-                )
-            elif tool_definition.source == "mcp":
-                self.logger.debug(f"Executing MCP tool '{tool_name}' via server '{tool_definition.mcp_server_name}'...")
-                if not tool_definition.mcp_server_name:
-                     # This shouldn't happen due to validation, but defensive check
-                     raise AIToolError(f"MCP tool '{tool_name}' definition is missing mcp_server_name.")
-                
-                # Get the MCP client session (connects/launches if needed)
-                session = await self.mcp_client_manager.get_tool_client(tool_definition.mcp_server_name)
-                
-                # Call the tool via the session
-                mcp_response = await session.call_tool(tool_name, tool_args)
-                
-                # Convert MCP response to our ToolResult format
-                # Assuming mcp_response has attributes like .content, .error etc.
-                # This needs mapping based on the actual mcp SDK response structure
-                if hasattr(mcp_response, 'error') and mcp_response.error:
-                     result = ToolResult(success=False, error=str(mcp_response.error), result=None, tool_name=tool_name)
+            # Update stats even if tool not found
+            result = ToolResult(success=False, error=error_message, result=None, tool_name=tool_name)
+        else:
+            # Tool found, proceed with execution
+            try:
+                if tool_definition.source == "internal":
+                    self.logger.debug(f"Executing internal tool '{tool_name}'...")
+                    # Pass definition for context if executor needs it, otherwise just module/func
+                    result = await self.tool_executor.execute(
+                        tool_definition, 
+                        **tool_args
+                    )
+                elif tool_definition.source == "mcp":
+                    self.logger.debug(f"Executing MCP tool '{tool_name}' via server '{tool_definition.mcp_server_name}'...")
+                    if not tool_definition.mcp_server_name:
+                         # This shouldn't happen due to validation, but defensive check
+                         raise AIToolError(f"MCP tool '{tool_name}' definition is missing mcp_server_name.")
+                    
+                    # Get the MCP client session (connects/launches if needed)
+                    session = await self.mcp_client_manager.get_tool_client(tool_definition.mcp_server_name)
+                    
+                    # Call the tool via the session
+                    mcp_response = await session.call_tool(tool_name, tool_args)
+                    
+                    # Convert MCP response to our ToolResult format
+                    # Assuming mcp_response has attributes like .content, .error etc.
+                    # This needs mapping based on the actual mcp SDK response structure
+                    if hasattr(mcp_response, 'error') and mcp_response.error:
+                         result = ToolResult(success=False, error=str(mcp_response.error), result=None, tool_name=tool_name)
+                    else:
+                         # Assuming successful response content is in mcp_response.content
+                         result_content = getattr(mcp_response, 'content', None)
+                         result = ToolResult(success=True, result=result_content, error=None, tool_name=tool_name)
+                         
                 else:
-                     # Assuming successful response content is in mcp_response.content
-                     result_content = getattr(mcp_response, 'content', None)
-                     result = ToolResult(success=True, result=result_content, error=None, tool_name=tool_name)
-                     
-            else:
-                raise AIToolError(f"Unknown tool source '{tool_definition.source}' for tool '{tool_name}'")
+                    raise AIToolError(f"Unknown tool source '{tool_definition.source}' for tool '{tool_name}'")
 
-        except Exception as e:
-            self.logger.error(f"Error during ToolManager execution dispatch for '{tool_name}': {e}", exc_info=True)
-            tool_error = AIToolError(f"Error executing tool {tool_name}: {str(e)}", tool_name=tool_name)
-            error_response = ErrorHandler.handle_error(tool_error, self.logger)
-            result = ToolResult(success=False, error=error_response["message"], result=None, tool_name=tool_name)
+            except Exception as e:
+                self.logger.error(f"Error during ToolManager execution dispatch for '{tool_name}': {e}", exc_info=True)
+                tool_error = AIToolError(f"Error executing tool {tool_name}: {str(e)}", tool_name=tool_name)
+                error_response = ErrorHandler.handle_error(tool_error, self.logger)
+                result = ToolResult(success=False, error=error_response["message"], result=None, tool_name=tool_name)
 
-        # Ensure we always have a result object
+        # Ensure we always have a result object IF tool was found
         if result is None:
              self.logger.error(f"Tool execution for '{tool_name}' resulted in None result. Returning error.")
              result = ToolResult(success=False, error="Tool execution failed to produce a result.", result=None, tool_name=tool_name)
 
-        # Record stats
+        # Record stats (this will now run even if tool_definition was None)
         end_time = time.monotonic()
         execution_time_ms = int((end_time - start_time) * 1000)
         self.tool_stats_manager.update_stats(
