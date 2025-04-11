@@ -14,49 +14,47 @@ Tools allow the AI to perform actions and retrieve information beyond its traini
 ```mermaid
 graph TD
     subgraph "Users Of Tools"
-        ToolEnabledAI -- Calls Execute (await) --> ToolManager
-        BaseAgent -- Calls Execute (await) --> ToolManager %% Agents can also use tools
+        ToolEnabledAI -- "Calls Execute (await)" --> ToolManager
+        BaseAgent -- "Calls Execute (await)" --> ToolManager
     end
 
     subgraph "Tools Subsystem"
-        ToolManager -- Gets All Definitions --> ToolRegistry[\"ToolRegistry (Internal Tools)\"]
-        ToolManager -- Gets All Definitions --> MCPClientManager[\"MCPClientManager (MCP Tools)\"]
+        ToolManager -- "Gets All Definitions" --> ToolRegistry["ToolRegistry (Internal Tools)"]
+        ToolManager -- "Gets All Definitions" --> MCPClientManager["MCPClientManager (MCP Tools)"]
 
-        ToolManager -- Dispatches --> ToolExecutor[\"ToolExecutor (Internal)\"]
-        ToolManager -- Dispatches --> MCPClientManager %% For MCP execution
+        ToolManager -- "Dispatches" --> ToolExecutor["ToolExecutor (Internal)"]
+        ToolManager -- "Dispatches" --> MCPClientManager
 
-        ToolManager -- Records Stats --> ToolStatsManager
+        ToolManager -- "Records Stats" --> ToolStatsManager
 
-        ToolExecutor -- Returns (awaitable) --> ToolResult[\"ToolResult Model\"]
-        MCPClientManager -- Returns MCP Response --> ToolManager %% ToolManager maps to ToolResult
+        ToolExecutor -- "Returns (awaitable)" --> ToolResult["ToolResult Model"]
+        MCPClientManager -- "Returns MCP Response" --> ToolManager
 
-        ToolRegistry -- Stores/Provides --> InternalToolDef[\"ToolDefinition (source='internal')\"]
-        MCPClientManager -- Stores/Provides --> MCPToolDef[\"ToolDefinition (source='mcp')\"]
+        ToolRegistry -- "Stores/Provides" --> InternalToolDef["ToolDefinition (source='internal')"]
+        MCPClientManager -- "Stores/Provides" --> MCPToolDef["ToolDefinition (source='mcp')"]
 
-        ToolStatsManager -- Persists --> StatsFile[\"Tool Stats JSON\"]
+        ToolStatsManager -- "Persists" --> StatsFile["Tool Stats JSON"]
 
-        UnifiedConfigRef[\"UnifiedConfig\"] -- Provides Config --> ToolRegistry
-        UnifiedConfigRef -- Provides Config --> MCPClientManager
-        UnifiedConfigRef -- Provides Config --> ToolExecutor
-        UnifiedConfigRef -- Provides Config --> ToolStatsManager
+        UnifiedConfigRef["UnifiedConfig"] -- "Provides Config" --> ToolRegistry
+        UnifiedConfigRef["UnifiedConfig"] -- "Provides Config" --> MCPClientManager
+        UnifiedConfigRef["UnifiedConfig"] -- "Provides Config" --> ToolExecutor
+        UnifiedConfigRef["UnifiedConfig"] -- "Provides Config" --> ToolStatsManager
 
-        ToolsYAML[\"tools.yml\"] -- Read By --> UnifiedConfigRef
-        %% MCPYAML[\"mcp.yml\"] -- Read By --> UnifiedConfigRef %% MCP config is now part of main config
+        ToolsYAML["tools.yml"] -- "Read By" --> UnifiedConfigRef
+        MCPYAML["mcp.yml"] -- "Read By" --> UnifiedConfigRef
     end
 
-    subgraph \"Dependencies\"
-       ToolManager -- Uses --> LoggerFactory[\"LoggerFactory\"]
-       ToolRegistry -- Uses --> LoggerFactory
-       MCPClientManager -- Uses --> LoggerFactory
-       ToolExecutor -- Uses --> LoggerFactory
-       ToolStatsManager -- Uses --> LoggerFactory
-       ToolManager -- Uses --> UnifiedConfigRef
+    subgraph "Dependencies"
+       ToolManager -- "Uses" --> LoggerFactory["LoggerFactory"]
+       ToolRegistry -- "Uses" --> LoggerFactory
+       MCPClientManager -- "Uses" --> LoggerFactory
+       ToolExecutor -- "Uses" --> LoggerFactory
+       ToolStatsManager -- "Uses" --> LoggerFactory
+       ToolManager -- "Uses" --> UnifiedConfigRef
     end
 
-    %% AI Interaction Flow (Simplified)
-    ToolEnabledAI -- Gets Formatted Tools --> ToolManager %% Manager handles formatting request
+    ToolEnabledAI -- "Gets Formatted Tools" --> ToolManager
 
-    %% Highlighting Async/Key Components
     style ToolManager fill:#f9f,stroke:#333,stroke-width:2px
     style ToolExecutor fill:#fdf,stroke:#333,stroke-width:1px
     style MCPClientManager fill:#fdf,stroke:#333,stroke-width:1px

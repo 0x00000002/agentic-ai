@@ -79,7 +79,7 @@ graph TD
     subgraph Configuration
         UnifiedConfig[UnifiedConfig Singleton]
         YAMLFiles[YAML Config Files]
-        ConfigureFunc[configure()]
+        ConfigureFunc["configure()"]
         UserConfig[UserConfig]
         UnifiedConfig -- Loads --> YAMLFiles
         ConfigureFunc -- Applies --> UserConfig
@@ -104,8 +104,6 @@ graph TD
 ```
 
 ### 2. Core AI System
-
-![Core AI System](diagrams/core_ai.png)
 
 ```mermaid
 graph TD
@@ -144,129 +142,93 @@ graph TD
 ```mermaid
 graph TD
     subgraph "Users Of Tools"
-        ToolEnabledAI -- Calls Execute --> ToolManager
-        ToolEnabledAI -- Gets Formatted Tools --> ProviderToolHandler
-    end
-
-    subgraph "Tools"
-        %% ToolCall Model - Represents data parsed by ToolEnabledAI, not a direct dependency here
-        ToolManager -- Delegates Execution --> ToolExecutor
-        ToolManager -- Gets Definition --> ToolRegistry
-        ToolManager -- Records Stats --> ToolStatsManager
-
-        ToolExecutor -- Returns --> ToolResult["ToolResult Model"]
-
-        %% ToolRegistry Loads/Stores Tool Definitions
-        ToolRegistry -- Stores/Provides --> ToolDefinition["ToolDefinition Model"]
-
-        %% ProviderToolHandler Formats Tools
-        ProviderToolHandler["ProviderToolHandler (src/core/providers)"] -- Gets Definitions --> ToolRegistry
-
-        %% ToolStatsManager manages usage statistics
-        ToolStatsManager -- Persists --> StatsFile["Tool Stats JSON"]
-
-        %% Config Loading (Implicitly happens in ToolRegistry.__init__)
-        UnifiedConfigRef["UnifiedConfig"] -- Provides Config --> ToolRegistry
-        UnifiedConfigRef -- Provides Config --> ToolStatsManager
-        ToolsYAML["tools.yml"] -- Read By --> UnifiedConfigRef
-    end
-
-    subgraph "Dependencies"
-       ToolManager -- Uses --> LoggerFactory["LoggerFactory"]
-       ToolRegistry -- Uses --> LoggerFactory
-       ToolExecutor -- Uses --> LoggerFactory
-       ToolStatsManager -- Uses --> LoggerFactory
-       ProviderToolHandler -- Uses --> LoggerFactory
-       ToolManager -- Uses --> UnifiedConfig["UnifiedConfig"]
-       ToolRegistry -- Uses --> UnifiedConfigRef %% Show registry uses config
-    end
-
-    subgraph "Users Of Tools"
-        ToolEnabledAI -- Calls Execute (await) --> ToolManager
-        BaseAgent -- Calls Execute (await) --> ToolManager %% Agents can also use tools
+        ToolEnabledAI -- "Calls Execute (await)" --> ToolManager
+        BaseAgent -- "Calls Execute (await)" --> ToolManager
     end
 
     subgraph "Tools Subsystem"
-        ToolManager -- Gets All Definitions --> ToolRegistry[\"ToolRegistry (Internal Tools)\"]
-        ToolManager -- Gets All Definitions --> MCPClientManager[\"MCPClientManager (MCP Tools)\"]
+        ToolManager -- "Gets All Definitions" --> ToolRegistry["ToolRegistry (Internal Tools)"]
+        ToolManager -- "Gets All Definitions" --> MCPClientManager["MCPClientManager (MCP Tools)"]
 
-        ToolManager -- Dispatches --> ToolExecutor[\"ToolExecutor (Internal)\"]
-        ToolManager -- Dispatches --> MCPClientManager %% For MCP execution
+        ToolManager -- "Dispatches" --> ToolExecutor["ToolExecutor (Internal)"]
+        ToolManager -- "Dispatches" --> MCPClientManager
 
-        ToolManager -- Records Stats --> ToolStatsManager
+        ToolManager -- "Records Stats" --> ToolStatsManager
 
-        ToolExecutor -- Returns (awaitable) --> ToolResult[\"ToolResult Model\"]
-        MCPClientManager -- Returns MCP Response --> ToolManager %% ToolManager maps to ToolResult
+        ToolExecutor -- "Returns (awaitable)" --> ToolResult["ToolResult Model"]
+        MCPClientManager -- "Returns MCP Response" --> ToolManager
 
-        ToolRegistry -- Stores/Provides --> InternalToolDef[\"ToolDefinition (source='internal')\"]
-        MCPClientManager -- Stores/Provides --> MCPToolDef[\"ToolDefinition (source='mcp')\"]
+        ToolRegistry -- "Stores/Provides" --> InternalToolDef["ToolDefinition (source='internal')"]
+        MCPClientManager -- "Stores/Provides" --> MCPToolDef["ToolDefinition (source='mcp')"]
 
-        ToolStatsManager -- Persists --> StatsFile[\"Tool Stats JSON\"]
+        ToolStatsManager -- "Persists" --> StatsFile["Tool Stats JSON"]
 
-        UnifiedConfigRef[\"UnifiedConfig\"] -- Provides Config --> ToolRegistry
-        UnifiedConfigRef -- Provides Config --> MCPClientManager
-        UnifiedConfigRef -- Provides Config --> ToolExecutor
-        UnifiedConfigRef -- Provides Config --> ToolStatsManager
+        UnifiedConfigRef["UnifiedConfig"] -- "Provides Config" --> ToolRegistry
+        UnifiedConfigRef["UnifiedConfig"] -- "Provides Config" --> MCPClientManager
+        UnifiedConfigRef["UnifiedConfig"] -- "Provides Config" --> ToolExecutor
+        UnifiedConfigRef["UnifiedConfig"] -- "Provides Config" --> ToolStatsManager
 
-        ToolsYAML[\"tools.yml\"] -- Read By --> UnifiedConfigRef
-        MCPYAML[\"mcp.yml\"] -- Read By --> UnifiedConfigRef
+        ToolsYAML["tools.yml"] -- "Read By" --> UnifiedConfigRef
+        MCPYAML["mcp.yml"] -- "Read By" --> UnifiedConfigRef
     end
 
-    subgraph \"Dependencies\"
-       ToolManager -- Uses --> LoggerFactory[\"LoggerFactory\"]
-       ToolRegistry -- Uses --> LoggerFactory
-       MCPClientManager -- Uses --> LoggerFactory
-       ToolExecutor -- Uses --> LoggerFactory
-       ToolStatsManager -- Uses --> LoggerFactory
-       ToolManager -- Uses --> UnifiedConfigRef
+    subgraph "Dependencies"
+       ToolManager -- "Uses" --> LoggerFactory["LoggerFactory"]
+       ToolRegistry -- "Uses" --> LoggerFactory
+       MCPClientManager -- "Uses" --> LoggerFactory
+       ToolExecutor -- "Uses" --> LoggerFactory
+       ToolStatsManager -- "Uses" --> LoggerFactory
+       ToolManager -- "Uses" --> UnifiedConfigRef
     end
 
-    %% AI Interaction Flow (Simplified)
-    ToolEnabledAI -- Gets Formatted Tools --> ToolManager %% Manager handles formatting request
+    ToolEnabledAI -- "Gets Formatted Tools" --> ToolManager
+
+    style ToolManager fill:#f9f,stroke:#333,stroke-width:2px
+    style ToolExecutor fill:#fdf,stroke:#333,stroke-width:1px
+    style MCPClientManager fill:#fdf,stroke:#333,stroke-width:1px
+    style ToolEnabledAI fill:#ccf,stroke:#333,stroke-width:2px
 ```
 
 ### 4. Agent System
 
-![Agents](diagrams/agents_system.png)
-
 ```mermaid
 graph TD
-    subgraph Agents
-        Coordinator[Coordinator]
-        AgentFactory[AgentFactory]
-        AgentRegistry[AgentRegistry]
-        BaseAgent[BaseAgent]
-        ListenerAgent[ListenerAgent]
-        ChatAgent[ChatAgent]
-        ToolFinderAgent[ToolFinderAgent]
-        OtherAgents[...]
-        RequestAnalyzer[Request Analyzer]
+    subgraph "Agents"
+        Coordinator["Coordinator"]
+        AgentFactory["AgentFactory"]
+        AgentRegistry["AgentRegistry"]
+        BaseAgent["BaseAgent"]
+        ListenerAgent["ListenerAgent"]
+        ChatAgent["ChatAgent"]
+        ToolFinderAgent["ToolFinderAgent"]
+        OtherAgents["..."]
+        RequestAnalyzer["Request Analyzer"]
 
-        Coordinator -- Inherits --> BaseAgent
-        ListenerAgent -- Inherits --> BaseAgent
-        ChatAgent -- Inherits --> BaseAgent
-        ToolFinderAgent -- Inherits --> BaseAgent
-        OtherAgents -- Inherits --> BaseAgent
+        Coordinator -- "Inherits" --> BaseAgent
+        ListenerAgent -- "Inherits" --> BaseAgent
+        ChatAgent -- "Inherits" --> BaseAgent
+        ToolFinderAgent -- "Inherits" --> BaseAgent
+        OtherAgents -- "Inherits" --> BaseAgent
 
-        Coordinator -- Uses --> AgentFactory
-        Coordinator -- Uses --> RequestAnalyzer
-        AgentFactory -- Uses --> AgentRegistry
-        AgentFactory -- Creates --> BaseAgent
-        RequestAnalyzer -- Uses --> AgentRegistry
+        Coordinator -- "Uses" --> AgentFactory
+        Coordinator -- "Uses" --> RequestAnalyzer
+        AgentFactory -- "Uses" --> AgentRegistry
+        AgentFactory -- "Creates" --> BaseAgent
+        RequestAnalyzer -- "Uses" --> AgentRegistry
     end
 
-    subgraph Dependencies
-       UnifiedConfig[UnifiedConfig Singleton]
-       ToolManager[ToolManager]
-       LoggerFactory[LoggerFactory Singleton]
-       AIBase[AIBase]
+    subgraph "Dependencies"
+       UnifiedConfig["UnifiedConfig Singleton"]
+       ToolManager["ToolManager"]
+       LoggerFactory["LoggerFactory Singleton"]
+       AIBase["AIBase"]
     end
 
     BaseAgent --> UnifiedConfig
     BaseAgent --> ToolManager
     BaseAgent --> LoggerFactory
     BaseAgent --> AIBase
-    Coordinator --> ToolManager # Coordinator might directly use TM or via BaseAgent
+    Coordinator -- "Coordinator might directly use" --> ToolManager
 ```
 
 ### 5. High-Level Interactions
@@ -313,7 +275,6 @@ graph LR
     ToolEnabledAI --> Logging
     Tools --> Logging
     Providers --> Logging
-    Prompts --> Logging
 ```
 
 _(Note: These diagrams illustrate major dependencies and interactions. Not all minor connections are shown for clarity.)_

@@ -19,34 +19,41 @@ nav:
   - Core Concepts:
       - Core AI: core.md
       - Agents: agents.md
-      - Tools: tools/overview.md
       - Conversations: conversations/overview.md
       - Error Handling: error_handling.md
-      - Utilities: utils.md
       - Configuration: configuration_system.md
-  - Prompt Templates:
-      - Management: prompt_templates/management.md
+  - Tools & MCP:
+      - Overview: tools/overview.md
+      - Using MCP Tools: examples/mcp_tool_usage.md
+      - Tool Statistics: examples/tool_stats_example.md
+  - Utilities:
+      - Logging & Utils: utils.md
+      - Prompt Management: prompt_templates/management.md
       - Prompting Guide: prompt_templates/guide.md
+      - Metrics System: metrics_system.md
   - Models:
       - Overview: providers/overview.md
-  - Metrics: metrics_system.md
   - Examples:
       - Overview: examples.md
       - Configuration: examples/configuration_example.md
-      - MCP Tool Usage: examples/mcp_tool_usage.md
-      - Tool Statistics: examples/tool_stats_example.md
       - UI: ui/gradio_interface.md
-  - Testing:
-      - Testing Providers: development/testing_providers.md
-      - Testing Strategy: development/testing_strategy.md
+      - Testing:
+          - Testing Providers: development/testing_providers.md
+          - Testing Strategy: development/testing_strategy.md
 
 markdown_extensions:
   - pymdownx.highlight
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.inlinehilite
   - pymdownx.tabbed
   - pymdownx.critic
   - admonition
+
+  
 
 plugins:
   - search
