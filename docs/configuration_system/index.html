@@ -739,6 +739,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Configuration Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#toolsyml-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      tools.yml Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mcpyml-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      mcp.yml Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1113,6 +1137,52 @@
   
   
     <li class="md-nav__item">
+      <a href="../examples/mcp_tool_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Tool Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/tool_stats_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tool Statistics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../ui/gradio_interface/" class="md-nav__link">
         
   
@@ -1268,9 +1338,65 @@
 <li><code>providers.yml</code>: Configures API providers (e.g., OpenAI, Anthropic, Ollama) including base URLs and potentially API key environment variable names.</li>
 <li><code>agents.yml</code>: Contains configurations specific to different agent types or roles.</li>
 <li><code>use_cases.yml</code>: Defines settings presets for different task types (e.g., chat, coding, solidity_coding), often specifying default models or parameters.</li>
-<li><code>tools.yml</code>: Configures available tools that agents can use.</li>
+<li><code>tools.yml</code>: Configures available <strong>internal</strong> tools (Python functions within the project) that agents can use. See below for structure.</li>
+<li><code>mcp.yml</code>: Configures connections to external <strong>Model-Centric Protocol (MCP)</strong> servers and declares the tools those servers are expected to provide. See below for structure.</li>
 </ul>
 <p>These files provide the default settings for the framework.</p>
+<h3 id="toolsyml-structure"><code>tools.yml</code> Structure</h3>
+<p>This file defines tools that are implemented as Python functions within this framework.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># src/config/tools.yml</span>
+<span class="nt">tools</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;tool_name&quot;</span><span class="w"> </span><span class="c1"># Unique identifier</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Description</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">LLM&quot;</span><span class="w"> </span><span class="c1"># How the AI understands the tool</span>
+<span class="w">    </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;src.path.to.module&quot;</span><span class="w"> </span><span class="c1"># Python module containing the function</span>
+<span class="w">    </span><span class="nt">function</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;function_name&quot;</span><span class="w"> </span><span class="c1"># Name of the sync or async Python function</span>
+<span class="w">    </span><span class="nt">parameters_schema</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># JSON schema for arguments</span>
+<span class="w">    </span><span class="nt">category</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;grouping_category&quot;</span><span class="w"> </span><span class="c1"># Optional: for organization</span>
+<span class="w">    </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;internal&quot;</span><span class="w"> </span><span class="c1"># Must be &quot;internal&quot; for this file</span>
+<span class="w">    </span><span class="nt">speed</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;fast&quot;</span><span class="w"> </span><span class="c1"># Optional: fast, medium, slow (default: medium)</span>
+<span class="w">    </span><span class="nt">safety</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;native&quot;</span><span class="w"> </span><span class="c1"># Optional: native, sandboxed, external (default: native)</span>
+
+<span class="c1"># Tool execution settings (optional)</span>
+<span class="nt">execution</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span><span class="w"> </span><span class="c1"># Default timeout in seconds</span>
+<span class="w">  </span><span class="nt">max_retries</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+
+<span class="c1"># Tool statistics settings (optional)</span>
+<span class="nt">stats</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">storage_path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;data/tool_stats.json&quot;</span>
+<span class="w">  </span><span class="nt">track_usage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div>
+<p>The <code>ToolRegistry</code> component is responsible for loading and managing these internal tool definitions.</p>
+<h3 id="mcpyml-structure"><code>mcp.yml</code> Structure</h3>
+<p>This file defines connections to external MCP servers and <em>declares</em> the tools they provide. This declaration helps the LLM know about the tool, but the actual available tools might differ when connecting to the server.</p>
+<p>The MCP server itself must be running independently and accessible at the specified network address.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># src/config/mcp.yml</span>
+<span class="nt">mcp_servers</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">unique_server_name_1</span><span class="p">:</span><span class="w"> </span><span class="c1"># Identifier for this MCP server connection</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Description</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">server&quot;</span><span class="w"> </span><span class="c1"># Optional</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://localhost:8001&quot;</span><span class="w"> </span><span class="c1"># REQUIRED: Network endpoint (http, https, ws, wss)</span>
+<span class="w">    </span><span class="nt">auth</span><span class="p">:</span><span class="w"> </span><span class="c1"># Optional: Authentication details</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;bearer&quot;</span><span class="w"> </span><span class="c1"># Currently only &quot;bearer&quot; is supported</span>
+<span class="w">      </span><span class="nt">token_env_var</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;MCP_SERVER_1_TOKEN&quot;</span><span class="w"> </span><span class="c1"># Env var containing the Bearer token</span>
+<span class="w">      </span><span class="c1"># NOTE: Headers (including auth) are NOT currently sent for ws/wss connections</span>
+<span class="w">      </span><span class="c1"># due to limitations in the underlying mcp library (v1.6.0).</span>
+<span class="w">    </span><span class="nt">provides_tools</span><span class="p">:</span><span class="w"> </span><span class="c1"># List of tools *declared* by this server</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;mcp_tool_name_a&quot;</span><span class="w"> </span><span class="c1"># Unique name across ALL tools (internal &amp; MCP)</span>
+<span class="w">        </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Description</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">LLM&quot;</span>
+<span class="w">        </span><span class="nt">inputSchema</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># JSON schema for arguments (or parameters_schema)</span>
+<span class="w">        </span><span class="nt">speed</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;medium&quot;</span><span class="w"> </span><span class="c1"># Optional: (default: medium)</span>
+<span class="w">        </span><span class="nt">safety</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;external&quot;</span><span class="w"> </span><span class="c1"># Optional: (default: external)</span>
+<span class="w">        </span><span class="c1"># &#39;source&#39; and &#39;mcp_server_name&#39; are added automatically</span>
+
+<span class="w">  </span><span class="nt">unique_server_name_2</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Another</span><span class="nv"> </span><span class="s">server&quot;</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;wss://secure.example.com:8002&quot;</span>
+<span class="w">    </span><span class="c1"># No auth section means no authentication required or sent</span>
+<span class="w">    </span><span class="nt">provides_tools</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;mcp_tool_name_b&quot;</span>
+<span class="w">        </span><span class="c1"># ... tool definition ...</span>
+</code></pre></div>
+<p>The <code>MCPClientManager</code> component is responsible for loading these configurations, establishing connections to the servers using the appropriate network client (<code>sse_client</code> for http/https, <code>websocket_client</code> for ws/wss), and providing the declared tool definitions.</p>
 <h2 id="usage">Usage</h2>
 <p>The most common way to interact with the configuration system is through the <code>configure()</code> function, typically called once at the beginning of an application.</p>
 <h3 id="basic-configuration">Basic Configuration</h3>

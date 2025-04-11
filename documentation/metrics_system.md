@@ -217,7 +217,7 @@ print(f"Success rate: {weather_stats['successes']/weather_stats['uses']*100:.1f}
 print(f"Average duration: {weather_stats['avg_duration_ms']:.2f}ms")
 ```
 
-For more detailed information about ToolStatsManager, see the [Tool Usage Statistics](/documentation/tools/overview.md#tool-usage-statistics) section in the Tools documentation.
+For more detailed information about ToolStatsManager, see the [Tool Usage Statistics](tools/overview.md#tool-usage-statistics) section in the Tools documentation.
 
 ## Extending the Metrics System
 
@@ -294,4 +294,8 @@ To debug metrics tracking, you can:
 3. Track both successes and failures for complete analytics
 4. Include relevant metadata for easier debugging and analysis
 5. Regularly review metrics to identify performance issues and opportunities for optimization
+```
+
+```
+
 ```

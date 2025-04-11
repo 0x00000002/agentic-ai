@@ -197,4 +197,4 @@ stats:
   storage_path: "data/tool_stats.json" # Custom storage path
 ```
 
-For more information, see the [Tool Usage Statistics](/documentation/tools/overview.md#tool-usage-statistics) section in the Tools documentation.
+For more details on how statistics are managed and stored, see the [Tool Statistics Manager](../tools/overview.md#tool-usage-statistics) section in the main Tools documentation.

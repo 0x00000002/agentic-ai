@@ -12,13 +12,13 @@
         <meta name="author" content="Agentic-AI Team">
       
       
-        <link rel="canonical" href="https://0x00000002.github.io/agentic-ai/examples/configuration_example/">
+        <link rel="canonical" href="https://0x00000002.github.io/agentic-ai/examples/tool_stats_example/">
       
       
-        <link rel="prev" href="../">
+        <link rel="prev" href="../mcp_tool_usage/">
       
       
-        <link rel="next" href="../mcp_tool_usage/">
+        <link rel="next" href="../../ui/gradio_interface/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -26,7 +26,7 @@
     
     
       
-        <title>Configuration - Agentic-AI Documentation</title>
+        <title>Tool Statistics - Agentic-AI Documentation</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#configuration-usage-examples" class="md-skip">
+        <a href="#tool-usage-statistics-example" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Configuration
+              Tool Statistics
             
           </span>
         </div>
@@ -949,32 +949,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Configuration
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../configuration_example/" class="md-nav__link">
         
   
   
@@ -985,89 +963,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#example-1-basic-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example 1: Basic Usage
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-2-using-configuration-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example 2: Using Configuration File
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-3-selecting-model-via-use-case" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example 3: Selecting Model via Use Case
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-configuration-with-multiple-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      Custom Configuration with Multiple Options
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#loading-configuration-from-a-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      Loading Configuration from a File
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#accessing-the-configuration-api-directly" class="md-nav__link">
-    <span class="md-ellipsis">
-      Accessing the Configuration API Directly
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#using-with-the-orchestrator" class="md-nav__link">
-    <span class="md-ellipsis">
-      Using with the Orchestrator
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1100,10 +995,32 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../tool_stats_example/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Tool Statistics
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1114,6 +1031,113 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Basic Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#initialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Initialization
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recording-tool-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recording Tool Usage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retrieving-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Retrieving Statistics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#saving-and-loading-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Saving and Loading Statistics
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complete Example
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-with-toolmanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integration with ToolManager
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1264,160 +1288,175 @@
   
 
 
-<h1 id="configuration-usage-examples">Configuration Usage Examples</h1>
-<p>This document provides examples of how to use the new configuration system in various scenarios.</p>
-<h2 id="example-1-basic-usage">Example 1: Basic Usage</h2>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">)))</span>
+<h1 id="tool-usage-statistics-example">Tool Usage Statistics Example</h1>
+<p>This example demonstrates how to use the <code>ToolStatsManager</code> to track, analyze, and persist tool usage statistics.</p>
+<h2 id="overview">Overview</h2>
+<p>The <code>ToolStatsManager</code> allows you to:</p>
+<ul>
+<li>Track successful and failed tool executions</li>
+<li>Record and calculate performance metrics (execution duration)</li>
+<li>Save statistics to a JSON file for later analysis</li>
+<li>Load previously saved statistics</li>
+<li>Query statistics for specific tools or all tools</li>
+</ul>
+<h2 id="basic-usage">Basic Usage</h2>
+<h3 id="initialization">Initialization</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.tools.tool_stats_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolStatsManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerFactory</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnifiedConfig</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.tool_enabled_ai</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolEnabledAI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.config.unified_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnifiedConfig</span>
+<span class="c1"># Initialize with default configuration</span>
+<span class="n">stats_manager</span> <span class="o">=</span> <span class="n">ToolStatsManager</span><span class="p">()</span>
 
-<span class="c1"># Get the configuration instance</span>
-<span class="n">config</span> <span class="o">=</span> <span class="n">UnifiedConfig</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span>
-
-<span class="c1"># Create an AI instance using the default configuration</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">ToolEnabledAI</span><span class="p">()</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;Hello, who are you?&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Default AI Response: </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># Or initialize with custom components</span>
+<span class="n">stats_manager</span> <span class="o">=</span> <span class="n">ToolStatsManager</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">=</span><span class="n">LoggerFactory</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;my_stats_logger&quot;</span><span class="p">),</span>
+    <span class="n">unified_config</span><span class="o">=</span><span class="n">UnifiedConfig</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span>
+<span class="p">)</span>
 </code></pre></div>
-<h2 id="example-2-using-configuration-file">Example 2: Using Configuration File</h2>
-<p>Create a <code>user_config.yml</code> file:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># user_config.yml</span>
-<span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4o-mini</span>
-<span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.8</span>
-<span class="nt">show_thinking</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</code></pre></div>
-<p>Then load it:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">)))</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.tool_enabled_ai</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolEnabledAI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.config.unified_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnifiedConfig</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.config.user_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">UserConfig</span>
-
-<span class="c1"># Load user configuration from file</span>
-<span class="n">user_cfg</span> <span class="o">=</span> <span class="n">UserConfig</span><span class="p">(</span><span class="n">config_file</span><span class="o">=</span><span class="s2">&quot;user_config.yml&quot;</span><span class="p">)</span>
-<span class="n">config</span> <span class="o">=</span> <span class="n">UnifiedConfig</span><span class="o">.</span><span class="n">get_instance</span><span class="p">(</span><span class="n">user_config</span><span class="o">=</span><span class="n">user_cfg</span><span class="p">)</span>
-
-<span class="c1"># Create an AI instance with the configured model</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">ToolEnabledAI</span><span class="p">()</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;Explain the concept of recursion&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Configured AI Response: </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</code></pre></div>
-<h2 id="example-3-selecting-model-via-use-case">Example 3: Selecting Model via Use Case</h2>
-<p>Assuming <code>use_cases.yml</code> defines a <code>solidity_coding</code> use case and potentially associates preferred models.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">)))</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.tool_enabled_ai</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolEnabledAI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.config.unified_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnifiedConfig</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.model_selector</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelSelector</span><span class="p">,</span> <span class="n">UseCase</span>
-
-<span class="n">config</span> <span class="o">=</span> <span class="n">UnifiedConfig</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span>
-<span class="n">selector</span> <span class="o">=</span> <span class="n">ModelSelector</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
-
-<span class="c1"># Select model based on use case</span>
-<span class="n">selected_model</span> <span class="o">=</span> <span class="n">selector</span><span class="o">.</span><span class="n">select_model</span><span class="p">(</span><span class="n">UseCase</span><span class="o">.</span><span class="n">SOLIDITY_CODING</span><span class="p">)</span>
-
-<span class="c1"># Create an AI instance optimized for Solidity coding</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">ToolEnabledAI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">selected_model</span><span class="o">.</span><span class="n">value</span> <span class="k">if</span> <span class="n">selected_model</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;Write a simple Solidity smart contract for storing a value.&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Solidity AI Response: </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</code></pre></div>
-<h2 id="custom-configuration-with-multiple-options">Custom Configuration with Multiple Options</h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">configure</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.tool_enabled_ai</span><span class="w"> </span><span class="kn">import</span> <span class="n">AI</span>
-
-<span class="c1"># Configure with multiple options</span>
-<span class="n">configure</span><span class="p">(</span>
-    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-5-sonnet&quot;</span><span class="p">,</span>
-    <span class="n">temperature</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
-    <span class="n">system_prompt</span><span class="o">=</span><span class="s2">&quot;You are a helpful assistant specialized in Solidity smart contract development.&quot;</span><span class="p">,</span>
-    <span class="n">show_thinking</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">max_tokens</span><span class="o">=</span><span class="mi">2000</span>
+<h3 id="recording-tool-usage">Recording Tool Usage</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Record a successful tool execution with duration</span>
+<span class="n">stats_manager</span><span class="o">.</span><span class="n">update_stats</span><span class="p">(</span>
+    <span class="n">tool_name</span><span class="o">=</span><span class="s2">&quot;weather_tool&quot;</span><span class="p">,</span>
+    <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">duration_ms</span><span class="o">=</span><span class="mi">250</span>  <span class="c1"># milliseconds</span>
 <span class="p">)</span>
 
-<span class="c1"># Create an AI instance with the custom configuration</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">AI</span><span class="p">()</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;What is the best way to implement a token vesting mechanism?&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
-</code></pre></div>
-<h2 id="loading-configuration-from-a-file">Loading Configuration from a File</h2>
-<p>Create a file named <code>solidity_config.yml</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">claude-3-5-sonnet</span>
-<span class="nt">use_case</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">solidity_coding</span>
-<span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.8</span>
-<span class="nt">show_thinking</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="nt">system_prompt</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You are a helpful assistant specialized in Solidity smart contract development.</span>
-</code></pre></div>
-<p>Then use it in your code:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">configure</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.tool_enabled_ai</span><span class="w"> </span><span class="kn">import</span> <span class="n">AI</span>
-
-<span class="c1"># Load configuration from a file</span>
-<span class="n">configure</span><span class="p">(</span><span class="n">config_file</span><span class="o">=</span><span class="s2">&quot;solidity_config.yml&quot;</span><span class="p">)</span>
-
-<span class="c1"># Create an AI instance using the loaded configuration</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">AI</span><span class="p">()</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;Explain gas optimization techniques&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
-</code></pre></div>
-<h2 id="accessing-the-configuration-api-directly">Accessing the Configuration API Directly</h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_config</span><span class="p">,</span> <span class="n">configure</span><span class="p">,</span> <span class="n">get_available_models</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.tool_enabled_ai</span><span class="w"> </span><span class="kn">import</span> <span class="n">AI</span>
-
-<span class="c1"># Configure the system</span>
-<span class="n">configure</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-5-sonnet&quot;</span><span class="p">)</span>
-
-<span class="c1"># Get the configuration instance</span>
-<span class="n">config</span> <span class="o">=</span> <span class="n">get_config</span><span class="p">()</span>
-
-<span class="c1"># Get all available models</span>
-<span class="n">available_models</span> <span class="o">=</span> <span class="n">get_available_models</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Available models:&quot;</span><span class="p">,</span> <span class="n">available_models</span><span class="p">)</span>
-
-<span class="c1"># Get the current default model</span>
-<span class="n">default_model</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_default_model</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Default model:&quot;</span><span class="p">,</span> <span class="n">default_model</span><span class="p">)</span>
-
-<span class="c1"># Get the model configuration</span>
-<span class="n">model_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_model_config</span><span class="p">(</span><span class="n">default_model</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model name:&quot;</span><span class="p">,</span> <span class="n">model_config</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Provider:&quot;</span><span class="p">,</span> <span class="n">model_config</span><span class="p">[</span><span class="s2">&quot;provider&quot;</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Quality:&quot;</span><span class="p">,</span> <span class="n">model_config</span><span class="p">[</span><span class="s2">&quot;quality&quot;</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Speed:&quot;</span><span class="p">,</span> <span class="n">model_config</span><span class="p">[</span><span class="s2">&quot;speed&quot;</span><span class="p">])</span>
-
-<span class="c1"># Create an AI instance</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">AI</span><span class="p">()</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;Hello!&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
-</code></pre></div>
-<h2 id="using-with-the-orchestrator">Using with the Orchestrator</h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">configure</span><span class="p">,</span> <span class="n">UseCasePreset</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.agents.orchestrator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Orchestrator</span>
-
-<span class="c1"># Configure for data analysis use case</span>
-<span class="n">configure</span><span class="p">(</span>
-    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-3-5-sonnet&quot;</span><span class="p">,</span>
-    <span class="n">use_case</span><span class="o">=</span><span class="n">UseCasePreset</span><span class="o">.</span><span class="n">DATA_ANALYSIS</span><span class="p">,</span>
-    <span class="n">show_thinking</span><span class="o">=</span><span class="kc">True</span>
+<span class="c1"># Record a failed tool execution</span>
+<span class="n">stats_manager</span><span class="o">.</span><span class="n">update_stats</span><span class="p">(</span>
+    <span class="n">tool_name</span><span class="o">=</span><span class="s2">&quot;search_tool&quot;</span><span class="p">,</span>
+    <span class="n">success</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 
-<span class="c1"># Create an orchestrator (it will use the configured settings)</span>
-<span class="n">orchestrator</span> <span class="o">=</span> <span class="n">Orchestrator</span><span class="p">()</span>
-
-<span class="c1"># Process a request</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">process_request</span><span class="p">({</span>
-    <span class="s2">&quot;prompt&quot;</span><span class="p">:</span> <span class="s2">&quot;Analyze the trends in this data: [1, 3, 6, 10, 15, 21, 28]&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;conversation_history&quot;</span><span class="p">:</span> <span class="p">[]</span>
-<span class="p">})</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;content&quot;</span><span class="p">])</span>
+<span class="c1"># You can optionally include a request ID for cross-referencing</span>
+<span class="n">stats_manager</span><span class="o">.</span><span class="n">update_stats</span><span class="p">(</span>
+    <span class="n">tool_name</span><span class="o">=</span><span class="s2">&quot;calculator_tool&quot;</span><span class="p">,</span>
+    <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">duration_ms</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">request_id</span><span class="o">=</span><span class="s2">&quot;req-12345&quot;</span>
+<span class="p">)</span>
 </code></pre></div>
+<h3 id="retrieving-statistics">Retrieving Statistics</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Get statistics for a specific tool</span>
+<span class="n">weather_stats</span> <span class="o">=</span> <span class="n">stats_manager</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="s2">&quot;weather_tool&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">weather_stats</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Weather tool:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- Used </span><span class="si">{</span><span class="n">weather_stats</span><span class="p">[</span><span class="s1">&#39;uses&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> times&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- Success rate: </span><span class="si">{</span><span class="n">weather_stats</span><span class="p">[</span><span class="s1">&#39;successes&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">weather_stats</span><span class="p">[</span><span class="s1">&#39;uses&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- Average duration: </span><span class="si">{</span><span class="n">weather_stats</span><span class="p">[</span><span class="s1">&#39;avg_duration_ms&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">ms&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get statistics for all tools</span>
+<span class="n">all_stats</span> <span class="o">=</span> <span class="n">stats_manager</span><span class="o">.</span><span class="n">get_all_stats</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">tool_name</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="n">all_stats</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tool_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;uses&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> uses, </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;successes&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> successes&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="saving-and-loading-statistics">Saving and Loading Statistics</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Save statistics to the default path (from configuration)</span>
+<span class="n">stats_manager</span><span class="o">.</span><span class="n">save_stats</span><span class="p">()</span>
+
+<span class="c1"># Save to a custom path</span>
+<span class="n">stats_manager</span><span class="o">.</span><span class="n">save_stats</span><span class="p">(</span><span class="s2">&quot;/path/to/custom_stats.json&quot;</span><span class="p">)</span>
+
+<span class="c1"># Load statistics from the default path</span>
+<span class="n">stats_manager</span><span class="o">.</span><span class="n">load_stats</span><span class="p">()</span>
+
+<span class="c1"># Load from a custom path</span>
+<span class="n">stats_manager</span><span class="o">.</span><span class="n">load_stats</span><span class="p">(</span><span class="s2">&quot;/path/to/custom_stats.json&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="complete-example">Complete Example</h2>
+<p>Here's a comprehensive example showing the full workflow:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.tools.tool_stats_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolStatsManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.utils.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerFactory</span>
+
+<span class="c1"># Create a ToolStatsManager with default configuration</span>
+<span class="n">stats_manager</span> <span class="o">=</span> <span class="n">ToolStatsManager</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">=</span><span class="n">LoggerFactory</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;example_logger&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Function to simulate tool executions</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">simulate_tool_usage</span><span class="p">(</span><span class="n">tool_name</span><span class="p">,</span> <span class="n">num_calls</span><span class="p">,</span> <span class="n">success_rate</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulating </span><span class="si">{</span><span class="n">num_calls</span><span class="si">}</span><span class="s2"> calls to </span><span class="si">{</span><span class="n">tool_name</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_calls</span><span class="p">):</span>
+        <span class="c1"># Simulate success/failure based on success_rate</span>
+        <span class="n">success</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">success_rate</span>
+
+        <span class="c1"># Simulate execution time (50-500ms)</span>
+        <span class="n">duration_ms</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">500</span><span class="p">))</span>
+
+        <span class="c1"># Update statistics</span>
+        <span class="n">stats_manager</span><span class="o">.</span><span class="n">update_stats</span><span class="p">(</span>
+            <span class="n">tool_name</span><span class="o">=</span><span class="n">tool_name</span><span class="p">,</span>
+            <span class="n">success</span><span class="o">=</span><span class="n">success</span><span class="p">,</span>
+            <span class="n">duration_ms</span><span class="o">=</span><span class="n">duration_ms</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Small delay for better timestamps</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Completed simulation for </span><span class="si">{</span><span class="n">tool_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Simulate usage of different tools</span>
+<span class="n">simulate_tool_usage</span><span class="p">(</span><span class="s2">&quot;weather_tool&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">)</span>    <span class="c1"># 80% success rate</span>
+<span class="n">simulate_tool_usage</span><span class="p">(</span><span class="s2">&quot;calculator_tool&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">)</span> <span class="c1"># 90% success rate</span>
+<span class="n">simulate_tool_usage</span><span class="p">(</span><span class="s2">&quot;search_tool&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">)</span>     <span class="c1"># 75% success rate</span>
+
+<span class="c1"># Save statistics</span>
+<span class="n">stats_manager</span><span class="o">.</span><span class="n">save_stats</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Statistics saved to: </span><span class="si">{</span><span class="n">stats_manager</span><span class="o">.</span><span class="n">stats_storage_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Print statistics for analysis</span>
+<span class="n">all_stats</span> <span class="o">=</span> <span class="n">stats_manager</span><span class="o">.</span><span class="n">get_all_stats</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Tool Usage Summary:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Tool Name&#39;</span><span class="si">:</span><span class="s2">&lt;20</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Uses&#39;</span><span class="si">:</span><span class="s2">&lt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Success Rate&#39;</span><span class="si">:</span><span class="s2">&lt;15</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Avg Duration&#39;</span><span class="si">:</span><span class="s2">&lt;15</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">tool_name</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="n">all_stats</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">success_rate</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;successes&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;uses&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span> <span class="k">if</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;uses&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tool_name</span><span class="si">:</span><span class="s2">&lt;20</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;uses&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;6</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">&gt;6.1f</span><span class="si">}</span><span class="s2">%        </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;avg_duration_ms&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;8.2f</span><span class="si">}</span><span class="s2">ms&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Example output:</p>
+<div class="highlight"><pre><span></span><code>Simulating 5 calls to weather_tool...
+Completed simulation for weather_tool
+Simulating 10 calls to calculator_tool...
+Completed simulation for calculator_tool
+Simulating 8 calls to search_tool...
+Completed simulation for search_tool
+Statistics saved to: data/tool_stats.json
+
+Tool Usage Summary:
+------------------------------------------------------------
+Tool Name            Uses   Success Rate     Avg Duration
+------------------------------------------------------------
+weather_tool         5      80.0%            210.50ms
+calculator_tool      10     90.0%            275.78ms
+search_tool          8      75.0%            226.33ms
+</code></pre></div>
+<h2 id="integration-with-toolmanager">Integration with ToolManager</h2>
+<p>In practice, you would normally use the <code>ToolStatsManager</code> indirectly through the <code>ToolManager</code>, which acts as a facade for the entire tools system:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.tools.tool_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolManager</span>
+
+<span class="n">tool_manager</span> <span class="o">=</span> <span class="n">ToolManager</span><span class="p">()</span>
+
+<span class="c1"># Execute a tool - stats tracking happens automatically</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">tool_manager</span><span class="o">.</span><span class="n">execute_tool</span><span class="p">(</span><span class="s2">&quot;weather_tool&quot;</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="s2">&quot;New York&quot;</span><span class="p">)</span>
+
+<span class="c1"># Save statistics when needed</span>
+<span class="n">tool_manager</span><span class="o">.</span><span class="n">save_usage_stats</span><span class="p">()</span>
+
+<span class="c1"># Get tool information including usage statistics</span>
+<span class="n">tool_info</span> <span class="o">=</span> <span class="n">tool_manager</span><span class="o">.</span><span class="n">get_tool_info</span><span class="p">(</span><span class="s2">&quot;weather_tool&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Weather tool used </span><span class="si">{</span><span class="n">tool_info</span><span class="p">[</span><span class="s1">&#39;usage_stats&#39;</span><span class="p">][</span><span class="s1">&#39;uses&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> times&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="configuration">Configuration</h2>
+<p>Tool statistics tracking can be configured in the <code>tools.yml</code> configuration file:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">stats</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">track_usage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1"># Set to false to disable tracking</span>
+<span class="w">  </span><span class="nt">storage_path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;data/tool_stats.json&quot;</span><span class="w"> </span><span class="c1"># Custom storage path</span>
+</code></pre></div>
+<p>For more details on how statistics are managed and stored, see the <a href="../../tools/overview/#tool-usage-statistics">Tool Statistics Manager</a> section in the main Tools documentation.</p>
 
 
 

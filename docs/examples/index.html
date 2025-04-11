@@ -1014,6 +1014,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#using-the-tool-statistics-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using the Tool Statistics Manager
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1036,6 +1045,52 @@
   
   <span class="md-ellipsis">
     Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="mcp_tool_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Tool Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="tool_stats_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tool Statistics
     
   </span>
   
@@ -1361,6 +1416,44 @@
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
 </code></pre></div>
+<h2 id="using-the-tool-statistics-manager">Using the Tool Statistics Manager</h2>
+<p>This example demonstrates how to track and analyze tool usage with the <code>ToolStatsManager</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.tools.tool_stats_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolStatsManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.tools.tool_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolManager</span>
+
+<span class="c1"># Option 1: Using ToolStatsManager directly</span>
+<span class="n">stats_manager</span> <span class="o">=</span> <span class="n">ToolStatsManager</span><span class="p">()</span>
+
+<span class="c1"># Record tool usage</span>
+<span class="n">stats_manager</span><span class="o">.</span><span class="n">update_stats</span><span class="p">(</span>
+    <span class="n">tool_name</span><span class="o">=</span><span class="s2">&quot;search_tool&quot;</span><span class="p">,</span>
+    <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">duration_ms</span><span class="o">=</span><span class="mi">250</span>
+<span class="p">)</span>
+
+<span class="c1"># Retrieve statistics</span>
+<span class="n">search_stats</span> <span class="o">=</span> <span class="n">stats_manager</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="s2">&quot;search_tool&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Search tool success rate: </span><span class="si">{</span><span class="n">search_stats</span><span class="p">[</span><span class="s1">&#39;successes&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">search_stats</span><span class="p">[</span><span class="s1">&#39;uses&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+<span class="c1"># Save statistics for persistence</span>
+<span class="n">stats_manager</span><span class="o">.</span><span class="n">save_stats</span><span class="p">()</span>
+
+<span class="c1"># Option 2: Using through ToolManager (recommended approach)</span>
+<span class="n">tool_manager</span> <span class="o">=</span> <span class="n">ToolManager</span><span class="p">()</span>
+
+<span class="c1"># Execute a tool - stats tracking happens automatically</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">tool_manager</span><span class="o">.</span><span class="n">execute_tool</span><span class="p">(</span><span class="s2">&quot;weather_tool&quot;</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="s2">&quot;New York&quot;</span><span class="p">)</span>
+
+<span class="c1"># Save statistics</span>
+<span class="n">tool_manager</span><span class="o">.</span><span class="n">save_usage_stats</span><span class="p">()</span>
+
+<span class="c1"># Get tool statistics</span>
+<span class="n">tool_info</span> <span class="o">=</span> <span class="n">tool_manager</span><span class="o">.</span><span class="n">get_tool_info</span><span class="p">(</span><span class="s2">&quot;weather_tool&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">tool_info</span> <span class="ow">and</span> <span class="s1">&#39;usage_stats&#39;</span> <span class="ow">in</span> <span class="n">tool_info</span><span class="p">:</span>
+    <span class="n">usage_stats</span> <span class="o">=</span> <span class="n">tool_info</span><span class="p">[</span><span class="s1">&#39;usage_stats&#39;</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Weather tool used </span><span class="si">{</span><span class="n">usage_stats</span><span class="p">[</span><span class="s1">&#39;uses&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> times with </span><span class="si">{</span><span class="n">usage_stats</span><span class="p">[</span><span class="s1">&#39;successes&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> successes&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>For more detailed examples, see <a href="tool_stats_example/">Tool Statistics Example</a>.</p>
 
 
 

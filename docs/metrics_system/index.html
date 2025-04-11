@@ -1062,6 +1062,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#tool-specific-statistics-with-toolstatsmanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tool-Specific Statistics with ToolStatsManager
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool-Specific Statistics with ToolStatsManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-differences-from-requestmetricsservice" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Differences from RequestMetricsService
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Usage
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#extending-the-metrics-system" class="md-nav__link">
     <span class="md-ellipsis">
       Extending the Metrics System
@@ -1091,48 +1124,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Troubleshooting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#common-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      Common Issues
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#debugging" class="md-nav__link">
-    <span class="md-ellipsis">
-      Debugging
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      Best Practices
-    </span>
-  </a>
   
 </li>
       
@@ -1223,6 +1214,52 @@
   
   <span class="md-ellipsis">
     Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/mcp_tool_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Tool Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/tool_stats_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tool Statistics
     
   </span>
   
@@ -1526,6 +1563,35 @@ python<span class="w"> </span>src/metrics/metrics_cli.py<span class="w"> </span>
 <li>The success or failure is recorded</li>
 <li>The tool usage is associated with the current request ID</li>
 </ol>
+<h2 id="tool-specific-statistics-with-toolstatsmanager">Tool-Specific Statistics with ToolStatsManager</h2>
+<p>The framework includes a dedicated <code>ToolStatsManager</code> component that provides detailed per-tool usage statistics, complementing the broader metrics system:</p>
+<h3 id="key-differences-from-requestmetricsservice">Key Differences from RequestMetricsService</h3>
+<ul>
+<li><strong>Tool-Focused</strong>: Specializes in tool usage statistics rather than the entire system</li>
+<li><strong>Performance Metrics</strong>: Tracks detailed performance metrics like average execution time</li>
+<li><strong>Stateless Operation</strong>: Works independently of request tracking (no request IDs needed)</li>
+<li><strong>Simplicity</strong>: Lightweight design for simple tool usage tracking</li>
+<li><strong>Durability</strong>: Persistent JSON storage with automatic save/load operations</li>
+</ul>
+<h3 id="example-usage">Example Usage</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.tools.tool_stats_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolStatsManager</span>
+
+<span class="c1"># Get the ToolStatsManager instance</span>
+<span class="n">stats_manager</span> <span class="o">=</span> <span class="n">ToolStatsManager</span><span class="p">()</span>
+
+<span class="c1"># Record a tool usage</span>
+<span class="n">stats_manager</span><span class="o">.</span><span class="n">update_stats</span><span class="p">(</span>
+    <span class="n">tool_name</span><span class="o">=</span><span class="s2">&quot;weather_tool&quot;</span><span class="p">,</span>
+    <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">duration_ms</span><span class="o">=</span><span class="mi">250</span>
+<span class="p">)</span>
+
+<span class="c1"># Get statistics for analysis</span>
+<span class="n">weather_stats</span> <span class="o">=</span> <span class="n">stats_manager</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="s2">&quot;weather_tool&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success rate: </span><span class="si">{</span><span class="n">weather_stats</span><span class="p">[</span><span class="s1">&#39;successes&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">weather_stats</span><span class="p">[</span><span class="s1">&#39;uses&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Average duration: </span><span class="si">{</span><span class="n">weather_stats</span><span class="p">[</span><span class="s1">&#39;avg_duration_ms&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">ms&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>For more detailed information about ToolStatsManager, see the <a href="../tools/overview/#tool-usage-statistics">Tool Usage Statistics</a> section in the Tools documentation.</p>
 <h2 id="extending-the-metrics-system">Extending the Metrics System</h2>
 <h3 id="adding-new-metrics">Adding New Metrics</h3>
 <p>To add new metrics to track:</p>
@@ -1572,29 +1638,33 @@ python<span class="w"> </span>src/metrics/metrics_cli.py<span class="w"> </span>
                 <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
             <span class="p">)</span>
             <span class="k">raise</span>
+
+<span class="c1">## Troubleshooting</span>
+
+<span class="c1">### Common Issues</span>
+
+<span class="mf">1.</span> <span class="o">**</span><span class="n">Missing</span> <span class="n">metrics</span> <span class="n">data</span><span class="o">**</span><span class="p">:</span> <span class="n">Ensure</span> <span class="n">the</span> <span class="n">data</span> <span class="n">directory</span> <span class="n">exists</span> <span class="ow">and</span> <span class="ow">is</span> <span class="n">writable</span><span class="o">.</span>
+<span class="mf">2.</span> <span class="o">**</span><span class="n">Request</span> <span class="n">ID</span> <span class="ow">not</span> <span class="n">tracked</span><span class="o">**</span><span class="p">:</span> <span class="n">Make</span> <span class="n">sure</span> <span class="n">the</span> <span class="n">request_id</span> <span class="ow">is</span> <span class="n">passed</span> <span class="n">correctly</span> <span class="n">between</span> <span class="n">components</span><span class="o">.</span>
+<span class="mf">3.</span> <span class="o">**</span><span class="n">CLI</span> <span class="kn">import</span><span class="w"> </span><span class="nn">errors</span><span class="o">**</span><span class="p">:</span> <span class="n">Run</span> <span class="n">the</span> <span class="n">CLI</span> <span class="n">script</span> <span class="kn">from</span><span class="w"> </span><span class="nn">the</span> <span class="n">project</span> <span class="n">root</span> <span class="n">directory</span><span class="o">.</span>
+
+<span class="c1">### Debugging</span>
+
+<span class="n">To</span> <span class="n">debug</span> <span class="n">metrics</span> <span class="n">tracking</span><span class="p">,</span> <span class="n">you</span> <span class="n">can</span><span class="p">:</span>
+
+<span class="mf">1.</span> <span class="n">Inspect</span> <span class="n">the</span> <span class="n">metrics</span> <span class="n">JSON</span> <span class="n">file</span> <span class="n">directly</span><span class="p">:</span> <span class="err">`</span><span class="n">data</span><span class="o">/</span><span class="n">metrics</span><span class="o">/</span><span class="n">request_metrics</span><span class="o">.</span><span class="n">json</span><span class="err">`</span>
+<span class="mf">2.</span> <span class="n">Add</span> <span class="n">detailed</span> <span class="n">metadata</span> <span class="n">to</span> <span class="n">track</span> <span class="n">more</span> <span class="n">information</span>
+<span class="mf">3.</span> <span class="n">Use</span> <span class="n">the</span> <span class="n">CLI</span><span class="s1">&#39;s request command to inspect specific requests: `python src/metrics/metrics_cli.py request REQUEST_ID`</span>
+
+<span class="c1">## Best Practices</span>
+
+<span class="mf">1.</span> <span class="n">Always</span> <span class="n">include</span> <span class="n">request_id</span> <span class="n">when</span> <span class="n">passing</span> <span class="n">requests</span> <span class="n">between</span> <span class="n">components</span>
+<span class="mf">2.</span> <span class="n">Use</span> <span class="n">consistent</span> <span class="n">agent_id</span> <span class="ow">and</span> <span class="n">tool_id</span> <span class="n">values</span> <span class="k">for</span> <span class="n">accurate</span> <span class="n">tracking</span>
+<span class="mf">3.</span> <span class="n">Track</span> <span class="n">both</span> <span class="n">successes</span> <span class="ow">and</span> <span class="n">failures</span> <span class="k">for</span> <span class="n">complete</span> <span class="n">analytics</span>
+<span class="mf">4.</span> <span class="n">Include</span> <span class="n">relevant</span> <span class="n">metadata</span> <span class="k">for</span> <span class="n">easier</span> <span class="n">debugging</span> <span class="ow">and</span> <span class="n">analysis</span>
+<span class="mf">5.</span> <span class="n">Regularly</span> <span class="n">review</span> <span class="n">metrics</span> <span class="n">to</span> <span class="n">identify</span> <span class="n">performance</span> <span class="n">issues</span> <span class="ow">and</span> <span class="n">opportunities</span> <span class="k">for</span> <span class="n">optimization</span>
 </code></pre></div>
-<h2 id="troubleshooting">Troubleshooting</h2>
-<h3 id="common-issues">Common Issues</h3>
-<ol>
-<li><strong>Missing metrics data</strong>: Ensure the data directory exists and is writable.</li>
-<li><strong>Request ID not tracked</strong>: Make sure the request_id is passed correctly between components.</li>
-<li><strong>CLI import errors</strong>: Run the CLI script from the project root directory.</li>
-</ol>
-<h3 id="debugging">Debugging</h3>
-<p>To debug metrics tracking, you can:</p>
-<ol>
-<li>Inspect the metrics JSON file directly: <code>data/metrics/request_metrics.json</code></li>
-<li>Add detailed metadata to track more information</li>
-<li>Use the CLI's request command to inspect specific requests: <code>python src/metrics/metrics_cli.py request REQUEST_ID</code></li>
-</ol>
-<h2 id="best-practices">Best Practices</h2>
-<ol>
-<li>Always include request_id when passing requests between components</li>
-<li>Use consistent agent_id and tool_id values for accurate tracking</li>
-<li>Track both successes and failures for complete analytics</li>
-<li>Include relevant metadata for easier debugging and analysis</li>
-<li>Regularly review metrics to identify performance issues and opportunities for optimization</li>
-</ol>
+<div class="highlight"><pre><span></span><code>
+</code></pre></div>
 
 
 

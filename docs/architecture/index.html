@@ -1108,6 +1108,52 @@
   
   
     <li class="md-nav__item">
+      <a href="../examples/mcp_tool_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Tool Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/tool_stats_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tool Statistics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../ui/gradio_interface/" class="md-nav__link">
         
   
@@ -1277,7 +1323,10 @@
 </li>
 <li><code>ToolEnabledAI</code>: Extends <code>AIBase</code> to manage the tool-calling loop, interacting with <code>ToolManager</code> and the provider.</li>
 <li><code>ProviderFactory</code>: Creates instances of specific provider clients.</li>
-<li><code>providers/</code>: Contains implementations for different AI providers (OpenAI, Anthropic, etc.), inheriting from <code>BaseProvider</code> and implementing <code>ProviderInterface</code>.</li>
+<li><code>providers/</code>: Contains implementations for different AI providers (OpenAI, Anthropic, etc.), inheriting from <code>BaseProvider</code> and implementing <code>ProviderInterface</code>.<ul>
+<li><code>ProviderToolHandler</code>: Helper class within providers for formatting tool definitions and results.</li>
+</ul>
+</li>
 <li>
 <p><code>ConversationManager</code>: Tracks message history for AI interactions.</p>
 </li>
@@ -1285,10 +1334,23 @@
 <p><strong>Tools (<code>src/tools</code>)</strong>: Manages function/API calling capabilities.</p>
 </li>
 <li>
-<p><code>ToolManager</code>: Central service for registering tools (via <code>ToolRegistry</code>) and executing them (via <code>ToolExecutor</code>).</p>
+<p><code>ToolManager</code>: Central service coordinating tool execution (<code>execute_tool</code>) using <code>ToolExecutor</code> and retrieving tool definitions from <code>ToolRegistry</code>. Does not handle tool finding.</p>
 </li>
-<li><code>ToolRegistry</code>: Stores <code>ToolDefinition</code> objects and handles provider-specific formatting.</li>
-<li><code>ToolExecutor</code>: Executes the actual tool functions.</li>
+<li><code>ToolRegistry</code>: Loads <code>ToolDefinition</code> objects from configuration, stores them, and provides them. Handles provider-specific formatting logic.</li>
+<li><code>ToolExecutor</code>: Executes the actual tool functions with timeout/retry logic.</li>
+<li>
+<p><code>models</code>: Defines <code>ToolDefinition</code>, <code>ToolCall</code>, <code>ToolResult</code>.</p>
+</li>
+<li>
+<p><strong>Tools (<code>src/tools</code>)</strong>: Manages function calling (internal tools) and external API interactions (MCP tools).</p>
+</li>
+<li>
+<p><code>ToolManager</code>: Central service coordinating tool discovery, formatting, and <strong>asynchronous execution</strong> (<code>async def execute_tool</code>). Loads definitions from <code>ToolRegistry</code> (internal) and <code>MCPClientManager</code> (MCP). Dispatches execution calls to <code>ToolExecutor</code> or <code>MCPClientManager</code> based on tool <code>source</code>.</p>
+</li>
+<li><code>ToolRegistry</code>: Loads, validates, and stores <strong>internal</strong> tool definitions (<code>source='internal'</code>) from <code>tools.yml</code>. Provides access to these definitions.</li>
+<li><code>MCPClientManager</code>: Loads MCP server configurations and <strong>declared MCP</strong> tool definitions (<code>source='mcp'</code>) from <code>mcp.yml</code>. Manages <code>ClientSession</code> connections to external MCP servers and handles MCP <code>call_tool</code> requests.</li>
+<li><code>ToolExecutor</code>: Executes <strong>only internal</strong> Python tool functions (<code>source='internal'</code>) with asyncio-based timeout/retry logic.</li>
+<li><code>ToolStatsManager</code>: Tracks usage statistics for all tools.</li>
 <li>
 <p><code>models</code>: Defines <code>ToolDefinition</code>, <code>ToolCall</code>, <code>ToolResult</code>.</p>
 </li>
@@ -1388,39 +1450,87 @@
     PromptTemplateSvc --&gt; LoggerFactory
 </code></pre></div>
 <h3 id="3-tool-subsystem">3. Tool Subsystem</h3>
-<p><img alt="Tools" src="../diagrams/tools.png" /></p>
 <div class="highlight"><pre><span></span><code>graph TD
-    subgraph Tools
-        ToolManager[ToolManager]
-        ToolRegistry[ToolRegistry]
-        ToolExecutor[ToolExecutor]
-        ToolDefinition[ToolDefinition Model]
-        ToolCall[ToolCall Model]
-        ToolResult[ToolResult Model]
-
-        ToolManager -- Uses --&gt; ToolRegistry
-        ToolManager -- Uses --&gt; ToolExecutor
-        ToolRegistry -- Stores --&gt; ToolDefinition
-        ToolExecutor -- Executes --&gt; ToolDefinition
-        ToolExecutor -- Returns --&gt; ToolResult
+    subgraph &quot;Users Of Tools&quot;
+        ToolEnabledAI -- Calls Execute --&gt; ToolManager
+        ToolEnabledAI -- Gets Formatted Tools --&gt; ProviderToolHandler
     end
 
-    subgraph Dependencies
-       UnifiedConfig[UnifiedConfig Singleton]
-       LoggerFactory[LoggerFactory Singleton]
+    subgraph &quot;Tools&quot;
+        %% ToolCall Model - Represents data parsed by ToolEnabledAI, not a direct dependency here
+        ToolManager -- Delegates Execution --&gt; ToolExecutor
+        ToolManager -- Gets Definition --&gt; ToolRegistry
+        ToolManager -- Records Stats --&gt; ToolStatsManager
+
+        ToolExecutor -- Returns --&gt; ToolResult[&quot;ToolResult Model&quot;]
+
+        %% ToolRegistry Loads/Stores Tool Definitions
+        ToolRegistry -- Stores/Provides --&gt; ToolDefinition[&quot;ToolDefinition Model&quot;]
+
+        %% ProviderToolHandler Formats Tools
+        ProviderToolHandler[&quot;ProviderToolHandler (src/core/providers)&quot;] -- Gets Definitions --&gt; ToolRegistry
+
+        %% ToolStatsManager manages usage statistics
+        ToolStatsManager -- Persists --&gt; StatsFile[&quot;Tool Stats JSON&quot;]
+
+        %% Config Loading (Implicitly happens in ToolRegistry.__init__)
+        UnifiedConfigRef[&quot;UnifiedConfig&quot;] -- Provides Config --&gt; ToolRegistry
+        UnifiedConfigRef -- Provides Config --&gt; ToolStatsManager
+        ToolsYAML[&quot;tools.yml&quot;] -- Read By --&gt; UnifiedConfigRef
     end
 
-    subgraph Users Of Tools
-        ToolEnabledAI
-        Coordinator
-        BaseAgent
+    subgraph &quot;Dependencies&quot;
+       ToolManager -- Uses --&gt; LoggerFactory[&quot;LoggerFactory&quot;]
+       ToolRegistry -- Uses --&gt; LoggerFactory
+       ToolExecutor -- Uses --&gt; LoggerFactory
+       ToolStatsManager -- Uses --&gt; LoggerFactory
+       ProviderToolHandler -- Uses --&gt; LoggerFactory
+       ToolManager -- Uses --&gt; UnifiedConfig[&quot;UnifiedConfig&quot;]
+       ToolRegistry -- Uses --&gt; UnifiedConfigRef %% Show registry uses config
     end
 
-    ToolManager --&gt; UnifiedConfig
-    ToolManager --&gt; LoggerFactory
-    ToolEnabledAI --&gt; ToolManager
-    Coordinator --&gt; ToolManager
-    BaseAgent --&gt; ToolManager
+    subgraph &quot;Users Of Tools&quot;
+        ToolEnabledAI -- Calls Execute (await) --&gt; ToolManager
+        BaseAgent -- Calls Execute (await) --&gt; ToolManager %% Agents can also use tools
+    end
+
+    subgraph &quot;Tools Subsystem&quot;
+        ToolManager -- Gets All Definitions --&gt; ToolRegistry[\&quot;ToolRegistry (Internal Tools)\&quot;]
+        ToolManager -- Gets All Definitions --&gt; MCPClientManager[\&quot;MCPClientManager (MCP Tools)\&quot;]
+
+        ToolManager -- Dispatches --&gt; ToolExecutor[\&quot;ToolExecutor (Internal)\&quot;]
+        ToolManager -- Dispatches --&gt; MCPClientManager %% For MCP execution
+
+        ToolManager -- Records Stats --&gt; ToolStatsManager
+
+        ToolExecutor -- Returns (awaitable) --&gt; ToolResult[\&quot;ToolResult Model\&quot;]
+        MCPClientManager -- Returns MCP Response --&gt; ToolManager %% ToolManager maps to ToolResult
+
+        ToolRegistry -- Stores/Provides --&gt; InternalToolDef[\&quot;ToolDefinition (source=&#39;internal&#39;)\&quot;]
+        MCPClientManager -- Stores/Provides --&gt; MCPToolDef[\&quot;ToolDefinition (source=&#39;mcp&#39;)\&quot;]
+
+        ToolStatsManager -- Persists --&gt; StatsFile[\&quot;Tool Stats JSON\&quot;]
+
+        UnifiedConfigRef[\&quot;UnifiedConfig\&quot;] -- Provides Config --&gt; ToolRegistry
+        UnifiedConfigRef -- Provides Config --&gt; MCPClientManager
+        UnifiedConfigRef -- Provides Config --&gt; ToolExecutor
+        UnifiedConfigRef -- Provides Config --&gt; ToolStatsManager
+
+        ToolsYAML[\&quot;tools.yml\&quot;] -- Read By --&gt; UnifiedConfigRef
+        MCPYAML[\&quot;mcp.yml\&quot;] -- Read By --&gt; UnifiedConfigRef
+    end
+
+    subgraph \&quot;Dependencies\&quot;
+       ToolManager -- Uses --&gt; LoggerFactory[\&quot;LoggerFactory\&quot;]
+       ToolRegistry -- Uses --&gt; LoggerFactory
+       MCPClientManager -- Uses --&gt; LoggerFactory
+       ToolExecutor -- Uses --&gt; LoggerFactory
+       ToolStatsManager -- Uses --&gt; LoggerFactory
+       ToolManager -- Uses --&gt; UnifiedConfigRef
+    end
+
+    %% AI Interaction Flow (Simplified)
+    ToolEnabledAI -- Gets Formatted Tools --&gt; ToolManager %% Manager handles formatting request
 </code></pre></div>
 <h3 id="4-agent-system">4. Agent System</h3>
 <p><img alt="Agents" src="../diagrams/agents_system.png" /></p>
@@ -1511,7 +1621,7 @@
 <li><strong>Unified Configuration</strong>: Replaced disparate config managers with a single <code>UnifiedConfig</code> singleton accessing modular YAML files, simplifying configuration access.</li>
 <li><strong>Standardized Provider Interface</strong>: <code>BaseProvider</code> and <code>ProviderInterface</code> enforce a standard structure for provider implementations, returning a standardized <code>ProviderResponse</code> object to simplify core AI logic.</li>
 <li><strong>Refined Agent System</strong>: Centralized orchestration logic in the <code>Coordinator</code> agent, supported by <code>AgentFactory</code>, <code>AgentRegistry</code>, and <code>RequestAnalyzer</code>, providing a clearer structure than earlier multi-agent concepts.</li>
-<li><strong>Focused Tool Subsystem</strong>: <code>ToolManager</code>, <code>ToolRegistry</code>, and <code>ToolExecutor</code> provide clear responsibilities for tool definition, formatting, and execution, integrated seamlessly with <code>ToolEnabledAI</code>.</li>
+<li><strong>Focused Tool Subsystem</strong>: <code>ToolManager</code>, <code>ToolRegistry</code>, <code>ToolExecutor</code>, and <code>ToolStatsManager</code> provide clear responsibilities for tool definition, formatting, execution, and usage statistics tracking, integrated seamlessly with <code>ToolEnabledAI</code>.</li>
 <li><strong>Simplified Core AI</strong>: <code>AIBase</code> handles fundamental LLM interaction, while <code>ToolEnabledAI</code> specifically layers tool-calling orchestration on top.</li>
 <li><strong>YAML-based Prompt Templates</strong>: Standardized on the <code>PromptTemplate</code> service loading versioned templates from YAML files as the primary prompt management method.</li>
 <li><strong>Consistent Error Handling</strong>: Implemented a clear exception hierarchy and <code>ErrorHandler</code> for uniform error management.</li>

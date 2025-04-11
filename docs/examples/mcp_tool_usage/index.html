@@ -12,13 +12,13 @@
         <meta name="author" content="Agentic-AI Team">
       
       
-        <link rel="canonical" href="https://0x00000002.github.io/agentic-ai/providers/overview/">
+        <link rel="canonical" href="https://0x00000002.github.io/agentic-ai/examples/mcp_tool_usage/">
       
       
-        <link rel="prev" href="../../prompt_templates/guide/">
+        <link rel="prev" href="../configuration_example/">
       
       
-        <link rel="next" href="../../metrics_system/">
+        <link rel="next" href="../tool_stats_example/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -26,7 +26,7 @@
     
     
       
-        <title>Overview - Agentic-AI Documentation</title>
+        <title>MCP Tool Usage - Agentic-AI Documentation</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#ai-providers-models" class="md-skip">
+        <a href="#example-using-tools-from-an-mcp-server" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overview
+              MCP Tool Usage
             
           </span>
         </div>
@@ -282,13 +282,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../providers/overview/" class="md-tabs__link">
           
   
   
@@ -323,11 +321,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../examples/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -783,31 +783,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   
@@ -820,7 +815,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             Models
@@ -831,32 +826,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Overview
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../providers/overview/" class="md-nav__link">
         
   
   
@@ -867,71 +840,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#supported-providers" class="md-nav__link">
-    <span class="md-ellipsis">
-      Supported Providers
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#models-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Models Configuration
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#model-selection" class="md-nav__link">
-    <span class="md-ellipsis">
-      Model Selection
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#using-models" class="md-nav__link">
-    <span class="md-ellipsis">
-      Using Models
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#model-selection-helper" class="md-nav__link">
-    <span class="md-ellipsis">
-      Model Selection Helper
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -970,26 +878,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
         
           
-          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
             
   
   
@@ -1002,7 +915,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             Examples
@@ -1016,7 +929,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -1039,7 +952,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/configuration_example/" class="md-nav__link">
+      <a href="../configuration_example/" class="md-nav__link">
         
   
   
@@ -1059,10 +972,32 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../examples/mcp_tool_usage/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    MCP Tool Usage
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1073,6 +1008,62 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-configuration-configyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Configuration (config.yml)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-environment-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Environment Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-code-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Code Example
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-explanation" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Explanation
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1085,7 +1076,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/tool_stats_example/" class="md-nav__link">
+      <a href="../tool_stats_example/" class="md-nav__link">
         
   
   
@@ -1246,102 +1237,130 @@
   
 
 
-<h1 id="ai-providers-models">AI Providers &amp; Models</h1>
-<h2 id="supported-providers">Supported Providers</h2>
-<p>Agentic-AI supports multiple AI model providers:</p>
+<h1 id="example-using-tools-from-an-mcp-server">Example: Using Tools from an MCP Server</h1>
+<p>This example demonstrates how to configure Agentic-AI to connect to an external tool server using the Model Context Protocol (MCP) and utilize the tools it provides.</p>
+<h2 id="1-configuration-configyml">1. Configuration (<code>config.yml</code>)</h2>
+<p>First, you need to define the MCP server and the tools it <em>declares</em> it provides within your main configuration file (e.g., <code>config.yml</code>). This tells Agentic-AI how to connect to the server and what tools to expect.</p>
+<p>Assume we have an external weather service running as an MCP server accessible at <code>http://localhost:8005</code> which requires a bearer token for authentication.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Example snippet within your config.yml</span>
+
+<span class="c1"># ... other configurations ...</span>
+
+<span class="nt">mcp_servers</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">weather_service_mcp</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;External</span><span class="nv"> </span><span class="s">MCP</span><span class="nv"> </span><span class="s">server</span><span class="nv"> </span><span class="s">providing</span><span class="nv"> </span><span class="s">weather</span><span class="nv"> </span><span class="s">information.&quot;</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://localhost:8005&quot;</span><span class="w"> </span><span class="c1"># URL where the MCP server is running</span>
+<span class="w">    </span><span class="nt">auth</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;bearer&quot;</span>
+<span class="w">      </span><span class="nt">token_env_var</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;WEATHER_MCP_TOKEN&quot;</span><span class="w"> </span><span class="c1"># Environment variable holding the auth token</span>
+<span class="w">    </span><span class="nt">provides_tools</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;get_current_weather_mcp&quot;</span>
+<span class="w">        </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Retrieves</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">current</span><span class="nv"> </span><span class="s">weather</span><span class="nv"> </span><span class="s">conditions</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">specified</span><span class="nv"> </span><span class="s">location</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">external</span><span class="nv"> </span><span class="s">MCP</span><span class="nv"> </span><span class="s">server.&quot;</span>
+<span class="w">        </span><span class="nt">inputSchema</span><span class="p">:</span><span class="w"> </span><span class="c1"># Use inputSchema or parameters_schema</span>
+<span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;object&quot;</span>
+<span class="w">          </span><span class="nt">properties</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">location</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span>
+<span class="w">              </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;The</span><span class="nv"> </span><span class="s">city</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">state/country</span><span class="nv"> </span><span class="s">(e.g.,</span><span class="nv"> </span><span class="s">San</span><span class="nv"> </span><span class="s">Francisco,</span><span class="nv"> </span><span class="s">CA).&quot;</span>
+<span class="w">            </span><span class="nt">unit</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span>
+<span class="w">              </span><span class="nt">enum</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;celsius&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;fahrenheit&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">              </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;celsius&quot;</span>
+<span class="w">              </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Temperature</span><span class="nv"> </span><span class="s">unit.&quot;</span>
+<span class="w">          </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;location&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="c1"># speed/safety will use defaults (medium/external)</span>
+<span class="c1"># ... other configurations ...</span>
+</code></pre></div>
+<p>Key points:</p>
 <ul>
-<li><strong>Anthropic</strong>: Claude models (3.5 Haiku, 3.7 Sonnet, etc.)</li>
-<li><strong>OpenAI</strong>: GPT models (4o, o3-mini, etc.)</li>
-<li><strong>Google</strong>: Gemini models (2.5 Pro, 1.5 Pro, etc.)</li>
-<li><strong>Ollama</strong>: Open-source models for local deployment</li>
+<li><code>mcp_servers</code>: The top-level key containing all MCP server definitions.</li>
+<li><code>weather_service_mcp</code>: A unique name chosen for this server configuration.</li>
+<li><code>url</code>: The address where the Agentic-AI framework can reach the MCP server.</li>
+<li><code>auth</code>: Defines authentication. Here, <code>bearer</code> type indicates a token is needed, read from the environment variable specified by <code>token_env_var</code>.</li>
+<li><code>provides_tools</code>: A list of tools declared by this server. Agentic-AI uses this list to inform the LLM about available tools. The <code>name</code>, <code>description</code>, and <code>inputSchema</code> are crucial for the LLM. <code>source</code> and <code>mcp_server_name</code> are added internally by the framework.</li>
 </ul>
-<p>Providers are supported via official SDKs.</p>
-<h2 id="models-configuration">Models Configuration</h2>
-<p>Models are configured in the <code>config.yml</code> file:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">models</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">claude-3-7-sonnet</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Claude</span><span class="nv"> </span><span class="s">3.7</span><span class="nv"> </span><span class="s">Sonnet&quot;</span>
-<span class="w">    </span><span class="nt">model_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">claude-3-7-sonnet-20250219</span>
-<span class="w">    </span><span class="nt">provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">anthropic</span>
-<span class="w">    </span><span class="nt">privacy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">EXTERNAL</span>
-<span class="w">    </span><span class="nt">quality</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MAXIMUM</span>
-<span class="w">    </span><span class="nt">speed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">STANDARD</span>
-<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">350000000000</span><span class="w"> </span><span class="c1"># 350B</span>
-<span class="w">    </span><span class="nt">input_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000000</span>
-<span class="w">    </span><span class="nt">output_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">200000</span>
-<span class="w">    </span><span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.7</span>
-<span class="w">    </span><span class="nt">cost</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">input_tokens</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span><span class="w"> </span><span class="c1"># $3 per 1M input tokens</span>
-<span class="w">      </span><span class="nt">output_tokens</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15</span><span class="w"> </span><span class="c1"># $15 per 1M output tokens</span>
-<span class="w">      </span><span class="nt">minimum_cost</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0001</span><span class="w"> </span><span class="c1"># Minimum cost per request</span>
-<span class="w">  </span><span class="nt">ollama</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">api_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://localhost:11434</span>
-<span class="w">    </span><span class="c1"># Ollama-specific settings</span>
+<h2 id="2-environment-setup">2. Environment Setup</h2>
+<p>Since the configuration specifies <code>token_env_var: "WEATHER_MCP_TOKEN"</code>, you need to set this environment variable before running your Agentic-AI application.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Example in bash/zsh</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">WEATHER_MCP_TOKEN</span><span class="o">=</span><span class="s2">&quot;your_secret_mcp_api_token&quot;</span>
 </code></pre></div>
-<h2 id="model-selection">Model Selection</h2>
-<p>Models are defined in the <code>models.py</code> file as an enumeration:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+<p>Replace <code>"your_secret_mcp_api_token"</code> with the actual token provided by the weather service.</p>
+<h2 id="3-code-example">3. Code Example</h2>
+<p>Now, you can use the tools provided by the MCP server just like any other internal tool. The <code>ToolManager</code> (or an agent using it) handles the discovery and execution.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Example Python script (e.g., run_mcp_example.py)</span>
 
-<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="c1"># Anthropic models</span>
-    <span class="n">CLAUDE_3_5_SONNET</span> <span class="o">=</span> <span class="s2">&quot;claude-3-5-sonnet-20240620&quot;</span>
-    <span class="n">CLAUDE_3_7_SONNET</span> <span class="o">=</span> <span class="s2">&quot;claude-3-7-sonnet-20250219&quot;</span>
-    <span class="n">CLAUDE_3_OPUS</span> <span class="o">=</span> <span class="s2">&quot;claude-3-opus-20240229&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnifiedConfig</span><span class="p">,</span> <span class="n">get_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.providers.openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAIProvider</span> <span class="c1"># Or any other provider</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src.ai</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolEnabledAI</span>
 
-    <span class="c1"># OpenAI models</span>
-    <span class="n">GPT_4O</span> <span class="o">=</span> <span class="s2">&quot;gpt-4o&quot;</span>
-    <span class="n">GPT_4O_MINI</span> <span class="o">=</span> <span class="s2">&quot;gpt-4o-mini&quot;</span>
-    <span class="n">GPT_35_TURBO</span> <span class="o">=</span> <span class="s2">&quot;gpt-3.5-turbo&quot;</span>
+<span class="c1"># Ensure the environment variable is set (replace with your actual token)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WEATHER_MCP_TOKEN&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;your_secret_mcp_api_token&quot;</span>
+<span class="c1"># Replace with your OpenAI key if using OpenAI</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;OPENAI_API_KEY&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;your_openai_api_key&quot;</span>
 
-    <span class="c1"># Google models</span>
-    <span class="n">GEMINI_PRO</span> <span class="o">=</span> <span class="s2">&quot;gemini-pro&quot;</span>
-    <span class="n">GEMINI_2_5_PRO</span> <span class="o">=</span> <span class="s2">&quot;gemini-2.5-pro&quot;</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># Load configuration (which includes mcp_servers)</span>
+    <span class="c1"># Assuming default config path or config object passed appropriately</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">get_config</span><span class="p">()</span>
 
-    <span class="c1"># Ollama models</span>
-    <span class="n">LLAMA3_8B</span> <span class="o">=</span> <span class="s2">&quot;llama3:8b&quot;</span>
-    <span class="n">LLAMA3_70B</span> <span class="o">=</span> <span class="s2">&quot;llama3:70b&quot;</span>
+    <span class="c1"># Initialize components</span>
+    <span class="n">tool_manager</span> <span class="o">=</span> <span class="n">ToolManager</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">ai_provider</span> <span class="o">=</span> <span class="n">OpenAIProvider</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">ai</span> <span class="o">=</span> <span class="n">ToolEnabledAI</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="n">ai_provider</span><span class="p">,</span> <span class="n">tool_manager</span><span class="o">=</span><span class="n">tool_manager</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># List all available tools (internal + MCP)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Available tools:&quot;</span><span class="p">)</span>
+    <span class="n">all_tools</span> <span class="o">=</span> <span class="n">tool_manager</span><span class="o">.</span><span class="n">list_tool_definitions</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">tool_def</span> <span class="ow">in</span> <span class="n">all_tools</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="n">tool_def</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (Source: </span><span class="si">{</span><span class="n">tool_def</span><span class="o">.</span><span class="n">source</span><span class="si">}</span><span class="s2">, MCP Server: </span><span class="si">{</span><span class="n">tool_def</span><span class="o">.</span><span class="n">mcp_server_name</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Example prompt that should trigger the MCP tool</span>
+    <span class="n">prompt</span> <span class="o">=</span> <span class="s2">&quot;What&#39;s the current weather like in London?&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Sending prompt: &#39;</span><span class="si">{</span><span class="n">prompt</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># The AI will potentially call the &#39;get_current_weather_mcp&#39; tool.</span>
+    <span class="c1"># The ToolManager will see source=&#39;mcp&#39;, get the client from MCPClientManager,</span>
+    <span class="c1"># and execute the call against the configured URL (http://localhost:8005).</span>
+    <span class="c1"># NOTE: This requires the MCP server to be running at that address.</span>
+    <span class="c1">#       The actual network call won&#39;t happen here unless a live server exists.</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ai</span><span class="o">.</span><span class="n">process_prompt</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Final AI Response:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+        <span class="c1"># You can also inspect tool usage stats</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">tool_manager</span><span class="o">.</span><span class="n">stats_manager</span><span class="o">.</span><span class="n">get_stats</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Tool Usage Stats:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">An error occurred: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ensure the MCP server is running at the configured URL and the API keys/tokens are correct.&quot;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </code></pre></div>
-<p>And mapped to providers in the configuration:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">models</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">claude-3-5-sonnet-20240620</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">anthropic</span>
-<span class="w">    </span><span class="nt">model_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">claude-3-5-sonnet-20240620</span>
-<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
-<span class="w">  </span><span class="nt">gpt-4o</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openai</span>
-<span class="w">    </span><span class="nt">model_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4o</span>
-</code></pre></div>
-<h2 id="using-models">Using Models</h2>
-<p>Create an AI instance with your chosen model:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.config.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">src.core.tool_enabled_ai</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolEnabledAI</span>
-
-<span class="c1"># Using an Anthropic model</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">AI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">Model</span><span class="o">.</span><span class="n">CLAUDE_3_7_SONNET</span><span class="p">)</span>
-
-<span class="c1"># Using an OpenAI model</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">AI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">Model</span><span class="o">.</span><span class="n">GPT_4O</span><span class="p">)</span>
-
-<span class="c1"># Using a Google model</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">AI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">Model</span><span class="o">.</span><span class="n">GEMINI_2_5_PRO</span><span class="p">)</span>
-
-<span class="c1"># Using an Ollama model</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">AI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">Model</span><span class="o">.</span><span class="n">GEMMA3</span><span class="o">-</span><span class="mi">27</span><span class="n">B</span><span class="p">)</span>
-</code></pre></div>
-<h2 id="model-selection-helper">Model Selection Helper</h2>
-<p>The ModelSelector helps choose the appropriate model for different use cases:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.core.model_selector</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelSelector</span><span class="p">,</span> <span class="n">UseCase</span>
-
-<span class="c1"># Get a model recommendation</span>
-<span class="n">recommended_model</span> <span class="o">=</span> <span class="n">ModelSelector</span><span class="o">.</span><span class="n">select_model</span><span class="p">(</span>
-    <span class="n">use_case</span><span class="o">=</span><span class="n">UseCase</span><span class="o">.</span><span class="n">CREATIVE_WRITING</span><span class="p">,</span>
-    <span class="n">quality_preference</span><span class="o">=</span><span class="n">Quality</span><span class="o">.</span><span class="n">HIGH</span><span class="p">,</span>
-    <span class="n">speed_preference</span><span class="o">=</span><span class="n">Speed</span><span class="o">.</span><span class="n">BALANCED</span>
-<span class="p">)</span>
-
-<span class="c1"># Create AI with the recommended model</span>
-<span class="n">ai</span> <span class="o">=</span> <span class="n">AI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">recommended_model</span><span class="p">)</span>
-</code></pre></div>
+<h2 id="4-explanation">4. Explanation</h2>
+<p>When <code>ai.process_prompt</code> is called with a prompt like "What's the current weather like in London?":</p>
+<ol>
+<li>The <code>ToolEnabledAI</code> interacts with the AI Provider (e.g., OpenAI), providing the definition of <code>get_current_weather_mcp</code> (loaded from the config by <code>ToolManager</code> via <code>MCPClientManager</code>).</li>
+<li>The LLM identifies that <code>get_current_weather_mcp</code> is suitable and returns a request to call it with arguments like <code>{"location": "London"}</code>.</li>
+<li>The <code>ToolEnabledAI</code> passes this request to <code>ToolManager.execute_tool</code>.</li>
+<li><code>ToolManager</code> sees the tool's <code>source</code> is <code>mcp</code> and its <code>mcp_server_name</code> is <code>weather_service_mcp</code>.</li>
+<li><code>ToolManager</code> calls <code>MCPClientManager.get_tool_client("weather_service_mcp")</code>.</li>
+<li><code>MCPClientManager</code> checks its configuration for <code>weather_service_mcp</code>, sees it's an HTTP URL with bearer auth, retrieves the token from the <code>WEATHER_MCP_TOKEN</code> environment variable, and creates/returns an internal HTTP client wrapper configured with the URL and authentication header.</li>
+<li><code>ToolManager</code> uses the returned client wrapper to make the actual HTTP POST request to <code>http://localhost:8005/call_tool</code> with the tool name and arguments. (If it were a WebSocket URL, <code>MCPClientManager</code> would establish a WS connection instead).</li>
+<li>The external MCP server (if running) processes the request and returns the weather data.</li>
+<li><code>ToolManager</code> receives the response, wraps it in a <code>ToolResult</code>, and returns it to <code>ToolEnabledAI</code>.</li>
+<li><code>ToolEnabledAI</code> sends the tool result back to the LLM.</li>
+<li>The LLM generates the final natural language response based on the weather data.</li>
+</ol>
+<p>This example illustrates how to integrate external functionalities into your AI agent by configuring access to MCP-compliant tool servers.</p>
 
 
 

@@ -632,27 +632,60 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#tool-components" class="md-nav__link">
+  <a href="#architecture-diagram" class="md-nav__link">
     <span class="md-ellipsis">
-      Tool Components
+      Architecture Diagram
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#creating-and-registering-tools" class="md-nav__link">
+  <a href="#tool-components-async-aspects-highlighted" class="md-nav__link">
     <span class="md-ellipsis">
-      Creating and Registering Tools
+      Tool Components (Async Aspects Highlighted)
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#tool-execution-flow" class="md-nav__link">
+  <a href="#defining-tools-configuration-based" class="md-nav__link">
     <span class="md-ellipsis">
-      Tool Execution Flow
+      Defining Tools (Configuration-Based)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Defining Tools (Configuration-Based)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#internal-tools-srcconfigtoolsyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      Internal Tools (src/config/tools.yml)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mcp-servers-and-declared-tools-in-configyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      MCP Servers and Declared Tools (in config.yml)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-execution-flow-async" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tool Execution Flow (Async)
     </span>
   </a>
   
@@ -672,6 +705,39 @@
   <a href="#openai-provider" class="md-nav__link">
     <span class="md-ellipsis">
       OpenAI Provider
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-usage-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tool Usage Statistics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Usage Statistics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
     </span>
   </a>
   
@@ -1077,6 +1143,52 @@
   
   
     <li class="md-nav__item">
+      <a href="../../examples/mcp_tool_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Tool Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/tool_stats_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tool Statistics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../ui/gradio_interface/" class="md-nav__link">
         
   
@@ -1217,77 +1329,198 @@
 
 <h1 id="tool-integration">Tool Integration</h1>
 <h2 id="overview">Overview</h2>
-<p>Tools allow the AI to perform actions and retrieve information beyond its training data. The Agentic-AI framework includes a sophisticated tool management system that enables:</p>
+<p>Tools allow the AI to perform actions and retrieve information beyond its training data. The Agentic-AI framework includes a tool management system that enables:</p>
 <ol>
-<li>Registering Python functions as tools</li>
-<li>Automatic discovery of relevant tools for user requests</li>
-<li>Systematic execution of tool calls with proper error handling</li>
+<li><strong>Loading</strong> tool definitions from configuration (<code>tools.yml</code> for internal tools, the main <code>config.yml</code> for external MCP servers and their declared tools).</li>
+<li><strong>Unified Discovery</strong>: Providing a single list of all available tools (both internal and MCP).</li>
+<li><strong>Formatting</strong> tool definitions for specific AI providers.</li>
+<li><strong>Executing</strong> tool calls requested by the AI asynchronously, dispatching to the correct executor (internal Python or MCP client) based on the tool's source, with error handling and timeout/retry logic.</li>
 </ol>
-<h2 id="tool-components">Tool Components</h2>
-<ul>
-<li><strong>ToolManager</strong>: Central service that coordinates tool registration (via <code>ToolRegistry</code>), execution (via <code>ToolExecutor</code>), and retrieval of tool definitions.</li>
-<li><strong>ToolRegistry</strong>: Stores tool definitions (<code>ToolDefinition</code>), handles provider-specific formatting, and tracks usage statistics.</li>
-<li><strong>ToolExecutor</strong>: Executes the actual tool functions safely with timeout and retry logic.</li>
-<li><strong>Models</strong> (<code>src/tools/models.py</code>): Defines core data structures like <code>ToolDefinition</code>, <code>ToolCall</code>, and <code>ToolResult</code> using Pydantic.</li>
-</ul>
-<h2 id="creating-and-registering-tools">Creating and Registering Tools</h2>
-<p>Tools are Python functions that can be made available to the AI. The core element is the <code>ToolDefinition</code> model, which includes:</p>
-<ul>
-<li><code>name</code>: A unique name for the tool.</li>
-<li><code>description</code>: A clear description of what the tool does (used by the LLM).</li>
-<li><code>parameters_schema</code>: A JSON schema defining the expected input parameters.</li>
-<li><code>function</code>: The actual Python callable that implements the tool's logic.</li>
-</ul>
-<p>Tools are registered with the <code>ToolManager</code> (often during application setup or via configuration loading), which uses the <code>ToolRegistry</code> internally.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">src.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolManager</span><span class="p">,</span> <span class="n">ToolDefinition</span>
-<span class="c1"># Assume get_weather is defined elsewhere</span>
-<span class="c1"># from my_tools import get_weather</span>
+<h2 id="architecture-diagram">Architecture Diagram</h2>
+<div class="highlight"><pre><span></span><code>graph TD
+    subgraph &quot;Users Of Tools&quot;
+        ToolEnabledAI -- Calls Execute (await) --&gt; ToolManager
+        BaseAgent -- Calls Execute (await) --&gt; ToolManager %% Agents can also use tools
+    end
 
-<span class="k">def</span><span class="w"> </span><span class="nf">get_weather</span><span class="p">(</span><span class="n">location</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the current weather for a location.&quot;&quot;&quot;</span>
-    <span class="c1"># Implementation...</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Weather data for </span><span class="si">{</span><span class="n">location</span><span class="si">}</span><span class="s2">&quot;</span>
+    subgraph &quot;Tools Subsystem&quot;
+        ToolManager -- Gets All Definitions --&gt; ToolRegistry[\&quot;ToolRegistry (Internal Tools)\&quot;]
+        ToolManager -- Gets All Definitions --&gt; MCPClientManager[\&quot;MCPClientManager (MCP Tools)\&quot;]
 
-<span class="c1"># Create a ToolDefinition</span>
-<span class="n">weather_tool_def</span> <span class="o">=</span> <span class="n">ToolDefinition</span><span class="p">(</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;get_weather&quot;</span><span class="p">,</span>
-    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Get the current weather for a specific city or location.&quot;</span><span class="p">,</span>
-    <span class="n">parameters_schema</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The city or location (e.g., &#39;Paris, France&#39;)&quot;</span>
-            <span class="p">}</span>
-        <span class="p">},</span>
-        <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span>
-    <span class="p">},</span>
-    <span class="n">function</span><span class="o">=</span><span class="n">get_weather</span>
-<span class="p">)</span>
+        ToolManager -- Dispatches --&gt; ToolExecutor[\&quot;ToolExecutor (Internal)\&quot;]
+        ToolManager -- Dispatches --&gt; MCPClientManager %% For MCP execution
 
-<span class="c1"># Get a ToolManager instance (e.g., from dependency injection or create default)</span>
-<span class="n">tool_manager</span> <span class="o">=</span> <span class="n">ToolManager</span><span class="p">()</span>
+        ToolManager -- Records Stats --&gt; ToolStatsManager
 
-<span class="c1"># Register the tool definition</span>
-<span class="n">tool_manager</span><span class="o">.</span><span class="n">register_tool</span><span class="p">(</span><span class="n">weather_tool_def</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">weather_tool_def</span><span class="p">)</span>
+        ToolExecutor -- Returns (awaitable) --&gt; ToolResult[\&quot;ToolResult Model\&quot;]
+        MCPClientManager -- Returns MCP Response --&gt; ToolManager %% ToolManager maps to ToolResult
+
+        ToolRegistry -- Stores/Provides --&gt; InternalToolDef[\&quot;ToolDefinition (source=&#39;internal&#39;)\&quot;]
+        MCPClientManager -- Stores/Provides --&gt; MCPToolDef[\&quot;ToolDefinition (source=&#39;mcp&#39;)\&quot;]
+
+        ToolStatsManager -- Persists --&gt; StatsFile[\&quot;Tool Stats JSON\&quot;]
+
+        UnifiedConfigRef[\&quot;UnifiedConfig\&quot;] -- Provides Config --&gt; ToolRegistry
+        UnifiedConfigRef -- Provides Config --&gt; MCPClientManager
+        UnifiedConfigRef -- Provides Config --&gt; ToolExecutor
+        UnifiedConfigRef -- Provides Config --&gt; ToolStatsManager
+
+        ToolsYAML[\&quot;tools.yml\&quot;] -- Read By --&gt; UnifiedConfigRef
+        %% MCPYAML[\&quot;mcp.yml\&quot;] -- Read By --&gt; UnifiedConfigRef %% MCP config is now part of main config
+    end
+
+    subgraph \&quot;Dependencies\&quot;
+       ToolManager -- Uses --&gt; LoggerFactory[\&quot;LoggerFactory\&quot;]
+       ToolRegistry -- Uses --&gt; LoggerFactory
+       MCPClientManager -- Uses --&gt; LoggerFactory
+       ToolExecutor -- Uses --&gt; LoggerFactory
+       ToolStatsManager -- Uses --&gt; LoggerFactory
+       ToolManager -- Uses --&gt; UnifiedConfigRef
+    end
+
+    %% AI Interaction Flow (Simplified)
+    ToolEnabledAI -- Gets Formatted Tools --&gt; ToolManager %% Manager handles formatting request
+
+    %% Highlighting Async/Key Components
+    style ToolManager fill:#f9f,stroke:#333,stroke-width:2px
+    style ToolExecutor fill:#fdf,stroke:#333,stroke-width:1px
+    style MCPClientManager fill:#fdf,stroke:#333,stroke-width:1px
+    style ToolEnabledAI fill:#ccf,stroke:#333,stroke-width:2px
 </code></pre></div>
-<h2 id="tool-execution-flow">Tool Execution Flow</h2>
-<p>When <code>ToolEnabledAI.process_prompt</code> is called:</p>
+<h2 id="tool-components-async-aspects-highlighted">Tool Components (Async Aspects Highlighted)</h2>
+<ul>
+<li><strong>ToolManager</strong>: Central service coordinating <strong>asynchronous</strong> tool execution (<code>async def execute_tool</code>). It loads all tool definitions (internal and MCP) via <code>ToolRegistry</code> and <code>MCPClientManager</code>, provides unified discovery methods, handles formatting requests, and dispatches execution calls to <code>ToolExecutor</code> (for internal tools) or <code>MCPClientManager</code> (for MCP tools) based on the tool's <code>source</code>.</li>
+<li><strong>ToolRegistry</strong>: Loads <strong>internal</strong> tool definitions (<code>ToolDefinition</code> with <code>source='internal'</code>) from <code>tools.yml</code> configuration, validates them, stores them, and provides methods to retrieve them.</li>
+<li><strong>MCPClientManager</strong>: Loads <strong>MCP server configurations</strong> and <strong>declared MCP tool definitions</strong> (<code>ToolDefinition</code> with <code>source='mcp'</code>) from the main configuration file (<code>config.yml</code>). It manages connections to external MCP servers (using <code>aiohttp</code> for HTTP/S or <code>mcp.websocket_client</code> for WS) and handles the <code>call_tool</code> request for MCP tools.</li>
+<li><strong>ToolExecutor</strong>: Executes <strong>only internal</strong> Python tool functions safely with <strong>asyncio-based</strong> timeout and retry logic (<code>async def execute</code>). Handles both synchronous and asynchronous tool functions.</li>
+<li><strong>ToolStatsManager</strong>: Tracks and manages tool usage statistics for all tool types.</li>
+<li><strong>Models</strong>: Defines core data structures (<code>ToolDefinition</code>, <code>ToolCall</code>, <code>ToolResult</code>).</li>
+<li><strong>Configuration</strong>: Defines available internal tools (<code>tools.yml</code>) and external MCP servers/declared tools (within the main <code>config.yml</code> under the <code>mcp_servers</code> key).</li>
+<li><strong>Users</strong> (e.g., <code>ToolEnabledAI</code>, <code>BaseAgent</code>): Components that utilize the tool system, typically interacting primarily with <code>ToolManager</code>. <code>ToolEnabledAI</code> handles the <strong>asynchronous</strong> interaction loop with the AI provider and the <code>ToolManager</code>.</li>
+</ul>
+<h2 id="defining-tools-configuration-based">Defining Tools (Configuration-Based)</h2>
+<p>Tools are defined declaratively in YAML configuration files, specifying their source ("internal" or "mcp").</p>
+<h3 id="internal-tools-srcconfigtoolsyml">Internal Tools (<code>src/config/tools.yml</code>)</h3>
+<p>These are Python functions defined within the project.</p>
+<ul>
+<li><code>name</code>: Unique name for the tool.</li>
+<li><code>description</code>: Clear description for the LLM.</li>
+<li><code>module</code>: Python module path (e.g., <code>src.tools.core.calculator_tool</code>).</li>
+<li><code>function</code>: Name of the Python function (sync or async) implementing the tool.</li>
+<li><code>parameters_schema</code>: JSON schema for input parameters.</li>
+<li><code>category</code> (optional): Grouping category.</li>
+<li><code>speed</code> (optional): Estimated speed (e.g., "instant", "fast", "medium", "slow"). Defaults to "medium".</li>
+<li><code>safety</code> (optional): Safety level (e.g., "native", "sandboxed", "external"). Defaults to "native".</li>
+<li><code>source</code>: Must be <code>"internal"</code>.</li>
+</ul>
+<p><strong>Example (<code>tools.yml</code>):</strong></p>
+<div class="highlight"><pre><span></span><code><span class="nt">tools</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;calculator&quot;</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Perform</span><span class="nv"> </span><span class="s">mathematical</span><span class="nv"> </span><span class="s">calculations...&quot;</span>
+<span class="w">    </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;src.tools.core.calculator_tool&quot;</span>
+<span class="w">    </span><span class="nt">function</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;calculate&quot;</span>
+<span class="w">    </span><span class="nt">parameters_schema</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;object&quot;</span>
+<span class="w">      </span><span class="nt">properties</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">expression</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span>
+<span class="w">          </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;The</span><span class="nv"> </span><span class="s">mathematical</span><span class="nv"> </span><span class="s">expression...&quot;</span>
+<span class="w">      </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;expression&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">category</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;core_utils&quot;</span>
+<span class="w">    </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;internal&quot;</span><span class="w"> </span><span class="c1"># Explicitly internal</span>
+<span class="w">    </span><span class="nt">speed</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;fast&quot;</span>
+<span class="w">    </span><span class="nt">safety</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sandboxed&quot;</span>
+</code></pre></div>
+<h3 id="mcp-servers-and-declared-tools-in-configyml">MCP Servers and Declared Tools (in <code>config.yml</code>)</h3>
+<p>The main configuration file (e.g., <code>config.yml</code> or loaded via <code>UnifiedConfig</code>) defines how to connect to external MCP servers under the <code>mcp_servers</code> key. It also lists the tools those servers <em>declare</em> they provide. The framework uses this declaration to inform the LLM; the actual tool list might differ when connecting to the server. The MCP server process must be running independently and accessible at the specified network address.</p>
+<ul>
+<li>The top-level key is <code>mcp_servers</code>: A dictionary where each key is a unique server name.</li>
+<li><code>description</code> (optional): Description of the server.</li>
+<li><code>url</code>: Network endpoint (e.g., <code>http://localhost:8001</code>) where the MCP server is listening. Supports <code>http</code>, <code>https</code>, <code>ws</code>, <code>wss</code> schemes. <strong>Required</strong>.</li>
+<li><code>auth</code> (optional): Authentication details for the server.<ul>
+<li><code>type</code>: The authentication type (e.g., <code>bearer</code>).</li>
+<li><code>token_env_var</code>: The name of the environment variable containing the authentication token.</li>
+</ul>
+</li>
+<li><code>provides_tools</code>: A list of <em>declared</em> tool definitions for this server.<ul>
+<li><code>name</code>: Unique name for the tool (must be unique across <em>all</em> tools).</li>
+<li><code>description</code>: Clear description for the LLM.</li>
+<li><code>inputSchema</code> (or <code>parameters_schema</code>): JSON schema for input parameters.</li>
+<li><code>speed</code> (optional): Estimated speed. Defaults to "medium".</li>
+<li><code>safety</code> (optional): Safety level. Defaults to "external".</li>
+<li><code>source</code>: Automatically set to <code>"mcp"</code> by <code>MCPClientManager</code>.</li>
+<li><code>mcp_server_name</code>: Automatically set to the server key by <code>MCPClientManager</code>.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Example (within <code>config.yml</code>):</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Example within src/config/config.yml</span>
+
+<span class="nt">mcp_servers</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">code_execution_server</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Server</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">executing</span><span class="nv"> </span><span class="s">Python</span><span class="nv"> </span><span class="s">code</span><span class="nv"> </span><span class="s">snippets</span><span class="nv"> </span><span class="s">securely.&quot;</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://localhost:8001&quot;</span><span class="w"> </span><span class="c1"># Example URL</span>
+<span class="w">    </span><span class="nt">auth</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;bearer&quot;</span>
+<span class="w">      </span><span class="nt">token_env_var</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;CODE_EXEC_AUTH_TOKEN&quot;</span>
+<span class="w">    </span><span class="nt">provides_tools</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;execute_python_code&quot;</span>
+<span class="w">        </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Executes</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">given</span><span class="nv"> </span><span class="s">Python</span><span class="nv"> </span><span class="s">code</span><span class="nv"> </span><span class="s">snippet</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">restricted</span><span class="nv"> </span><span class="s">environment</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">returns</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">output.&quot;</span>
+<span class="w">        </span><span class="nt">inputSchema</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;object&quot;</span>
+<span class="w">          </span><span class="nt">properties</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">code</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span>
+<span class="w">              </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;The</span><span class="nv"> </span><span class="s">Python</span><span class="nv"> </span><span class="s">code</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">execute.&quot;</span>
+<span class="w">            </span><span class="nt">timeout_seconds</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;integer&quot;</span>
+<span class="w">              </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">              </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Maximum</span><span class="nv"> </span><span class="s">execution</span><span class="nv"> </span><span class="s">time</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">seconds.&quot;</span>
+<span class="w">          </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;code&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">speed</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;medium&quot;</span>
+<span class="w">        </span><span class="nt">safety</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sandboxed&quot;</span><span class="w"> </span><span class="c1"># Overrides default &#39;external&#39;</span>
+
+<span class="w">  </span><span class="nt">web_search_server</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Server</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">performing</span><span class="nv"> </span><span class="s">web</span><span class="nv"> </span><span class="s">searches.&quot;</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://localhost:8002&quot;</span><span class="w"> </span><span class="c1"># Example URL</span>
+<span class="w">    </span><span class="c1"># No auth specified for this example</span>
+<span class="w">    </span><span class="nt">provides_tools</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;perform_web_search&quot;</span>
+<span class="w">        </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Searches</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">web</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">given</span><span class="nv"> </span><span class="s">query.&quot;</span>
+<span class="w">        </span><span class="nt">inputSchema</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;object&quot;</span>
+<span class="w">          </span><span class="nt">properties</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">query</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<span class="w">          </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;query&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="c1"># speed/safety use defaults (medium/external)</span>
+</code></pre></div>
+<h2 id="tool-execution-flow-async">Tool Execution Flow (Async)</h2>
+<p>The execution flow is now inherently asynchronous and handles dispatching based on the tool source:</p>
 <ol>
-<li><code>ToolEnabledAI</code> retrieves available tool definitions from <code>ToolManager</code>.</li>
-<li>It passes these definitions (formatted by <code>ToolRegistry</code> via the provider) to the underlying AI Provider (e.g., OpenAI, Anthropic) along with the user prompt and conversation history.</li>
-<li>The LLM decides if a tool needs to be called. If so, the provider returns a <code>ProviderResponse</code> containing one or more <code>ToolCall</code> objects (with name, arguments, ID).</li>
-<li><code>ToolEnabledAI</code> receives the response.</li>
-<li>If <code>ToolCall</code> objects are present, <code>ToolEnabledAI</code> iterates through them.</li>
-<li>For each <code>ToolCall</code>, it invokes its internal <code>_execute_tool_call(tool_call)</code> method, which in turn uses <code>ToolManager.execute_tool(tool_name=..., **arguments)</code>.</li>
-<li><code>ToolManager</code> uses <code>ToolExecutor</code> to run the actual tool function associated with the <code>tool_name</code>.</li>
-<li><code>ToolExecutor</code> returns a <code>ToolResult</code> (success/failure, result/error) to <code>ToolManager</code>, which passes it back to <code>ToolEnabledAI</code> via <code>_execute_tool_call</code>.</li>
-<li><code>ToolEnabledAI</code> formats the <code>ToolResult</code> into the appropriate message format(s) for the specific provider (using the provider's <code>_add_tool_message</code> method) and adds these messages to the conversation history.</li>
-<li><code>ToolEnabledAI</code> calls the provider <em>again</em> with the updated history (including tool results).</li>
-<li>The loop repeats if the provider requests more tool calls (up to a maximum iteration limit).</li>
-<li>Once the provider returns a final response without tool calls, <code>ToolEnabledAI</code> returns the text content.</li>
+<li>On startup, <code>ToolRegistry</code> loads internal tool definitions from <code>tools.yml</code> and <code>MCPClientManager</code> loads MCP server configs and declared tools from the main <code>config.yml</code>. <code>ToolManager</code> aggregates these into a unified list.</li>
+<li>When <code>ToolEnabledAI</code> needs to interact (<code>async def process_prompt</code>), it retrieves formatted tools for the target model via <code>ToolManager.format_tools_for_model(...)</code>.</li>
+<li><code>ToolEnabledAI</code> passes these definitions to the AI Provider during its <strong>asynchronous</strong> request (<code>await self._provider.request(...)</code>).</li>
+<li>The LLM decides if a tool needs to be called, returning <code>ToolCall</code> data in the <code>ProviderResponse</code>.</li>
+<li><code>ToolEnabledAI</code> parses the <code>ToolCall</code> data into <code>ToolCall</code> objects.</li>
+<li>For each <code>ToolCall</code>, <code>ToolEnabledAI</code> <strong>awaits</strong> <code>ToolManager.execute_tool(tool_call)</code>.</li>
+<li><code>ToolManager</code> retrieves the full <code>ToolDefinition</code> using the <code>tool_call.name</code>. If not found, it returns an error <code>ToolResult</code>.</li>
+<li><code>ToolManager</code> checks the <code>tool_definition.source</code>:<ul>
+<li>If <code>source == "internal"</code>:</li>
+<li><code>ToolManager</code> <strong>awaits</strong> <code>ToolExecutor.execute(tool_definition, **tool_call.arguments)</code>.</li>
+<li><code>ToolExecutor</code> resolves the function, handles sync/async execution with timeout/retry, and returns a <code>ToolResult</code>.</li>
+<li>If <code>source == "mcp"</code>:</li>
+<li><code>ToolManager</code> retrieves <code>mcp_server_name</code> from the definition.</li>
+<li><code>ToolManager</code> <strong>awaits</strong> <code>MCPClientManager.get_tool_client(mcp_server_name)</code> to get or create a client. This returns an internal <code>_HttpClientWrapper</code> for HTTP/S or the result from <code>mcp.websocket_client</code> context manager for WS.</li>
+<li>The client object (either the wrapper or the WebSocket client) is used to make the <code>call_tool</code> request with <code>tool_call.name</code> and <code>tool_call.arguments</code>. The wrapper handles the HTTP request internally, while the WebSocket client requires the appropriate protocol interaction (which <code>MCPClientManager</code> assumes the returned object supports).</li>
+<li><code>ToolManager</code> maps the raw MCP response (including potential errors) into a <code>ToolResult</code>.</li>
+</ul>
+</li>
+<li><code>ToolManager</code> updates usage statistics via <code>ToolStatsManager</code>.</li>
+<li><code>ToolManager</code> returns the <code>ToolResult</code> to <code>ToolEnabledAI</code>.</li>
+<li><code>ToolEnabledAI</code> formats the <code>ToolResult</code> into messages suitable for the AI provider (e.g., using helper methods in the provider implementation).</li>
+<li><code>ToolEnabledAI</code> <strong>awaits</strong> the provider again (<code>await self._provider.request(...)</code>) with the updated history including the tool result message.</li>
+<li>The loop continues or finishes, returning the final content.</li>
 </ol>
-<p>This loop allows the AI to use tools iteratively to accomplish tasks.</p>
 <h2 id="provider-specific-tool-call-handling">Provider-Specific Tool Call Handling</h2>
 <p>Different AI providers handle tool calls in slightly different ways. The framework normalizes these differences to provide a consistent experience:</p>
 <h3 id="openai-provider">OpenAI Provider</h3>
@@ -1309,6 +1542,20 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>This ensures that tool calls work consistently across different providers while taking advantage of each provider's specific capabilities.</p>
+<h2 id="tool-usage-statistics">Tool Usage Statistics</h2>
+<p>The framework includes a dedicated component for tracking and analyzing tool usage:</p>
+<ul>
+<li><strong>ToolStatsManager</strong> (<code>src/tools/tool_stats_manager.py</code>): Manages collection, storage, and retrieval of tool usage statistics.</li>
+</ul>
+<h3 id="features">Features</h3>
+<ul>
+<li><strong>Usage Tracking</strong>: Records each tool invocation, including success/failure status and execution duration.</li>
+<li><strong>Performance Metrics</strong>: Calculates and maintains average execution durations for successful calls.</li>
+<li><strong>Persistent Storage</strong>: Saves statistics to a JSON file for analysis and preservation between sessions.</li>
+<li><strong>Configurable Behavior</strong>: Can be enabled/disabled and configured via the <code>UnifiedConfig</code> system.</li>
+</ul>
+<h3 id="configuration">Configuration</h3>
+<p>Tool statistics tracking can be configured in `</p>
 
 
 

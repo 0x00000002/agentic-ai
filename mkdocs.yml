@@ -33,6 +33,8 @@ nav:
   - Examples:
       - Overview: examples.md
       - Configuration: examples/configuration_example.md
+      - MCP Tool Usage: examples/mcp_tool_usage.md
+      - Tool Statistics: examples/tool_stats_example.md
       - UI: ui/gradio_interface.md
   - Testing:
       - Testing Providers: development/testing_providers.md
