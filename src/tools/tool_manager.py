@@ -125,21 +125,24 @@ class ToolManager:
         
         tool_definition = self.get_tool_definition(tool_name)
         result: Optional[ToolResult] = None # Initialize result
+        metadata = {"original_call_id": request_id} if request_id else {} # Prepare metadata
 
         if not tool_definition:
             error_message = f"Tool not found: {tool_name}"
             self.logger.error(error_message)
             # Update stats even if tool not found
-            result = ToolResult(success=False, error=error_message, result=None, tool_name=tool_name)
+            result = ToolResult(success=False, error=error_message, result=None, tool_name=tool_name, metadata=metadata)
         else:
             # Tool found, proceed with execution
             try:
                 if tool_definition.source == "internal":
                     self.logger.debug(f"Executing internal tool '{tool_name}'...")
                     # Pass definition for context if executor needs it, otherwise just module/func
+                    # Pass arguments as a dictionary to the 'parameters' argument
                     result = await self.tool_executor.execute(
-                        tool_definition, 
-                        **tool_args
+                        tool_definition=tool_definition,
+                        parameters=tool_args # Pass as dict, not **kwargs
+                        # **tool_args
                     )
                 elif tool_definition.source == "mcp":
                     self.logger.debug(f"Executing MCP tool '{tool_name}' via server '{tool_definition.mcp_server_name}'...")
@@ -150,31 +153,42 @@ class ToolManager:
                     # Get the MCP client session (connects/launches if needed)
                     session = await self.mcp_client_manager.get_tool_client(tool_definition.mcp_server_name)
                     
-                    # Call the tool via the session
-                    # Assuming session.call_tool might raise exceptions on transport errors
-                    # and return an object with error/result fields for application errors.
+                    # Call the tool via the session or wrapper
+                    # This now works whether session is mcp.ClientSession or _HttpClientWrapper
                     mcp_response = await session.call_tool(tool_name, tool_args)
                     
-                    # Convert MCP response to our ToolResult format
+                    # Convert MCP response / HTTP response dict to our ToolResult format
                     # Check for an error field/attribute in the response FIRST.
-                    mcp_error = getattr(mcp_response, 'error', None) 
-                    if mcp_error:
-                         # Extract error message, assuming error object has a 'message' attribute/key
-                         error_message = getattr(mcp_error, 'message', str(mcp_error)) 
-                         self.logger.warning(f"MCP tool '{tool_name}' returned an error: {error_message}")
-                         result = ToolResult(success=False, error=error_message, result=None, tool_name=tool_name)
+                    # Handle both attribute access (ClientSession) and dict access (Wrapper)
+                    mcp_error_obj = getattr(mcp_response, 'error', None) # For ClientSession
+                    mcp_error_dict_val = mcp_response.get("error") if isinstance(mcp_response, dict) else None # For Wrapper
+                    
+                    if mcp_error_obj or mcp_error_dict_val:
+                         # Extract error message
+                         error_message = mcp_error_dict_val or getattr(mcp_error_obj, 'message', str(mcp_error_obj))
+                         # Get details if available
+                         error_details = mcp_response.get("error_details") if isinstance(mcp_response, dict) else None
+                         full_error_message = f"{error_message}" + (f": {error_details}" if error_details else "")
+                         
+                         self.logger.warning(f"MCP tool '{tool_name}' returned an error: {full_error_message}")
+                         result = ToolResult(success=False, error=full_error_message, result=None, tool_name=tool_name, metadata=metadata)
                     else:
-                         # Assume successful response content is in a 'result' or 'content' attribute
-                         result_content = getattr(mcp_response, 'result', getattr(mcp_response, 'content', None))
+                         # Assume successful response content is in a 'result' or 'content' attribute/key
+                         result_content = None
+                         if isinstance(mcp_response, dict):
+                             result_content = mcp_response.get('result', mcp_response.get('content'))
+                         else:
+                              result_content = getattr(mcp_response, 'result', getattr(mcp_response, 'content', None))
+                              
                          self.logger.debug(f"MCP tool '{tool_name}' executed successfully.")
-                         result = ToolResult(success=True, result=result_content, error=None, tool_name=tool_name)
+                         result = ToolResult(success=True, result=result_content, error=None, tool_name=tool_name, metadata=metadata)
                          
                 else:
                     raise AIToolError(f"Unknown tool source '{tool_definition.source}' for tool '{tool_name}'")
 
             except asyncio.TimeoutError: # Specific handling for timeouts
                 self.logger.error(f"Timeout executing tool '{tool_name}'.")
-                result = ToolResult(success=False, error=f"Timeout executing tool {tool_name}", result=None, tool_name=tool_name)
+                result = ToolResult(success=False, error=f"Timeout executing tool {tool_name}", result=None, tool_name=tool_name, metadata=metadata)
             # Add specific exception handling for MCP connection errors if the library provides them
             # except MCPConnectionError as conn_err: 
             #    self.logger.error(f"Connection error during MCP tool '{tool_name}' execution: {conn_err}", exc_info=True)
@@ -184,12 +198,12 @@ class ToolManager:
                 # Preserve the original exception type/message if possible
                 tool_error = AIToolError(f"Error executing tool {tool_name}: {type(e).__name__}: {str(e)}", tool_name=tool_name) 
                 error_response = ErrorHandler.handle_error(tool_error, self.logger)
-                result = ToolResult(success=False, error=error_response["message"], result=None, tool_name=tool_name)
+                result = ToolResult(success=False, error=error_response["message"], result=None, tool_name=tool_name, metadata=metadata)
 
         # Ensure we always have a result object IF tool was found
         if result is None:
              self.logger.error(f"Tool execution for '{tool_name}' resulted in None result. Returning error.")
-             result = ToolResult(success=False, error="Tool execution failed to produce a result.", result=None, tool_name=tool_name)
+             result = ToolResult(success=False, error="Tool execution failed to produce a result.", result=None, tool_name=tool_name, metadata=metadata)
 
         # Record stats (this will now run even if tool_definition was None)
         end_time = time.monotonic()

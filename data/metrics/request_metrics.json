@@ -3451,6 +3451,252 @@
       ],
       "success": true,
       "error": null
+    },
+    "0d037691-eee6-4f29-9071-4fd64aec2159": {
+      "request_id": "0d037691-eee6-4f29-9071-4fd64aec2159",
+      "start_time": "2025-04-11T00:36:19.327508+00:00",
+      "end_time": "2025-04-11T00:36:20.292428+00:00",
+      "duration_ms": 964,
+      "prompt": "Write a Solidity function to distribute rewards based on user token balances",
+      "prompt_tokens": 12,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "response_formatter"
+      ],
+      "tools_used": [
+        "file_reader",
+        "code_search"
+      ],
+      "models_used": [
+        "gpt-4o"
+      ],
+      "success": true,
+      "error": null
+    },
+    "1c29dfe9-1403-4f47-9263-ec7438e1523d": {
+      "request_id": "1c29dfe9-1403-4f47-9263-ec7438e1523d",
+      "start_time": "2025-04-11T00:36:20.796862+00:00",
+      "end_time": "2025-04-11T00:36:23.339342+00:00",
+      "duration_ms": 2542,
+      "prompt": "How do I implement a staking contract in Solidity?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert",
+        "tool_finder",
+        "coordinator",
+        "response_formatter"
+      ],
+      "tools_used": [
+        "file_reader",
+        "code_writer"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": false,
+      "error": null
+    },
+    "071f524c-0688-466d-8aef-03f267f5948a": {
+      "request_id": "071f524c-0688-466d-8aef-03f267f5948a",
+      "start_time": "2025-04-11T00:36:23.846783+00:00",
+      "end_time": "2025-04-11T00:36:25.364221+00:00",
+      "duration_ms": 1517,
+      "prompt": "Find all files in the project containing 'metrics' and explain their purpose",
+      "prompt_tokens": 12,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "response_formatter",
+        "tool_finder"
+      ],
+      "tools_used": [
+        "web_search",
+        "solidity_compiler",
+        "code_writer"
+      ],
+      "models_used": [
+        "claude-3-5-sonnet"
+      ],
+      "success": true,
+      "error": null
+    },
+    "8b812ed4-94a5-4ad1-b686-932f8526c4e5": {
+      "request_id": "8b812ed4-94a5-4ad1-b686-932f8526c4e5",
+      "start_time": "2025-04-11T00:36:25.871875+00:00",
+      "end_time": "2025-04-11T00:36:27.823278+00:00",
+      "duration_ms": 1951,
+      "prompt": "Explain the metrics tracking system in Agentic-AI",
+      "prompt_tokens": 7,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "response_formatter",
+        "tool_finder"
+      ],
+      "tools_used": [
+        "web_search",
+        "file_reader",
+        "code_search"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": true,
+      "error": null
+    },
+    "177b0a54-3c7b-4a5e-935a-6058a7ac5195": {
+      "request_id": "177b0a54-3c7b-4a5e-935a-6058a7ac5195",
+      "start_time": "2025-04-11T00:36:28.331774+00:00",
+      "end_time": "2025-04-11T00:36:29.686637+00:00",
+      "duration_ms": 1354,
+      "prompt": "How do I implement a staking contract in Solidity?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "coordinator"
+      ],
+      "tools_used": [
+        "code_search",
+        "web_search"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": false,
+      "error": null
+    },
+    "b69d1d60-8858-40bf-8cc5-c46792aad1e4": {
+      "request_id": "b69d1d60-8858-40bf-8cc5-c46792aad1e4",
+      "start_time": "2025-04-11T00:36:30.194371+00:00",
+      "end_time": "2025-04-11T00:36:32.072049+00:00",
+      "duration_ms": 1877,
+      "prompt": "Explain the metrics tracking system in Agentic-AI",
+      "prompt_tokens": 7,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert",
+        "coordinator",
+        "tool_finder",
+        "response_formatter"
+      ],
+      "tools_used": [
+        "code_writer"
+      ],
+      "models_used": [
+        "gpt-4o"
+      ],
+      "success": true,
+      "error": null
+    },
+    "56c05189-61a2-4da1-a6e8-97f4fac09d7d": {
+      "request_id": "56c05189-61a2-4da1-a6e8-97f4fac09d7d",
+      "start_time": "2025-04-11T00:36:32.579564+00:00",
+      "end_time": "2025-04-11T00:36:33.675518+00:00",
+      "duration_ms": 1095,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert"
+      ],
+      "tools_used": [
+        "solidity_compiler",
+        "web_search",
+        "code_search"
+      ],
+      "models_used": [
+        "llamacpp://llama3-8b"
+      ],
+      "success": true,
+      "error": null
+    },
+    "f2984169-eb46-4c7d-9d51-a66848bdd1a9": {
+      "request_id": "f2984169-eb46-4c7d-9d51-a66848bdd1a9",
+      "start_time": "2025-04-11T00:36:34.182258+00:00",
+      "end_time": "2025-04-11T00:36:36.445697+00:00",
+      "duration_ms": 2263,
+      "prompt": "Find all files in the project containing 'metrics' and explain their purpose",
+      "prompt_tokens": 12,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "tool_finder",
+        "solidity_expert"
+      ],
+      "tools_used": [
+        "code_writer",
+        "file_reader",
+        "solidity_compiler"
+      ],
+      "models_used": [
+        "llamacpp://llama3-8b"
+      ],
+      "success": true,
+      "error": null
+    },
+    "2d90b497-a067-4da8-ae9f-57574769b7f2": {
+      "request_id": "2d90b497-a067-4da8-ae9f-57574769b7f2",
+      "start_time": "2025-04-11T00:36:36.948910+00:00",
+      "end_time": "2025-04-11T00:36:39.351276+00:00",
+      "duration_ms": 2402,
+      "prompt": "Find all files in the project containing 'metrics' and explain their purpose",
+      "prompt_tokens": 12,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "coordinator",
+        "tool_finder",
+        "solidity_expert",
+        "response_formatter"
+      ],
+      "tools_used": [
+        "solidity_compiler",
+        "code_search",
+        "file_reader"
+      ],
+      "models_used": [
+        "claude-3-5-sonnet"
+      ],
+      "success": false,
+      "error": null
+    },
+    "dcd4a968-85e9-4ad0-add7-5bf2f315e7b3": {
+      "request_id": "dcd4a968-85e9-4ad0-add7-5bf2f315e7b3",
+      "start_time": "2025-04-11T00:36:39.856080+00:00",
+      "end_time": "2025-04-11T00:36:40.694410+00:00",
+      "duration_ms": 838,
+      "prompt": "How do I implement a staking contract in Solidity?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "coordinator"
+      ],
+      "tools_used": [
+        "code_search",
+        "file_reader"
+      ],
+      "models_used": [
+        "llamacpp://llama3-8b"
+      ],
+      "success": true,
+      "error": null
     }
   },
   "agent_usage": {
@@ -3487,59 +3733,59 @@
       "avg_duration_ms": 275.25
     },
     "response_formatter": {
-      "total_requests": 18,
-      "successful_requests": 18,
-      "total_duration_ms": 5849,
-      "avg_confidence": 0.849393960190613,
-      "last_used": "2025-04-08T05:03:19.156695+00:00",
-      "avg_duration_ms": 324.94444444444446
+      "total_requests": 24,
+      "successful_requests": 24,
+      "total_duration_ms": 7543,
+      "avg_confidence": 0.8495148059202767,
+      "last_used": "2025-04-11T00:36:38.927838+00:00",
+      "avg_duration_ms": 314.2916666666667
     },
     "solidity_expert": {
-      "total_requests": 18,
-      "successful_requests": 15,
-      "total_duration_ms": 5209,
-      "avg_confidence": 0.8435237537409354,
-      "last_used": "2025-04-08T05:03:23.141601+00:00",
-      "avg_duration_ms": 289.3888888888889
+      "total_requests": 23,
+      "successful_requests": 20,
+      "total_duration_ms": 6791,
+      "avg_confidence": 0.8408396616413201,
+      "last_used": "2025-04-11T00:36:38.713614+00:00",
+      "avg_duration_ms": 295.2608695652174
     },
     "coordinator": {
-      "total_requests": 13,
-      "successful_requests": 10,
-      "total_duration_ms": 4705,
-      "avg_confidence": 0.8907232637068287,
-      "last_used": "2025-04-08T05:03:18.389808+00:00",
-      "avg_duration_ms": 361.9230769230769
+      "total_requests": 18,
+      "successful_requests": 13,
+      "total_duration_ms": 6315,
+      "avg_confidence": 0.8824197078093792,
+      "last_used": "2025-04-11T00:36:40.521423+00:00",
+      "avg_duration_ms": 350.8333333333333
     },
     "tool_finder": {
-      "total_requests": 14,
-      "successful_requests": 13,
-      "total_duration_ms": 3734,
-      "avg_confidence": 0.8187408100718946,
-      "last_used": "2025-04-08T05:03:17.895353+00:00",
-      "avg_duration_ms": 266.7142857142857
+      "total_requests": 20,
+      "successful_requests": 18,
+      "total_duration_ms": 5420,
+      "avg_confidence": 0.8419930408770295,
+      "last_used": "2025-04-11T00:36:38.430953+00:00",
+      "avg_duration_ms": 271.0
     }
   },
   "tool_usage": {
     "web_search": {
-      "total_calls": 12,
-      "successful_calls": 11,
-      "total_duration_ms": 1508,
-      "last_used": "2025-04-08T05:03:15.893311+00:00",
-      "avg_duration_ms": 125.66666666666667
+      "total_calls": 16,
+      "successful_calls": 15,
+      "total_duration_ms": 2032,
+      "last_used": "2025-04-11T00:36:33.605115+00:00",
+      "avg_duration_ms": 127.0
     },
     "code_search": {
-      "total_calls": 15,
-      "successful_calls": 14,
-      "total_duration_ms": 1834,
-      "last_used": "2025-04-08T05:03:23.207358+00:00",
-      "avg_duration_ms": 122.26666666666667
+      "total_calls": 21,
+      "successful_calls": 20,
+      "total_duration_ms": 2673,
+      "last_used": "2025-04-11T00:36:40.604138+00:00",
+      "avg_duration_ms": 127.28571428571429
     },
     "code_writer": {
-      "total_calls": 12,
-      "successful_calls": 11,
-      "total_duration_ms": 1583,
-      "last_used": "2025-04-08T05:03:21.536095+00:00",
-      "avg_duration_ms": 131.91666666666666
+      "total_calls": 16,
+      "successful_calls": 15,
+      "total_duration_ms": 2089,
+      "last_used": "2025-04-11T00:36:36.172845+00:00",
+      "avg_duration_ms": 130.5625
     },
     "terminal": {
       "total_calls": 4,
@@ -3549,18 +3795,18 @@
       "avg_duration_ms": 134.5
     },
     "file_reader": {
-      "total_calls": 21,
-      "successful_calls": 18,
-      "total_duration_ms": 2997,
-      "last_used": "2025-04-08T05:03:23.477340+00:00",
-      "avg_duration_ms": 142.71428571428572
+      "total_calls": 27,
+      "successful_calls": 23,
+      "total_duration_ms": 3760,
+      "last_used": "2025-04-11T00:36:40.691878+00:00",
+      "avg_duration_ms": 139.25925925925927
     },
     "solidity_compiler": {
-      "total_calls": 11,
-      "successful_calls": 10,
-      "total_duration_ms": 1477,
-      "last_used": "2025-04-08T05:03:23.273412+00:00",
-      "avg_duration_ms": 134.27272727272728
+      "total_calls": 15,
+      "successful_calls": 13,
+      "total_duration_ms": 1986,
+      "last_used": "2025-04-11T00:36:38.995962+00:00",
+      "avg_duration_ms": 132.4
     }
   },
   "model_usage": {
@@ -3610,40 +3856,40 @@
       "avg_duration_ms": 0
     },
     "phi4": {
-      "total_calls": 10,
-      "successful_calls": 10,
-      "total_tokens_in": 2839,
-      "total_tokens_out": 754,
-      "total_duration_ms": 6204,
-      "last_used": "2025-04-08T05:03:11.115466+00:00",
-      "avg_duration_ms": 620.4
+      "total_calls": 13,
+      "successful_calls": 13,
+      "total_tokens_in": 3641,
+      "total_tokens_out": 974,
+      "total_duration_ms": 8572,
+      "last_used": "2025-04-11T00:36:29.164931+00:00",
+      "avg_duration_ms": 659.3846153846154
     },
     "gpt-4o": {
-      "total_calls": 3,
-      "successful_calls": 3,
-      "total_tokens_in": 442,
-      "total_tokens_out": 76,
-      "total_duration_ms": 2219,
-      "last_used": "2025-04-08T05:03:12.755728+00:00",
-      "avg_duration_ms": 739.6666666666666
+      "total_calls": 5,
+      "successful_calls": 5,
+      "total_tokens_in": 782,
+      "total_tokens_out": 200,
+      "total_duration_ms": 3532,
+      "last_used": "2025-04-11T00:36:31.148800+00:00",
+      "avg_duration_ms": 706.4
     },
     "claude-3-5-sonnet": {
-      "total_calls": 10,
-      "successful_calls": 10,
-      "total_tokens_in": 2385,
-      "total_tokens_out": 525,
-      "total_duration_ms": 6968,
-      "last_used": "2025-04-08T05:03:23.029054+00:00",
-      "avg_duration_ms": 696.8
+      "total_calls": 12,
+      "successful_calls": 12,
+      "total_tokens_in": 3002,
+      "total_tokens_out": 737,
+      "total_duration_ms": 8536,
+      "last_used": "2025-04-11T00:36:37.827414+00:00",
+      "avg_duration_ms": 711.3333333333334
     },
     "llamacpp://llama3-8b": {
-      "total_calls": 7,
-      "successful_calls": 7,
-      "total_tokens_in": 2339,
-      "total_tokens_out": 580,
-      "total_duration_ms": 4566,
-      "last_used": "2025-04-08T05:03:17.386737+00:00",
-      "avg_duration_ms": 652.2857142857143
+      "total_calls": 10,
+      "successful_calls": 10,
+      "total_tokens_in": 3414,
+      "total_tokens_out": 870,
+      "total_duration_ms": 6236,
+      "last_used": "2025-04-11T00:36:40.183963+00:00",
+      "avg_duration_ms": 623.6
     }
   }
 }

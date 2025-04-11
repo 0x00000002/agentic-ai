@@ -58,10 +58,11 @@ class ToolDefinition(BaseModel):
                  raise ValueError("'module', 'function', and 'category' cannot be set for mcp tools")
         return values
 
-    class Config:
-        populate_by_name = True # Allows using inputSchema alias
-        use_enum_values = True # Ensure Literal values are used correctly
+    model_config = ConfigDict(
+        populate_by_name = True, # Allows using inputSchema alias
+        use_enum_values = True, # Ensure Literal values are used correctly
         extra = 'ignore' # Ignore extra fields if they come from config
+    )
 
 
 class ToolCallRequest(BaseModel):

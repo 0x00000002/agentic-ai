@@ -14,7 +14,11 @@ This is normal for the example since it's not using tools directly,
 and ToolStatsManager will still work correctly even without tool definitions.
 """
 
+import asyncio
+import logging
 import os
+import sys
+from pathlib import Path
 import json
 from pprint import pprint
 from datetime import datetime
@@ -22,9 +26,17 @@ import time
 import random
 from unittest.mock import MagicMock
 
+# Add the parent directory to sys.path to import the package
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Add the project root directory to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 # Import the ToolStatsManager and related dependencies
 from src.tools.tool_stats_manager import ToolStatsManager
 from src.utils.logger import LoggerFactory
+from src.config.unified_config import UnifiedConfig
+from src.tools.models import ToolExecutionStatus
 
 # Set up a simple temporary path for this example
 TEMP_STATS_PATH = "examples/temp/example_tool_stats.json"

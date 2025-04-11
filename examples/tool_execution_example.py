@@ -19,11 +19,11 @@ os.environ['AGENTIC_AI_APP_ROOT'] = str(project_root)
 # --- Imports ---
 from src.config import configure, get_config, UnifiedConfig
 from src.tools.tool_manager import ToolManager
-from src.tools.models import ToolCall, ToolResult
+from src.tools.models import ToolDefinition, ToolCall, ToolResult
 from src.utils.logger import LoggerFactory
 
-# Configure logging for the example
-logger = LoggerFactory.create("tool_example")
+# Set up logging
+logger = LoggerFactory.create("tool_execution_example", use_real_logger=True)
 
 # --- Main Execution Logic ---
 async def main():

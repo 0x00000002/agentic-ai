@@ -4,7 +4,7 @@
 
 Tools allow the AI to perform actions and retrieve information beyond its training data. The Agentic-AI framework includes a tool management system that enables:
 
-1.  **Loading** tool definitions from configuration (`tools.yml` for internal tools, `mcp.yml` for external MCP servers and their declared tools).
+1.  **Loading** tool definitions from configuration (`tools.yml` for internal tools, the main `config.yml` for external MCP servers and their declared tools).
 2.  **Unified Discovery**: Providing a single list of all available tools (both internal and MCP).
 3.  **Formatting** tool definitions for specific AI providers.
 4.  **Executing** tool calls requested by the AI asynchronously, dispatching to the correct executor (internal Python or MCP client) based on the tool's source, with error handling and timeout/retry logic.
@@ -41,7 +41,7 @@ graph TD
         UnifiedConfigRef -- Provides Config --> ToolStatsManager
 
         ToolsYAML[\"tools.yml\"] -- Read By --> UnifiedConfigRef
-        MCPYAML[\"mcp.yml\"] -- Read By --> UnifiedConfigRef
+        %% MCPYAML[\"mcp.yml\"] -- Read By --> UnifiedConfigRef %% MCP config is now part of main config
     end
 
     subgraph \"Dependencies\"
@@ -67,11 +67,11 @@ graph TD
 
 - **ToolManager**: Central service coordinating **asynchronous** tool execution (`async def execute_tool`). It loads all tool definitions (internal and MCP) via `ToolRegistry` and `MCPClientManager`, provides unified discovery methods, handles formatting requests, and dispatches execution calls to `ToolExecutor` (for internal tools) or `MCPClientManager` (for MCP tools) based on the tool's `source`.
 - **ToolRegistry**: Loads **internal** tool definitions (`ToolDefinition` with `source='internal'`) from `tools.yml` configuration, validates them, stores them, and provides methods to retrieve them.
-- **MCPClientManager**: Loads **MCP server configurations** and **declared MCP tool definitions** (`ToolDefinition` with `source='mcp'`) from `mcp.yml`. It manages connections (`ClientSession`) to external MCP servers and handles the `call_tool` request for MCP tools.
+- **MCPClientManager**: Loads **MCP server configurations** and **declared MCP tool definitions** (`ToolDefinition` with `source='mcp'`) from the main configuration file (`config.yml`). It manages connections to external MCP servers (using `aiohttp` for HTTP/S or `mcp.websocket_client` for WS) and handles the `call_tool` request for MCP tools.
 - **ToolExecutor**: Executes **only internal** Python tool functions safely with **asyncio-based** timeout and retry logic (`async def execute`). Handles both synchronous and asynchronous tool functions.
 - **ToolStatsManager**: Tracks and manages tool usage statistics for all tool types.
 - **Models**: Defines core data structures (`ToolDefinition`, `ToolCall`, `ToolResult`).
-- **Configuration**: Defines available internal tools (`tools.yml`) and external MCP servers/declared tools (`mcp.yml`).
+- **Configuration**: Defines available internal tools (`tools.yml`) and external MCP servers/declared tools (within the main `config.yml` under the `mcp_servers` key).
 - **Users** (e.g., `ToolEnabledAI`, `BaseAgent`): Components that utilize the tool system, typically interacting primarily with `ToolManager`. `ToolEnabledAI` handles the **asynchronous** interaction loop with the AI provider and the `ToolManager`.
 
 ## Defining Tools (Configuration-Based)
@@ -113,13 +113,13 @@ tools:
     safety: "sandboxed"
 ```
 
-### MCP Servers and Declared Tools (`src/config/mcp.yml`)
+### MCP Servers and Declared Tools (in `config.yml`)
 
-This file defines how to connect to external MCP servers and which tools those servers _declare_ they provide. The framework uses this declaration to inform the LLM; the actual tool list might differ when connecting to the server. The MCP server process must be running independently and accessible at the specified network address.
+The main configuration file (e.g., `config.yml` or loaded via `UnifiedConfig`) defines how to connect to external MCP servers under the `mcp_servers` key. It also lists the tools those servers _declare_ they provide. The framework uses this declaration to inform the LLM; the actual tool list might differ when connecting to the server. The MCP server process must be running independently and accessible at the specified network address.
 
-- `mcp_servers`: A dictionary where each key is a unique server name.
+- The top-level key is `mcp_servers`: A dictionary where each key is a unique server name.
   - `description` (optional): Description of the server.
-  - `url`: Network endpoint (e.g., `http://localhost:8001`) where the MCP server is listening. **Required**.
+  - `url`: Network endpoint (e.g., `http://localhost:8001`) where the MCP server is listening. Supports `http`, `https`, `ws`, `wss` schemes. **Required**.
   - `auth` (optional): Authentication details for the server.
     - `type`: The authentication type (e.g., `bearer`).
     - `token_env_var`: The name of the environment variable containing the authentication token.
@@ -132,10 +132,10 @@ This file defines how to connect to external MCP servers and which tools those s
     - `source`: Automatically set to `"mcp"` by `MCPClientManager`.
     - `mcp_server_name`: Automatically set to the server key by `MCPClientManager`.
 
-**Example (`mcp.yml`):**
+**Example (within `config.yml`):**
 
 ```yaml
-# src/config/mcp.yml
+# Example within src/config/config.yml
 
 mcp_servers:
   code_execution_server:
@@ -180,7 +180,7 @@ mcp_servers:
 
 The execution flow is now inherently asynchronous and handles dispatching based on the tool source:
 
-1.  On startup, `ToolRegistry` loads internal tool definitions from `tools.yml` and `MCPClientManager` loads MCP server configs and declared tools from `mcp.yml`. `ToolManager` aggregates these into a unified list.
+1.  On startup, `ToolRegistry` loads internal tool definitions from `tools.yml` and `MCPClientManager` loads MCP server configs and declared tools from the main `config.yml`. `ToolManager` aggregates these into a unified list.
 2.  When `ToolEnabledAI` needs to interact (`async def process_prompt`), it retrieves formatted tools for the target model via `ToolManager.format_tools_for_model(...)`.
 3.  `ToolEnabledAI` passes these definitions to the AI Provider during its **asynchronous** request (`await self._provider.request(...)`).
 4.  The LLM decides if a tool needs to be called, returning `ToolCall` data in the `ProviderResponse`.
@@ -193,8 +193,8 @@ The execution flow is now inherently asynchronous and handles dispatching based 
       - `ToolExecutor` resolves the function, handles sync/async execution with timeout/retry, and returns a `ToolResult`.
     - If `source == "mcp"`:
       - `ToolManager` retrieves `mcp_server_name` from the definition.
-      - `ToolManager` **awaits** `MCPClientManager.get_tool_client(mcp_server_name)` to get or create a `ClientSession`.
-      - `ToolManager` **awaits** `client_session.call_tool(tool_call.name, tool_call.arguments)`.
+      - `ToolManager` **awaits** `MCPClientManager.get_tool_client(mcp_server_name)` to get or create a client. This returns an internal `_HttpClientWrapper` for HTTP/S or the result from `mcp.websocket_client` context manager for WS.
+      - The client object (either the wrapper or the WebSocket client) is used to make the `call_tool` request with `tool_call.name` and `tool_call.arguments`. The wrapper handles the HTTP request internally, while the WebSocket client requires the appropriate protocol interaction (which `MCPClientManager` assumes the returned object supports).
       - `ToolManager` maps the raw MCP response (including potential errors) into a `ToolResult`.
 9.  `ToolManager` updates usage statistics via `ToolStatsManager`.
 10. `ToolManager` returns the `ToolResult` to `ToolEnabledAI`.

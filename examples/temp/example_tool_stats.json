@@ -1,29 +1,29 @@
 {
     "weather_tool": {
         "uses": 8,
-        "successes": 3,
-        "failures": 5,
-        "last_used": "2025-04-09T12:36:14.835961",
-        "first_used": "2025-04-09T12:36:14.527821",
-        "total_duration_ms": 473,
-        "avg_duration_ms": 157.66666666666666
+        "successes": 5,
+        "failures": 3,
+        "last_used": "2025-04-11T12:34:18.072008",
+        "first_used": "2025-04-11T12:34:17.761652",
+        "total_duration_ms": 839,
+        "avg_duration_ms": 167.8
     },
     "calculator_tool": {
         "uses": 10,
-        "successes": 10,
-        "failures": 0,
-        "last_used": "2025-04-09T12:36:14.699976",
-        "first_used": "2025-04-09T12:36:14.588445",
-        "total_duration_ms": 3005,
-        "avg_duration_ms": 300.5
+        "successes": 9,
+        "failures": 1,
+        "last_used": "2025-04-11T12:34:17.934987",
+        "first_used": "2025-04-11T12:34:17.822074",
+        "total_duration_ms": 2208,
+        "avg_duration_ms": 245.33333333333334
     },
     "search_tool": {
         "uses": 8,
-        "successes": 7,
-        "failures": 1,
-        "last_used": "2025-04-09T12:36:14.800186",
-        "first_used": "2025-04-09T12:36:14.712560",
-        "total_duration_ms": 2519,
-        "avg_duration_ms": 359.85714285714283
+        "successes": 8,
+        "failures": 0,
+        "last_used": "2025-04-11T12:34:18.033514",
+        "first_used": "2025-04-11T12:34:17.947541",
+        "total_duration_ms": 2454,
+        "avg_duration_ms": 306.75
     }
 }

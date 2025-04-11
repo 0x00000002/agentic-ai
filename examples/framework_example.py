@@ -136,8 +136,9 @@ async def example_tool_usage():
     
     # List available tools
     logger.info("Available tools:")
-    for tool_name, tool_def in tool_registry.get_all_tool_definitions().items():
-        logger.info(f"- {tool_name}: {tool_def.description}")
+    all_tools = tool_manager.list_available_tools()
+    for tool_def in all_tools:
+        print(f"- {tool_def.name} (Source: {tool_def.source}, MCP Server: {tool_def.mcp_server_name or 'N/A'})")
     
     # Create an AI instance with tool manager
     logger.info("Creating AI instance")

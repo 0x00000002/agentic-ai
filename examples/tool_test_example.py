@@ -42,11 +42,10 @@ def main():
     tool_manager = ToolManager(logger=logger, tool_registry=tool_registry)
     
     # Get and display available tools
-    tool_definitions = tool_registry.get_all_tool_definitions()
-    print(f"\nFound {len(tool_definitions)} tools in the configuration:")
-    
-    for name, definition in tool_definitions.items():
-        print(f"  - {name}: {definition.description}")
+    print("\nAvailable internal tools:")
+    tool_definitions = tool_registry.list_internal_tool_definitions()
+    for tool_def in tool_definitions:
+        print(f"- {tool_def.name} (Module: {tool_def.module}, Function: {tool_def.function})")
     
     # Try executing some tools if they exist
     if "calculator" in tool_definitions:
