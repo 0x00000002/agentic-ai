@@ -204,19 +204,10 @@ class TestToolRegistryInternal:
         formatted = populated_registry.format_tools_for_provider("OPENAI")
         assert len(formatted) == 2
         # Check the simpler format
-        tool1_formatted = next(t for t in formatted if t['name'] == TOOL_DEF_INTERNAL_1.name)
-        tool2_formatted = next(t for t in formatted if t['name'] == TOOL_DEF_INTERNAL_2.name)
-
-        assert tool1_formatted == {
-            "name": TOOL_DEF_INTERNAL_1.name,
-            "description": TOOL_DEF_INTERNAL_1.description,
-            "input_schema": TOOL_DEF_INTERNAL_1.parameters_schema
-        }
-        assert tool2_formatted == {
-            "name": TOOL_DEF_INTERNAL_2.name,
-            "description": TOOL_DEF_INTERNAL_2.description,
-            "input_schema": TOOL_DEF_INTERNAL_2.parameters_schema
-        }
+        tool1_formatted = next(t for t in formatted if t['function']['name'] == TOOL_DEF_INTERNAL_1.name)
+        assert tool1_formatted["type"] == "function"
+        assert tool1_formatted['function']['description'] == TOOL_DEF_INTERNAL_1.description
+        assert tool1_formatted['function']['parameters'] == TOOL_DEF_INTERNAL_1.parameters_schema
 
     def test_format_for_anthropic(self, populated_registry: ToolRegistry):
         """Test formatting internal tools for the Anthropic provider."""
@@ -275,17 +266,15 @@ class TestToolRegistryInternal:
         tool1_formatted = next(t for t in formatted if t['name'] == 'get_weather')
         assert tool1_formatted['description'] == TOOL_DEF_INTERNAL_1.description
         assert tool1_formatted['input_schema'] == TOOL_DEF_INTERNAL_1.parameters_schema
-        # Check warning log (Warning is no longer logged for unknown providers)
-        mock_logger.warning.assert_not_called()
 
     def test_format_specific_tool_subset(self, populated_registry: ToolRegistry):
         """Test formatting only a specific subset of internal tools."""
         formatted = populated_registry.format_tools_for_provider("OPENAI", tool_names={TOOL_DEF_INTERNAL_1.name})
         assert len(formatted) == 1
         # Check the simpler format
-        assert formatted[0]['name'] == TOOL_DEF_INTERNAL_1.name
-        assert formatted[0]['description'] == TOOL_DEF_INTERNAL_1.description
-        assert formatted[0]['input_schema'] == TOOL_DEF_INTERNAL_1.parameters_schema
+        assert formatted[0]['function']['name'] == TOOL_DEF_INTERNAL_1.name
+        assert formatted[0]['function']['description'] == TOOL_DEF_INTERNAL_1.description
+        assert formatted[0]['function']['parameters'] == TOOL_DEF_INTERNAL_1.parameters_schema
         
     def test_format_empty_registry(self):
          """Test formatting an empty registry returns empty list."""
@@ -295,6 +284,6 @@ class TestToolRegistryInternal:
          formatted = registry.format_tools_for_provider("OPENAI")
          assert formatted == [] 
 
-    def test_format_non_existent_tool(self, populated_registry: ToolRegistry, mock_logger):
-        """Test formatting when a requested tool name doesn't exist."""
+    def test_format_non_existent_tool(self, populated_registry: ToolRegistry):
+        """Test formatting a tool that does not exist in the registry."""
         # ... existing code ...

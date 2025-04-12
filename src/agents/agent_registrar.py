@@ -31,6 +31,7 @@ def register_core_agents(registry, logger: Optional[LoggerInterface] = None):
     _register_coordinator_agent(registry, logger) # Renamed from orchestrator
     _register_listener_agent(registry, logger)
     _register_chat_agent(registry, logger) # Add registration for ChatAgent
+    # _register_framework_response_agent(registry, logger) # REMOVED - Replaced by Formatter class
     
     if logger:
         agent_types = registry.get_agent_types()

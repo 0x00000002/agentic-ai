@@ -12,6 +12,9 @@ from ..tools.models import ToolDefinition
 from .agent_factory import AgentFactory # Crucial for creating agents to delegate to
 from ..exceptions import AIAgentError, ErrorHandler # Standard error handling
 from .agent_registry import AgentRegistry # To get agent registry
+# Import the new formatter
+from ..core.framework_message_formatter import FrameworkMessageFormatter
+
 class Coordinator(BaseAgent):
     """
     Coordinates the workflow between specialized agents based on request analysis.
@@ -50,6 +53,9 @@ class Coordinator(BaseAgent):
         self.request_analyzer = request_analyzer or RequestAnalyzer(unified_config=self.config, logger=dep_logger)
         self.response_aggregator = response_aggregator or ResponseAggregator(unified_config=self.config, logger=dep_logger)
         self.tool_manager = tool_manager or ToolManager(unified_config=self.config, logger=dep_logger)
+        
+        # --- Formatter ---
+        self.message_formatter = FrameworkMessageFormatter(logger=self.logger)
         
         # --- Configuration ---
         # Agent config comes from BaseAgent __init__ calling self.config.get_agent_config(self.agent_id)
@@ -146,6 +152,35 @@ class Coordinator(BaseAgent):
 
             # Ensure response is a dict (basic normalization) - _normalize_response is sync
             normalized_response = self._normalize_response(agent_response)
+
+            # --- Format and Append Tool History --- 
+            formatted_tool_messages = []
+            tool_history = normalized_response.get("metadata", {}).get("tool_history")
+            if tool_history and isinstance(tool_history, list):
+                self.logger.info(f"Found {len(tool_history)} tool history entries from agent '{agent_id}'. Formatting...")
+                for tool_record in tool_history:
+                    if isinstance(tool_record, dict):
+                        event_type = "tool_error" if tool_record.get("error") else "tool_result"
+                        event_data = {
+                            "type": event_type,
+                            "data": {
+                                "tool_name": tool_record.get("tool_name", "unknown"),
+                                "output": tool_record.get("result"),
+                                "error_message": tool_record.get("error"),
+                                "arguments": tool_record.get("arguments") # Formatter might use this later
+                            }
+                        }
+                        formatted_tool_messages.append(self.message_formatter.format_message(event_data))
+                    else:
+                        self.logger.warning(f"Skipping invalid tool history record: {tool_record}")
+            
+            # Append formatted messages to the main content
+            if formatted_tool_messages and normalized_response.get("content"):
+                normalized_response["content"] += "\n\n---\n" + "\n".join(formatted_tool_messages)
+            elif formatted_tool_messages:
+                # If agent gave no content, use formatted messages as content
+                normalized_response["content"] = "\n".join(formatted_tool_messages)
+            # --- End Format and Append --- 
 
             # Add coordinator metadata
             if "metadata" not in normalized_response: normalized_response["metadata"] = {}
@@ -405,12 +440,21 @@ class Coordinator(BaseAgent):
          return {"content": str(response), "status": "success", "agent_id": agent_id}
 
     def _create_error_response(self, message: str, agent_id: Optional[str] = None) -> Dict[str, Any]:
-        """Creates a standardized error response dictionary."""
+        """Creates a standardized error response dictionary using the formatter."""
+        # Use the formatter to create the user-facing content
+        formatted_content = self.message_formatter.format_message({
+            "type": "error",
+            "data": {
+                "error_message": message,
+                "component": agent_id or self.agent_id # Report component as agent or coordinator
+            }
+        })
+        
         return {
-            "content": f"Error: {message}",
-            "agent_id": agent_id or self.agent_id, # Use specific agent ID if error came from delegation
+            "content": formatted_content, # Use formatted message
+            "agent_id": agent_id or self.agent_id,
             "status": "error",
-            "error": message # Include error message in a dedicated field
+            "metadata": {"error_message": message} # Keep raw message in metadata
         }
 
 # --- End Coordinator --- 

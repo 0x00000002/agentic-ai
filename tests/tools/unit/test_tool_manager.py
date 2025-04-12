@@ -215,7 +215,7 @@ class TestToolManager:
              result = await manager.execute_tool(tool_call)
 
         # Assert Executor Call
-        mock_executor.execute.assert_awaited_once_with(tool_def, **args)
+        mock_executor.execute.assert_awaited_once_with(tool_definition=tool_def, parameters=args)
         assert result == mock_result
 
         # Assert Stats Update Call (handled by original method now)
@@ -248,7 +248,7 @@ class TestToolManager:
              result = await manager.execute_tool(tool_call)
 
         # Assert Executor Call
-        mock_executor.execute.assert_awaited_once_with(tool_def, **args)
+        mock_executor.execute.assert_awaited_once_with(tool_definition=tool_def, parameters=args)
         assert result == mock_result
 
         # Assert Stats Update Call (handled by original method now)

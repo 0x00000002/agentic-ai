@@ -223,12 +223,8 @@ class ToolRegistry:
                 continue
 
             try:
-                # Basic format suitable for most providers (OpenAI, Anthropic)
-                provider_format = {
-                    "name": tool_def.name,
-                    "description": tool_def.description,
-                    "input_schema": tool_def.parameters_schema # Use the alias for compatibility
-                }
+                # Default format (adjust per provider below)
+                provider_format = {}
                 
                 # Provider-specific adjustments (Example: Gemini needs 'functionDeclarations')
                 if "GEMINI" in provider_name:
@@ -243,12 +239,35 @@ class ToolRegistry:
                              "required": tool_def.parameters_schema.get('required', [])
                          }
                      }
-                # elif "ANTHROPIC" in provider_name:
-                # Anthropic schema seems compatible with the default structure
-                # elif "OPENAI" in provider_name:
-                # OpenAI schema seems compatible with the default structure
+                elif "OPENAI" in provider_name:
+                    # OpenAI requires type: function and function details nested
+                    provider_format = {
+                        "type": "function",
+                        "function": {
+                            "name": tool_def.name,
+                            "description": tool_def.description,
+                            "parameters": tool_def.parameters_schema # Use the actual schema dict
+                        }
+                    }
+                elif "ANTHROPIC" in provider_name:
+                     # Anthropic uses a simpler, flat structure
+                     provider_format = {
+                         "name": tool_def.name,
+                         "description": tool_def.description,
+                         "input_schema": tool_def.parameters_schema # Anthropic uses input_schema
+                     }
+                else:
+                    # Fallback/Default if provider unknown (similar to Anthropic?)
+                    self._logger.warning(f"Using default tool format for unknown provider: {provider_name}")
+                    provider_format = {
+                        "name": tool_def.name,
+                        "description": tool_def.description,
+                        "input_schema": tool_def.parameters_schema
+                    }
 
-                formatted_tools.append(provider_format)
+                # Add the formatted tool to the list if not empty
+                if provider_format:
+                    formatted_tools.append(provider_format)
             except Exception as e:
                  self._logger.error(f"Error formatting tool '{name}' for provider '{provider_name}': {e}", exc_info=True)
 

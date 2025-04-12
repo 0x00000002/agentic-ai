@@ -26,6 +26,8 @@ Agentic-AI is a Python library designed to create AI-powered applications that c
 
 First, ensure you have the necessary **system dependencies**:
 
+`source .venv/bin/activate`
+
 - **Python** (version 3.9+)
 - **`ffmpeg`**: Required for audio processing by the `openai-whisper` library.
   - On macOS: `brew install ffmpeg`

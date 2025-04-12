@@ -166,23 +166,38 @@ class BaseProvider(ProviderInterface):
         payload.update(params)
         
         # Handle tools if present
-        tools = special_params.get("tools")
+        tool_names = special_params.get("tools")
         tool_choice = special_params.get("tool_choice")
         
-        if tools:
+        formatted_tools = None
+        if tool_names:
             try:
-                formatted_tools = self.tool_manager.format_tools(tools)
+                # Check if 'tool_names' is actually a list of names (strings)
+                if isinstance(tool_names, list) and all(isinstance(name, str) for name in tool_names):
+                    # If it's names, use the handler to format them
+                    formatted_tools = self.tool_manager.format_tools(tool_names)
+                # Check if it's the already formatted list of dicts from ToolEnabledAI
+                elif isinstance(tool_names, list) and all(isinstance(item, dict) for item in tool_names):
+                    self.logger.debug("Received pre-formatted tools list. Using directly.")
+                    formatted_tools = tool_names # Use the pre-formatted list
+                else:
+                    self.logger.warning(f"Received 'tools' option in unexpected format: {type(tool_names)}. Expected List[str] or List[Dict]. Skipping tool formatting.")
+
                 if formatted_tools:
                     payload["tools"] = formatted_tools
-                    
-                    # Add tool_choice if specified
+                    # Add tool_choice if specified and tools were successfully formatted/provided
                     if tool_choice:
+                        # Assume tool_manager handles formatting tool_choice regardless
                         formatted_choice = self.tool_manager.format_tool_choice(tool_choice)
                         payload["tool_choice"] = formatted_choice
+
             except Exception as e:
                 self.logger.error(f"Failed to format tools: {e}", exc_info=True)
-        
-        self.logger.debug(f"Final request payload keys: {list(payload.keys())}")
+        elif tool_names:
+            # Log a warning if 'tools' is present but not a list (unexpected format)
+            self.logger.warning(f"Received 'tools' option in unexpected format: {type(tool_names)}. Expected List. Skipping tool formatting.")
+
+        self.logger.debug(f"Final request payload keys after tool processing: {list(payload.keys())}")
         return payload
 
     def _add_tool_message(self, messages: List[Dict[str, Any]], 

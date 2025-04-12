@@ -3697,6 +3697,258 @@
       ],
       "success": true,
       "error": null
+    },
+    "5242c1f1-a9bf-41f1-bb6c-c51d8fa95593": {
+      "request_id": "5242c1f1-a9bf-41f1-bb6c-c51d8fa95593",
+      "start_time": "2025-04-12T11:51:08.603071+00:00",
+      "end_time": "2025-04-12T11:51:09.839012+00:00",
+      "duration_ms": 1235,
+      "prompt": "Explain the metrics tracking system in Agentic-AI",
+      "prompt_tokens": 7,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "tool_finder"
+      ],
+      "tools_used": [
+        "web_search",
+        "solidity_compiler"
+      ],
+      "models_used": [
+        "llamacpp://llama3-8b"
+      ],
+      "success": false,
+      "error": null
+    },
+    "1fd5c1d0-aedd-453b-ba6c-27235eeedf7e": {
+      "request_id": "1fd5c1d0-aedd-453b-ba6c-27235eeedf7e",
+      "start_time": "2025-04-12T11:51:10.344288+00:00",
+      "end_time": "2025-04-12T11:51:11.884360+00:00",
+      "duration_ms": 1540,
+      "prompt": "Explain the metrics tracking system in Agentic-AI",
+      "prompt_tokens": 7,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "response_formatter",
+        "tool_finder"
+      ],
+      "tools_used": [
+        "solidity_compiler"
+      ],
+      "models_used": [
+        "llamacpp://llama3-8b"
+      ],
+      "success": true,
+      "error": null
+    },
+    "6de63a80-7fbd-4870-ada7-cbf8fb4354f6": {
+      "request_id": "6de63a80-7fbd-4870-ada7-cbf8fb4354f6",
+      "start_time": "2025-04-12T11:51:12.391261+00:00",
+      "end_time": "2025-04-12T11:51:13.593485+00:00",
+      "duration_ms": 1202,
+      "prompt": "Find all files in the project containing 'metrics' and explain their purpose",
+      "prompt_tokens": 12,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert",
+        "response_formatter"
+      ],
+      "tools_used": [
+        "code_writer",
+        "web_search"
+      ],
+      "models_used": [
+        "gpt-4o"
+      ],
+      "success": true,
+      "error": null
+    },
+    "6bcce638-c54e-4867-8dbd-9681ebed2432": {
+      "request_id": "6bcce638-c54e-4867-8dbd-9681ebed2432",
+      "start_time": "2025-04-12T11:51:14.097259+00:00",
+      "end_time": "2025-04-12T11:51:16.299797+00:00",
+      "duration_ms": 2202,
+      "prompt": "Write a Solidity function to distribute rewards based on user token balances",
+      "prompt_tokens": 12,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert",
+        "tool_finder",
+        "response_formatter",
+        "coordinator"
+      ],
+      "tools_used": [
+        "code_writer",
+        "web_search",
+        "solidity_compiler"
+      ],
+      "models_used": [
+        "claude-3-5-sonnet"
+      ],
+      "success": true,
+      "error": null
+    },
+    "97b94966-5c36-4221-8551-67a3cbb3c58b": {
+      "request_id": "97b94966-5c36-4221-8551-67a3cbb3c58b",
+      "start_time": "2025-04-12T11:51:16.808789+00:00",
+      "end_time": "2025-04-12T11:51:18.148655+00:00",
+      "duration_ms": 1339,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "tool_finder"
+      ],
+      "tools_used": [
+        "web_search",
+        "file_reader",
+        "solidity_compiler"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": false,
+      "error": null
+    },
+    "8a9399e4-cb78-46d0-bfc1-9f3595819217": {
+      "request_id": "8a9399e4-cb78-46d0-bfc1-9f3595819217",
+      "start_time": "2025-04-12T11:51:18.656488+00:00",
+      "end_time": "2025-04-12T11:51:20.253757+00:00",
+      "duration_ms": 1597,
+      "prompt": "Find all files in the project containing 'metrics' and explain their purpose",
+      "prompt_tokens": 12,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert",
+        "coordinator",
+        "tool_finder",
+        "response_formatter"
+      ],
+      "tools_used": [
+        "code_writer",
+        "solidity_compiler",
+        "code_search"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": false,
+      "error": null
+    },
+    "64b5e2b9-c7ae-49dd-a13f-64792178bad3": {
+      "request_id": "64b5e2b9-c7ae-49dd-a13f-64792178bad3",
+      "start_time": "2025-04-12T11:51:20.762085+00:00",
+      "end_time": "2025-04-12T11:51:22.306559+00:00",
+      "duration_ms": 1544,
+      "prompt": "How do I implement a staking contract in Solidity?",
+      "prompt_tokens": 9,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "coordinator",
+        "tool_finder",
+        "solidity_expert"
+      ],
+      "tools_used": [
+        "code_search"
+      ],
+      "models_used": [
+        "llamacpp://llama3-8b"
+      ],
+      "success": false,
+      "error": null
+    },
+    "6e82e3fd-a9ab-4c62-a557-d9fb8bd6a4bf": {
+      "request_id": "6e82e3fd-a9ab-4c62-a557-d9fb8bd6a4bf",
+      "start_time": "2025-04-12T11:51:22.814696+00:00",
+      "end_time": "2025-04-12T11:51:24.912335+00:00",
+      "duration_ms": 2097,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "response_formatter",
+        "coordinator",
+        "tool_finder",
+        "solidity_expert"
+      ],
+      "tools_used": [
+        "file_reader",
+        "code_writer"
+      ],
+      "models_used": [
+        "llamacpp://llama3-8b"
+      ],
+      "success": false,
+      "error": null
+    },
+    "45b2059e-6f70-4ada-aca1-e0da9e9e088d": {
+      "request_id": "45b2059e-6f70-4ada-aca1-e0da9e9e088d",
+      "start_time": "2025-04-12T11:51:25.420838+00:00",
+      "end_time": "2025-04-12T11:51:27.908833+00:00",
+      "duration_ms": 2487,
+      "prompt": "Explain the metrics tracking system in Agentic-AI",
+      "prompt_tokens": 7,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert",
+        "tool_finder",
+        "coordinator",
+        "response_formatter"
+      ],
+      "tools_used": [
+        "code_writer",
+        "code_search",
+        "web_search"
+      ],
+      "models_used": [
+        "phi4"
+      ],
+      "success": true,
+      "error": null
+    },
+    "2661cfe1-92e2-461a-ba47-31be2ea3fff0": {
+      "request_id": "2661cfe1-92e2-461a-ba47-31be2ea3fff0",
+      "start_time": "2025-04-12T11:51:28.417095+00:00",
+      "end_time": "2025-04-12T11:51:30.446422+00:00",
+      "duration_ms": 2029,
+      "prompt": "Generate documentation for the RequestMetricsService class",
+      "prompt_tokens": 6,
+      "metadata": {
+        "simulated": true
+      },
+      "agents_used": [
+        "solidity_expert",
+        "tool_finder",
+        "coordinator",
+        "response_formatter"
+      ],
+      "tools_used": [
+        "code_writer",
+        "solidity_compiler",
+        "code_search"
+      ],
+      "models_used": [
+        "gpt-4o"
+      ],
+      "success": false,
+      "error": null
     }
   },
   "agent_usage": {
@@ -3733,59 +3985,59 @@
       "avg_duration_ms": 275.25
     },
     "response_formatter": {
-      "total_requests": 24,
-      "successful_requests": 24,
-      "total_duration_ms": 7543,
-      "avg_confidence": 0.8495148059202767,
-      "last_used": "2025-04-11T00:36:38.927838+00:00",
-      "avg_duration_ms": 314.2916666666667
+      "total_requests": 31,
+      "successful_requests": 31,
+      "total_duration_ms": 9133,
+      "avg_confidence": 0.8558018534684572,
+      "last_used": "2025-04-12T11:51:29.995033+00:00",
+      "avg_duration_ms": 294.61290322580646
     },
     "solidity_expert": {
-      "total_requests": 23,
-      "successful_requests": 20,
-      "total_duration_ms": 6791,
-      "avg_confidence": 0.8408396616413201,
-      "last_used": "2025-04-11T00:36:38.713614+00:00",
-      "avg_duration_ms": 295.2608695652174
+      "total_requests": 30,
+      "successful_requests": 27,
+      "total_duration_ms": 8679,
+      "avg_confidence": 0.8276541010381099,
+      "last_used": "2025-04-12T11:51:29.282233+00:00",
+      "avg_duration_ms": 289.3
     },
     "coordinator": {
-      "total_requests": 18,
-      "successful_requests": 13,
-      "total_duration_ms": 6315,
-      "avg_confidence": 0.8824197078093792,
-      "last_used": "2025-04-11T00:36:40.521423+00:00",
-      "avg_duration_ms": 350.8333333333333
+      "total_requests": 24,
+      "successful_requests": 19,
+      "total_duration_ms": 8185,
+      "avg_confidence": 0.8636844140062223,
+      "last_used": "2025-04-12T11:51:29.779735+00:00",
+      "avg_duration_ms": 341.0416666666667
     },
     "tool_finder": {
-      "total_requests": 20,
-      "successful_requests": 18,
-      "total_duration_ms": 5420,
-      "avg_confidence": 0.8419930408770295,
-      "last_used": "2025-04-11T00:36:38.430953+00:00",
-      "avg_duration_ms": 271.0
+      "total_requests": 29,
+      "successful_requests": 26,
+      "total_duration_ms": 7900,
+      "avg_confidence": 0.8412590528202983,
+      "last_used": "2025-04-12T11:51:29.455367+00:00",
+      "avg_duration_ms": 272.41379310344826
     }
   },
   "tool_usage": {
     "web_search": {
-      "total_calls": 16,
-      "successful_calls": 15,
-      "total_duration_ms": 2032,
-      "last_used": "2025-04-11T00:36:33.605115+00:00",
-      "avg_duration_ms": 127.0
+      "total_calls": 21,
+      "successful_calls": 18,
+      "total_duration_ms": 2834,
+      "last_used": "2025-04-12T11:51:27.906013+00:00",
+      "avg_duration_ms": 134.95238095238096
     },
     "code_search": {
-      "total_calls": 21,
-      "successful_calls": 20,
-      "total_duration_ms": 2673,
-      "last_used": "2025-04-11T00:36:40.604138+00:00",
-      "avg_duration_ms": 127.28571428571429
+      "total_calls": 25,
+      "successful_calls": 24,
+      "total_duration_ms": 3100,
+      "last_used": "2025-04-12T11:51:30.438653+00:00",
+      "avg_duration_ms": 124.0
     },
     "code_writer": {
-      "total_calls": 16,
-      "successful_calls": 15,
-      "total_duration_ms": 2089,
-      "last_used": "2025-04-11T00:36:36.172845+00:00",
-      "avg_duration_ms": 130.5625
+      "total_calls": 22,
+      "successful_calls": 19,
+      "total_duration_ms": 2869,
+      "last_used": "2025-04-12T11:51:30.155888+00:00",
+      "avg_duration_ms": 130.4090909090909
     },
     "terminal": {
       "total_calls": 4,
@@ -3795,18 +4047,18 @@
       "avg_duration_ms": 134.5
     },
     "file_reader": {
-      "total_calls": 27,
-      "successful_calls": 23,
-      "total_duration_ms": 3760,
-      "last_used": "2025-04-11T00:36:40.691878+00:00",
-      "avg_duration_ms": 139.25925925925927
+      "total_calls": 29,
+      "successful_calls": 25,
+      "total_duration_ms": 3892,
+      "last_used": "2025-04-12T11:51:24.802077+00:00",
+      "avg_duration_ms": 134.20689655172413
     },
     "solidity_compiler": {
-      "total_calls": 15,
-      "successful_calls": 13,
-      "total_duration_ms": 1986,
-      "last_used": "2025-04-11T00:36:38.995962+00:00",
-      "avg_duration_ms": 132.4
+      "total_calls": 21,
+      "successful_calls": 17,
+      "total_duration_ms": 2825,
+      "last_used": "2025-04-12T11:51:30.296026+00:00",
+      "avg_duration_ms": 134.52380952380952
     }
   },
   "model_usage": {
@@ -3856,40 +4108,40 @@
       "avg_duration_ms": 0
     },
     "phi4": {
-      "total_calls": 13,
-      "successful_calls": 13,
-      "total_tokens_in": 3641,
-      "total_tokens_out": 974,
-      "total_duration_ms": 8572,
-      "last_used": "2025-04-11T00:36:29.164931+00:00",
-      "avg_duration_ms": 659.3846153846154
+      "total_calls": 16,
+      "successful_calls": 16,
+      "total_tokens_in": 4296,
+      "total_tokens_out": 1069,
+      "total_duration_ms": 10109,
+      "last_used": "2025-04-12T11:51:26.084338+00:00",
+      "avg_duration_ms": 631.8125
     },
     "gpt-4o": {
-      "total_calls": 5,
-      "successful_calls": 5,
-      "total_tokens_in": 782,
-      "total_tokens_out": 200,
-      "total_duration_ms": 3532,
-      "last_used": "2025-04-11T00:36:31.148800+00:00",
-      "avg_duration_ms": 706.4
+      "total_calls": 7,
+      "successful_calls": 7,
+      "total_tokens_in": 1328,
+      "total_tokens_out": 312,
+      "total_duration_ms": 4693,
+      "last_used": "2025-04-12T11:51:28.979939+00:00",
+      "avg_duration_ms": 670.4285714285714
     },
     "claude-3-5-sonnet": {
-      "total_calls": 12,
-      "successful_calls": 12,
-      "total_tokens_in": 3002,
-      "total_tokens_out": 737,
-      "total_duration_ms": 8536,
-      "last_used": "2025-04-11T00:36:37.827414+00:00",
-      "avg_duration_ms": 711.3333333333334
+      "total_calls": 13,
+      "successful_calls": 13,
+      "total_tokens_in": 3204,
+      "total_tokens_out": 767,
+      "total_duration_ms": 9051,
+      "last_used": "2025-04-12T11:51:14.613079+00:00",
+      "avg_duration_ms": 696.2307692307693
     },
     "llamacpp://llama3-8b": {
-      "total_calls": 10,
-      "successful_calls": 10,
-      "total_tokens_in": 3414,
-      "total_tokens_out": 870,
-      "total_duration_ms": 6236,
-      "last_used": "2025-04-11T00:36:40.183963+00:00",
-      "avg_duration_ms": 623.6
+      "total_calls": 14,
+      "successful_calls": 14,
+      "total_tokens_in": 4273,
+      "total_tokens_out": 1116,
+      "total_duration_ms": 9219,
+      "last_used": "2025-04-12T11:51:23.568695+00:00",
+      "avg_duration_ms": 658.5
     }
   }
 }

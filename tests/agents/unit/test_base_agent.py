@@ -13,6 +13,8 @@ from src.core.base_ai import AIBase
 from src.tools.tool_manager import ToolManager
 from src.config.unified_config import UnifiedConfig
 from src.utils.logger import LoggerInterface, LoggerFactory
+# Import needed for isinstance check in tests
+from src.core.tool_enabled_ai import ToolEnabledAI
 
 
 # --- Test Suite ---
@@ -259,8 +261,7 @@ class TestBaseAgent:
         mock_ai_instance.request.return_value = ai_response
         # Mock the AI class but expect it NOT to be called
         MockAIClass = MagicMock(spec=AIBase)
-        mock_ai_instance.__class__ = MockAIClass
-                
+        
         agent = BaseAgent(ai_instance=mock_ai_instance, unified_config=mock_unified_config, logger=mock_logger, agent_id=agent_id)
         response = await agent.process_request(request)
         
@@ -286,8 +287,7 @@ class TestBaseAgent:
         mock_ai_instance.get_model_info.return_value = {"model_id": original_model_api_id}
         mock_ai_instance.request.return_value = ai_response
         MockAIClass = MagicMock(spec=AIBase)
-        mock_ai_instance.__class__ = MockAIClass
-                
+        
         agent = BaseAgent(ai_instance=mock_ai_instance, unified_config=mock_unified_config, logger=mock_logger, agent_id=agent_id)
         response = await agent.process_request(request)
         

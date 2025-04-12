@@ -81,8 +81,13 @@ class TestToolEnabledAIProcessPrompt:
         """
         When tools are available but not used by the AI, the response should be returned directly.
         """
-        # Setup - provide mock tools
-        mock_tools = {"test_tool": {"name": "test_tool", "description": "A test tool"}}
+        # Setup - provide mock tools using MagicMock to simulate ToolDefinition
+        mock_tool_def = MagicMock()
+        mock_tool_def.name = "test_tool"
+        mock_tool_def.description = "A test tool"
+        mock_tool_def.source = "internal" # Add source attribute
+        mock_tool_def.parameters_schema = {}
+        mock_tools = {"test_tool": mock_tool_def}
         mock_tool_manager.get_all_tools.return_value = mock_tools
         
         # Provider response with no tool calls
@@ -98,7 +103,10 @@ class TestToolEnabledAIProcessPrompt:
         assert result == "Response without using tools"
         mock_provider.request.assert_called_once()
         # Ensure tools were passed to the provider
-        assert mock_provider.request.call_args[1].get('tools') == mock_tools
+        call_args, call_kwargs = mock_provider.request.call_args
+        assert "tools" in call_kwargs
+        # Check that the *names* were passed
+        assert call_kwargs.get('tools') == ["test_tool"]
     
     @pytest.mark.asyncio
     async def test_process_prompt_single_tool_call_SIMPLE(self,
@@ -107,8 +115,13 @@ class TestToolEnabledAIProcessPrompt:
         """
         Simplified test: Does process_prompt trigger execute_tool?
         """
-        # Setup - provide mock tools
-        mock_tools = {"test_tool": {"name": "test_tool", "description": "A test tool"}}
+        # Setup - provide mock tools using MagicMock to simulate ToolDefinition
+        mock_tool_def = MagicMock()
+        mock_tool_def.name = "test_tool"
+        mock_tool_def.description = "A test tool"
+        mock_tool_def.source = "internal" # Add source attribute
+        mock_tool_def.parameters_schema = {}
+        mock_tools = {"test_tool": mock_tool_def}
         mock_tool_manager.get_all_tools.return_value = mock_tools
         
         # Provider returns a response with a tool call
@@ -152,11 +165,18 @@ class TestToolEnabledAIProcessPrompt:
         """
         Test a response with multiple tool calls that are executed sequentially.
         """
-        # Setup - provide mock tools
-        mock_tools = {
-            "tool1": {"name": "tool1", "description": "First test tool"},
-            "tool2": {"name": "tool2", "description": "Second test tool"}
-        }
+        # Setup - provide mock tools using MagicMock
+        mock_tool_def1 = MagicMock()
+        mock_tool_def1.name = "tool1"
+        mock_tool_def1.description = "First test tool"
+        mock_tool_def1.source = "internal"
+        mock_tool_def1.parameters_schema = {}
+        mock_tool_def2 = MagicMock()
+        mock_tool_def2.name = "tool2"
+        mock_tool_def2.description = "Second test tool"
+        mock_tool_def2.source = "internal"
+        mock_tool_def2.parameters_schema = {}
+        mock_tools = {"tool1": mock_tool_def1, "tool2": mock_tool_def2}
         mock_tool_manager.get_all_tools.return_value = mock_tools
         
         # Provider returns a response with multiple tool calls
@@ -237,8 +257,13 @@ class TestToolEnabledAIProcessPrompt:
         """
         Test that tool execution errors are handled properly.
         """
-        # Setup - provide mock tools
-        mock_tools = {"error_tool": {"name": "error_tool", "description": "A tool that will error"}}
+        # Setup - provide mock tools using MagicMock
+        mock_tool_def = MagicMock()
+        mock_tool_def.name = "error_tool"
+        mock_tool_def.description = "A tool that will error"
+        mock_tool_def.source = "internal"
+        mock_tool_def.parameters_schema = {}
+        mock_tools = {"error_tool": mock_tool_def}
         mock_tool_manager.get_all_tools.return_value = mock_tools
         
         # Provider returns a response with a tool call
@@ -298,8 +323,13 @@ class TestToolEnabledAIProcessPrompt:
                                                          tool_enabled_ai, mock_provider, 
                                                          mock_tool_manager, mock_convo_manager, mock_logger):
         """Test that the tool calling loop terminates if max iterations are exceeded."""
-        # Setup - provide mock tools
-        mock_tools = {"loop_tool": {"name": "loop_tool", "description": "A tool that will be called repeatedly"}}
+        # Setup - provide mock tools using MagicMock
+        mock_tool_def = MagicMock()
+        mock_tool_def.name = "loop_tool"
+        mock_tool_def.description = "A tool called repeatedly"
+        mock_tool_def.source = "internal"
+        mock_tool_def.parameters_schema = {}
+        mock_tools = {"loop_tool": mock_tool_def}
         mock_tool_manager.get_all_tools.return_value = mock_tools
         
         # Set a low max_iterations for the test

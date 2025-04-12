@@ -190,11 +190,21 @@ class ToolEnabledAI(AIBase):
             available_tools_defs = self._tool_manager.get_all_tools()
             provider_tools_param = None
             tool_choice_param = None
+            
+            # Filter for internal tools
+            internal_tool_names = []
             if available_tools_defs:
-                 provider_tools_param = available_tools_defs 
-                 tool_choice_param = options.get("tool_choice", "auto") 
+                internal_tool_names = [
+                    tool_name
+                    for tool_name, tool_def in available_tools_defs.items()
+                    if tool_def.source == 'internal' # Only collect names of internal tools
+                ]
+ 
+            if internal_tool_names: # Check if we have any internal tools
+                provider_tools_param = internal_tool_names # Pass the list of names
+                tool_choice_param = options.get("tool_choice", "auto") 
             else:
-                 self._logger.info("No tools registered in ToolManager. Proceeding without tools for this turn.")
+                self._logger.info("No internal tools registered in ToolManager. Proceeding without tools for this turn.")
                  
             provider_options = options.copy()
             if provider_tools_param:

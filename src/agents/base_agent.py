@@ -4,6 +4,8 @@ Base agent implementation for the multi-agent architecture.
 from typing import Dict, Any, Optional, TYPE_CHECKING
 from ..utils.logger import LoggerInterface, LoggerFactory
 from ..config.unified_config import UnifiedConfig
+# Import ToolEnabledAI for type checking and history retrieval
+from ..core.tool_enabled_ai import ToolEnabledAI 
 
 if TYPE_CHECKING:
     from ..core.base_ai import AIBase
@@ -111,13 +113,30 @@ class BaseAgent:
                 prompt = str(request)
                 
             # Process with AI instance
+            response_content = ""
+            tool_history = None
+            
             if self.ai_instance:
-                # Use await for the AI instance's request method
-                response_content = await self.ai_instance.request(prompt)
+                # Check if the AI instance supports the tool loop
+                if isinstance(self.ai_instance, ToolEnabledAI):
+                    self.logger.debug(f"Using ToolEnabledAI process_prompt for agent {self.agent_id}")
+                    # Use process_prompt for tool loop handling
+                    response_content = await self.ai_instance.process_prompt(prompt)
+                    # Get tool history after processing
+                    tool_history = self.ai_instance.get_tool_history()
+                    if tool_history:
+                        self.logger.debug(f"Retrieved {len(tool_history)} tool history entries.")
+                else:
+                    # Fallback to basic request for non-tool-enabled AI
+                    self.logger.debug(f"Using basic AI request for agent {self.agent_id}")
+                    response_content = await self.ai_instance.request(prompt)
+                    
                 response = {
                         "content": response_content,
                         "agent_id": self.agent_id,
-                        "status": "success"
+                        "status": "success",
+                        # Add raw tool history to metadata if available
+                        "metadata": {"tool_history": tool_history} if tool_history else {}
                     }
             else:
                 self.logger.warning("No AI instance available for processing")

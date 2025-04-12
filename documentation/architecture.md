@@ -23,10 +23,12 @@ Agentic-AI is a modular framework for building AI applications with integrated t
 - **Core AI (`src/core`)**: Handles direct interaction with LLMs.
 
   - `AIBase`: Foundational class managing provider selection (via `ProviderFactory`), basic request/response handling, and conversation history (`ConversationManager`).
-  - `ToolEnabledAI`: Extends `AIBase` to manage the tool-calling loop, interacting with `ToolManager` and the provider.
+  - `ToolEnabledAI`: Extends `AIBase` to manage the tool-calling loop, interacting with `ToolManager` and the provider. Retrieves raw tool execution history (`get_tool_history`).
   - `ProviderFactory`: Creates instances of specific provider clients.
   - `providers/`: Contains implementations for different AI providers (OpenAI, Anthropic, etc.), inheriting from `BaseProvider` and implementing `ProviderInterface`.
+    - `BaseProvider`: Base class for providers, handling common logic like parameter processing and tool formatting via `ProviderToolHandler`.
     - `ProviderToolHandler`: Helper class within providers for formatting tool definitions and results.
+    - `FrameworkMessageFormatter`: Utility class used by components like `Coordinator` to format internal framework events (tool results, errors) into user-readable strings.
   - `ConversationManager`: Tracks message history for AI interactions.
 
 - **Tools (`src/tools`)**: Manages function/API calling capabilities.
@@ -47,8 +49,8 @@ Agentic-AI is a modular framework for building AI applications with integrated t
 
 - **Agents (`src/agents`)**: Enables specialized processing and workflows.
 
-  - `Coordinator`: Central agent orchestrating request handling based on intent analysis (`RequestAnalyzer`), often delegating to specialized agents.
-  - `BaseAgent`: Abstract base class for all agents.
+  - `Coordinator`: Central agent orchestrating request handling based on intent analysis (`RequestAnalyzer`), often delegating to specialized agents. Checks agent response metadata for `tool_history` and uses `FrameworkMessageFormatter` to present results/errors.
+  - `BaseAgent`: Abstract base class for all agents. If using `ToolEnabledAI`, calls `process_prompt` and attaches raw `tool_history` to response metadata.
   - `AgentFactory`: Creates agent instances using `AgentRegistry`.
   - `AgentRegistry`: Maps agent IDs to agent classes.
   - Specialized Agents (e.g., `ListenerAgent`, `ChatAgent`, `ToolFinderAgent`): Implement specific functionalities.
@@ -135,7 +137,12 @@ graph TD
     AIBase --> LoggerFactory
     ProviderImplementations --> UnifiedConfig
     PromptTemplateSvc --> LoggerFactory
+    BaseProvider --> ProviderToolHandler
+    BaseProvider --> UnifiedConfig
+    BaseProvider --> LoggerFactory
 ```
+
+**Flow Note:** `ToolEnabledAI` passes internal tool _names_ to `BaseProvider`. `BaseProvider` uses its `ProviderToolHandler` (which uses `ToolRegistry`) to format these names into the provider-specific API structure.
 
 ### 3. Tool Subsystem
 
@@ -212,6 +219,7 @@ graph TD
 
         Coordinator -- "Uses" --> AgentFactory
         Coordinator -- "Uses" --> RequestAnalyzer
+        Coordinator -- "Uses" --> FrameworkMessageFormatter
         AgentFactory -- "Uses" --> AgentRegistry
         AgentFactory -- "Creates" --> BaseAgent
         RequestAnalyzer -- "Uses" --> AgentRegistry
