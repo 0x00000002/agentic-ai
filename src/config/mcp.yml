@@ -79,4 +79,38 @@ mcp_servers:
   # Update the 'url' field for each server based on where it is running.
   # Add 'auth' section if required by the server.
 
+  rag_server:
+    description: "RAG service for document retrieval and knowledge base management"
+    url: "http://localhost:8080/mcp"  # Update with actual server URL when deployed
+    provides_tools:
+      - name: "rag_query"
+        description: "Search the knowledge base for information relevant to a query"
+        inputSchema:
+          type: "object"
+          properties:
+            query:
+              type: "string" 
+              description: "The search query"
+            similarity_top_k:
+              type: "integer"
+              description: "Number of documents to retrieve"
+          required: ["query"]
+      - name: "rag_add_document"
+        description: "Add a document to the knowledge base"
+        inputSchema:
+          type: "object"
+          properties:
+            content:
+              type: "string"
+              description: "Document content"
+            metadata:
+              type: "object"
+              description: "Optional metadata for the document"
+          required: ["content"]
+      - name: "rag_list_documents"
+        description: "List all documents in the knowledge base"
+        inputSchema:
+          type: "object"
+          properties: {}
+
 # Add more tool definitions here as needed 
