@@ -81,7 +81,11 @@ mcp_servers:
 
   rag_server:
     description: "RAG service for document retrieval and knowledge base management"
-    url: "http://localhost:8080/mcp"  # Update with actual server URL when deployed
+    url: "https://9h8ob953ge.execute-api.eu-west-3.amazonaws.com/mcp"  # Updated deployment URL
+    auth:
+      type: "header" # Use custom header authentication
+      header_name: "X-API-Key" # Specify the correct header name
+      token_env_var: "MCP_RAG_SERVER_API_KEY" # Environment variable holding the API key
     provides_tools:
       - name: "rag_query"
         description: "Search the knowledge base for information relevant to a query"
