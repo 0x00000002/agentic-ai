@@ -1,7 +1,7 @@
 """
 Ollama provider implementation.
 """
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Type
 try:
     import ollama
     # Import async client
@@ -21,7 +21,12 @@ from ...exceptions import (AIRequestError, AICredentialsError, AIProviderError, 
 from ...tools.models import ToolCall, ToolResult
 from ..models import ProviderResponse, TokenUsage
 from .base_provider import BaseProvider
+# Import the retry decorator
+from ...utils.retry import async_retry_with_backoff
 
+# Define exceptions specific to Ollama that warrant a retry
+# RequestError is typically for connection issues
+OLLAMA_RETRYABLE_EXCEPTIONS = (RequestError,)
 
 class OllamaProvider(BaseProvider):
     """Provider implementation for Ollama local models."""
@@ -134,37 +139,39 @@ class OllamaProvider(BaseProvider):
         self.logger.debug(f"Ollama payload prepared. Messages: {len(payload['messages'])}, Options: {payload['options']}")
         return payload
 
+    def _get_error_map(self) -> Dict[Type[Exception], Type[AIProviderError]]:
+        """Returns the specific error mapping for Ollama."""
+        if ResponseError is Exception: # Handle case where ollama isn't installed
+             return { RequestError: AIProviderError } # Basic mapping if SDK unavailable
+             
+        return {
+            # Map SDK exceptions to framework exceptions
+            ResponseError: AIProviderError, # Base for HTTP errors, refine below if needed
+            AIAuthenticationError: AIAuthenticationError, # Catch errors raised by our code
+            ModelNotFoundError: ModelNotFoundError, # Catch errors raised by our code
+            InvalidRequestError: InvalidRequestError, # Catch errors raised by our code
+            RequestError: AIProviderError # Connection errors map to generic provider error
+            # We could potentially check status_code within _handle_api_error
+            # for ResponseError to map to more specific framework errors like
+            # InvalidRequestError (400), AIAuthenticationError (401), ModelNotFoundError(404)
+            # but this keeps the map simpler for now.
+        }
+
     # --- IMPLEMENT Required Abstract Methods --- 
 
+    @async_retry_with_backoff(retry_on_exceptions=OLLAMA_RETRYABLE_EXCEPTIONS)
     async def _make_api_request(self, payload: Dict[str, Any]) -> Dict[str, Any]: # Changed to async def
         """Makes the actual asynchronous API call to the Ollama chat endpoint."""
         self.logger.debug("Making async Ollama API request...")
         if not self._client:
-            raise AIProviderError("Ollama client not initialized.", provider="ollama")
+            # Raise framework exception directly for setup issues
+            raise AISetupError("Ollama client not initialized.", component="ollama")
             
-        try:
-            # Use the async client's chat method
-            response = await self._client.chat(**payload) # Use await
-            self.logger.debug("Received Ollama API response.")
-            return response
-        except ResponseError as e:
-             # Handle specific Ollama response errors based on status code
-             self.logger.error(f"Ollama Response Error (Status: {e.status_code}): {e}", exc_info=True)
-             if e.status_code == 401: # Unauthorized
-                  raise AIAuthenticationError(f"Ollama authentication error: {e}", provider="ollama") from e
-             elif e.status_code == 404: # Not Found (Model?)
-                  raise ModelNotFoundError(f"Ollama model not found?: {e}", provider="ollama", model_id=payload.get("model")) from e
-             elif e.status_code == 400: # Bad Request
-                  raise InvalidRequestError(f"Invalid request to Ollama: {e}", provider="ollama", status_code=400) from e
-             else: # Other HTTP errors
-                  raise AIProviderError(f"Ollama API returned status {e.status_code}: {e}", provider="ollama", status_code=e.status_code) from e
-        except RequestError as e: # Network or connection errors
-             self.logger.error(f"Ollama Request/Connection Error: {e}", exc_info=True)
-             raise AIProviderError(f"Ollama connection error: {e}", provider="ollama") from e
-        except Exception as e:
-             # Catch unexpected errors
-             self.logger.error(f"Unexpected error during Ollama API request: {e}", exc_info=True)
-             raise AIProviderError(f"Unexpected error making Ollama request: {e}", provider="ollama") from e
+        # Simplified: Let exceptions propagate to BaseProvider.request for mapping
+        response = await self._client.chat(**payload) # Use await
+        self.logger.debug("Received Ollama API response.")
+        return response
+        # Removed the extensive try...except block here
 
     def _convert_response(self, raw_response: Dict[str, Any]) -> ProviderResponse:
         """Converts the raw Ollama response dictionary into a standardized ProviderResponse model."""

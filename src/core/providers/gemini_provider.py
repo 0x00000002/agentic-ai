@@ -1,7 +1,7 @@
 """
 Gemini provider implementation.
 """
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional, Union, Type
 from ..interfaces import ProviderInterface, ToolCapableProviderInterface
 from ...utils.logger import LoggerInterface, LoggerFactory
 from ...config import get_config
@@ -13,11 +13,25 @@ from ...tools.models import ToolResult, ToolCall
 from .base_provider import BaseProvider
 import google.generativeai as genai
 from google.generativeai.types import GenerateContentResponse, FunctionDeclaration, Tool
+# Import Google API core exceptions for retrying
+from google.api_core import exceptions as google_exceptions
+# Import the retry decorator
+from ...utils.retry import async_retry_with_backoff
 import json
 import re # Import regex for tool call detection
 import asyncio # Add asyncio
 # Import the ProviderResponse model
 from ..models import ProviderResponse, TokenUsage
+
+# Define exceptions specific to Google Gemini that warrant a retry
+GEMINI_RETRYABLE_EXCEPTIONS = (
+    google_exceptions.ServiceUnavailable, # 503
+    google_exceptions.DeadlineExceeded, # 504 / Timeout
+    google_exceptions.ResourceExhausted, # 429 / Rate Limit
+    google_exceptions.InternalServerError, # 500
+    google_exceptions.Unknown, # Other potential server errors
+    # google_exceptions.Aborted, # Potentially retryable, but depends on context
+)
 
 # Define Part dictionary type hint for clarity
 PartDict = Dict[str, Any]
@@ -290,70 +304,66 @@ class GeminiProvider(BaseProvider, ToolCapableProviderInterface):
         self.logger.debug(f"Gemini payload prepared. Content messages: {len(payload.get('contents',[]))}")
         return payload
 
+    def _get_error_map(self) -> Dict[Type[Exception], Type[AIProviderError]]:
+        """Returns the specific error mapping for Google Gemini."""
+        # Import framework exceptions
+        from ...exceptions import (
+            AIProviderError, AIAuthenticationError, AIRateLimitError, 
+            ModelNotFoundError, InvalidRequestError, ContentModerationError
+            # Note: ContentModerationError is typically detected from the response, not a specific exception type
+        )
+        # Ensure google_exceptions are available
+        try:
+            from google.api_core import exceptions as google_exceptions
+        except ImportError:
+            # If google-api-core isn't installed, return an empty map or basic map
+            return {}
+        
+        return {
+            # Map SDK exceptions to framework exceptions
+            google_exceptions.Unauthenticated: AIAuthenticationError,
+            google_exceptions.PermissionDenied: AIAuthenticationError,
+            google_exceptions.ResourceExhausted: AIRateLimitError,
+            google_exceptions.InvalidArgument: InvalidRequestError,
+            google_exceptions.NotFound: ModelNotFoundError, # Assuming NotFound is model-related
+            google_exceptions.ServiceUnavailable: AIProviderError, # Map to generic (retry handles transient)
+            google_exceptions.DeadlineExceeded: AIProviderError, # Map timeout to generic (retry handles)
+            google_exceptions.InternalServerError: AIProviderError, # Map 500s to generic
+            google_exceptions.Unknown: AIProviderError, # Map unknown to generic
+            # google_exceptions.Cancelled: AIProviderError, # Example
+            # google_exceptions.Aborted: AIProviderError, # Example
+            google_exceptions.GoogleAPIError: AIProviderError # Base class for other API errors
+        }
+
     # --- IMPLEMENT Required Abstract Methods --- 
 
+    @async_retry_with_backoff(retry_on_exceptions=GEMINI_RETRYABLE_EXCEPTIONS)
     async def _make_api_request(self, payload: Dict[str, Any]) -> GenerateContentResponse: # Changed to async def
-        """Makes the actual asynchronous API call to Gemini generate_content_async."""
+        """Makes the actual asynchronous API call to Gemini generate_content_async.
+           Simplified to let exceptions propagate for central handling.
+        """
         self.logger.debug("Making async Gemini API request...")
-        try:
-            response = await self._model.generate_content_async(**payload) # Use await and async method
-            
-            # Check for safety blocks immediately after the call
-            if response.prompt_feedback and response.prompt_feedback.block_reason:
-                 block_reason = response.prompt_feedback.block_reason.name
-                 self.logger.error(f"Gemini request blocked due to prompt feedback. Reason: {block_reason}")
-                 raise ContentModerationError(f"Gemini prompt blocked by safety filter: {block_reason}", provider="gemini", reason=block_reason)
-            # Also check candidate finish reason for safety
-            if response.candidates and response.candidates[0].finish_reason.name == "SAFETY":
-                 self.logger.error(f"Gemini response candidate blocked due to safety.")
-                 # Potentially extract safety ratings if needed
-                 raise ContentModerationError(f"Gemini response blocked by safety filter.", provider="gemini", reason="SAFETY")
+        # No try/except needed here anymore; let BaseProvider handle mapping
+        response = await self._model.generate_content_async(**payload) # Use await and async method
+        
+        # --- Handle Blocking/Safety Checks *After* Call --- 
+        # Check for safety blocks immediately after the call, raise specific exception if found.
+        # This needs to happen before returning success, but after the API call itself.
+        if response.prompt_feedback and response.prompt_feedback.block_reason:
+             block_reason = response.prompt_feedback.block_reason.name
+             self.logger.error(f"Gemini request blocked due to prompt feedback. Reason: {block_reason}")
+             # Raise the specific framework exception directly
+             raise ContentModerationError(f"Gemini prompt blocked by safety filter: {block_reason}", provider="gemini", reason=block_reason)
+        # Also check candidate finish reason for safety
+        if response.candidates and response.candidates[0].finish_reason.name == "SAFETY":
+             self.logger.error(f"Gemini response candidate blocked due to safety.")
+             # Potentially extract safety ratings if needed
+             raise ContentModerationError(f"Gemini response blocked by safety filter.", provider="gemini", reason="SAFETY")
                  
-            self.logger.debug("Received Gemini API response.")
-            return response
-            
-        # --- Specific Google API Error Handling (add more as needed) ---
-        # Import Google API core exceptions if not already done
-        except ImportError:
-             # Handle case where google-api-core is not installed (though genai depends on it)
-             self.logger.warning("google.api_core.exceptions not available for specific error handling.")
-             # Fall through to generic Exception
-             pass 
-        except Exception as google_err:
-             # Attempt to import dynamically for specific handling
-             try:
-                  from google.api_core.exceptions import GoogleAPIError, Unauthenticated, PermissionDenied, ResourceExhausted, InvalidArgument, NotFound
-                  
-                  if isinstance(google_err, Unauthenticated):
-                       self.logger.error(f"Gemini Unauthenticated Error: {google_err}")
-                       raise AIAuthenticationError(f"Gemini authentication failed (check API key): {google_err}", provider="gemini") from google_err
-                  elif isinstance(google_err, PermissionDenied):
-                       self.logger.error(f"Gemini Permission Denied Error: {google_err}")
-                       raise AIAuthenticationError(f"Gemini permission denied (check API key/roles): {google_err}", provider="gemini") from google_err
-                  elif isinstance(google_err, ResourceExhausted): # Rate limiting
-                       self.logger.error(f"Gemini Resource Exhausted (Rate Limit) Error: {google_err}")
-                       raise AIRateLimitError(f"Gemini rate limit exceeded: {google_err}", provider="gemini") from google_err
-                  elif isinstance(google_err, InvalidArgument):
-                       self.logger.error(f"Gemini Invalid Argument Error: {google_err}")
-                       raise InvalidRequestError(f"Invalid request to Gemini: {google_err}", provider="gemini") from google_err
-                  elif isinstance(google_err, NotFound): # Model not found?
-                       self.logger.error(f"Gemini Not Found Error: {google_err}")
-                       # Check if message indicates model not found
-                       if "model" in str(google_err).lower() and "not found" in str(google_err).lower():
-                            raise ModelNotFoundError(f"Gemini model not found: {self.model_id} - {google_err}", provider="gemini", model=self.model_id) from google_err
-                       else:
-                            raise AIRequestError(f"Gemini resource not found: {google_err}", provider="gemini") from google_err
-                  elif isinstance(google_err, GoogleAPIError):
-                       # Catch other Google API errors
-                       self.logger.error(f"Gemini GoogleAPIError: {google_err}", exc_info=True)
-                       raise AIProviderError(f"Gemini API error: {google_err}", provider="gemini") from google_err
-                  else:
-                       # If it wasn't a Google specific error, re-raise to be caught below
-                       raise google_err
-             except ImportError:
-                  # If google-api-core not installed, raise the original error
-                  raise google_err
-        # --- End Specific Google Error Handling --- 
+        # If no safety block, proceed
+        self.logger.debug("Received Gemini API response successfully (passed initial safety checks).")
+        return response
+        # --- Exceptions propagate to BaseProvider.request for mapping ---
 
     def _convert_response(self, raw_response: GenerateContentResponse) -> ProviderResponse:
         """Converts the raw Gemini GenerateContentResponse object into a standardized ProviderResponse."""

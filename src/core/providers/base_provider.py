@@ -19,9 +19,11 @@ from .credential_manager import CredentialManager
 from .provider_tool_handler import ProviderToolHandler
 
 import asyncio # Add asyncio
+import abc # Import Abstract Base Classes
+from abc import abstractmethod # Import abstractmethod decorator
 
 
-class BaseProvider(ProviderInterface):
+class BaseProvider(ProviderInterface, abc.ABC):
     """Base implementation for AI providers with common message handling."""
     
     def __init__(self, 
@@ -276,9 +278,72 @@ class BaseProvider(ProviderInterface):
         """
         raise NotImplementedError("Subclasses must implement _convert_response")
     
+    @abstractmethod
+    def _get_error_map(self) -> Dict[Type[Exception], Type[AIProviderError]]:
+        """
+        Returns a mapping from provider-specific exceptions to framework exceptions.
+        This MUST be implemented by subclasses.
+        
+        Returns:
+            Dict[Type[Exception], Type[AIProviderError]]: Mapping dictionary.
+        """
+        pass
+        
+    def _handle_api_error(self, error: Exception, payload: Dict[str, Any]) -> AIProviderError:
+        """
+        Handles errors raised during the _make_api_request call, mapping them to 
+        standard framework exceptions using the subclass-specific error map.
+        
+        Args:
+            error: The original exception raised by the provider SDK.
+            payload: The request payload (for context like model ID).
+        
+        Returns:
+            An instance of a framework exception (subclass of AIProviderError).
+        """
+        error_map = self._get_error_map()
+        provider_name = self.__class__.__name__.replace("Provider", "").lower()
+        model_id = payload.get("model", self.model_id)
+        status_code = getattr(error, 'status_code', None) # Attempt to get status code
+
+        for provider_exception_type, framework_exception_type in error_map.items():
+            if isinstance(error, provider_exception_type):
+                # Log the original error before re-raising mapped version
+                self.logger.error(
+                    f"Provider Error ({provider_name}, model: {model_id}): Encountered {type(error).__name__}. Mapping to {framework_exception_type.__name__}. Original error: {error}", 
+                    exc_info=True # Include traceback for original error
+                )
+                
+                # Create mapped exception instance
+                # Pass relevant context like provider name, status code, model_id
+                kwargs = {'provider': provider_name, 'status_code': status_code}
+                if issubclass(framework_exception_type, ModelNotFoundError):
+                    kwargs['model_id'] = model_id
+                
+                # Remove None values from kwargs before instantiation
+                final_kwargs = {k: v for k, v in kwargs.items() if v is not None}
+                
+                # Instantiate with original error message and context
+                mapped_exception = framework_exception_type(str(error), **final_kwargs)
+                # Preserve the original error cause
+                raise mapped_exception from error
+                
+        # If no specific mapping found, log and raise a generic AIProviderError
+        self.logger.error(
+            f"Unmapped Provider Error ({provider_name}, model: {model_id}): Encountered {type(error).__name__}: {error}", 
+            exc_info=True
+        )
+        raise AIProviderError(
+            f"Provider {provider_name} encountered an unmapped error: {error}", 
+            provider=provider_name,
+            status_code=status_code
+        ) from error
+
     async def request(self, messages: Union[str, List[Dict[str, Any]]], **options) -> ProviderResponse:
         """
         Make an asynchronous request to the AI model provider.
+        Handles payload preparation, calling the provider-specific API request, 
+        error handling/mapping, and response conversion.
         
         Args:
             messages: The conversation messages or a simple string prompt
@@ -286,16 +351,21 @@ class BaseProvider(ProviderInterface):
             
         Returns:
             Standardized ProviderResponse object
+        
+        Raises:
+            AIProviderError (or subclass): If the provider request fails after handling.
         """
         if isinstance(messages, str):
              # Convert simple prompt string to messages list
              messages = [{"role": "user", "content": messages}]
         
+        payload = {}
         try:
             # Prepare payload (remains synchronous)
             payload = self._prepare_request_payload(messages, options)
             
-            # Make the API request asynchronously
+            # Make the API request asynchronously using the subclass implementation
+            # (The retry decorator is applied within _make_api_request)
             raw_response = await self._make_api_request(payload)
             
             # Convert raw response to standardized ProviderResponse (remains synchronous)
@@ -304,10 +374,14 @@ class BaseProvider(ProviderInterface):
             return provider_response
             
         except Exception as e:
-             # Catch potential API errors or conversion errors
-             self.logger.error(f"Error during {self.__class__.__name__} request: {e}", exc_info=True)
-             raise AIProviderError(f"Provider request failed: {e}", provider=self.__class__.__name__) from e
-             
+             # Centralized error handling and mapping
+             # This will catch errors from _prepare_request_payload OR _make_api_request
+             # It calls the subclass's error map via _handle_api_error
+             # _handle_api_error logs appropriately and raises the mapped framework exception
+             # We simply re-raise the exception returned/raised by _handle_api_error
+             raise self._handle_api_error(e, payload)
+
+    @abstractmethod
     async def _make_api_request(self, payload: Dict[str, Any]) -> Any:
         """
         Makes the actual asynchronous API request to the provider.

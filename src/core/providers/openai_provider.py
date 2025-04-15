@@ -1,7 +1,7 @@
 """
 OpenAI provider implementation.
 """
-from typing import List, Dict, Any, Optional, Union, Tuple, BinaryIO
+from typing import List, Dict, Any, Optional, Union, Tuple, BinaryIO, Type
 from ..interfaces import ProviderInterface, MultimediaProviderInterface, ToolCapableProviderInterface
 from ...utils.logger import LoggerInterface, LoggerFactory
 from ...config import get_config
@@ -13,9 +13,30 @@ from .base_provider import BaseProvider
 import openai
 # Import async client
 from openai import AsyncOpenAI # Add async client
+# Import specific OpenAI errors for retrying
+from openai import (
+    APIConnectionError,
+    RateLimitError,
+    InternalServerError,
+    APITimeoutError,
+    APIStatusError
+)
+# Import the retry decorator
+from ...utils.retry import async_retry_with_backoff
 import os
 import json
 import asyncio # Add asyncio
+
+# Define exceptions specific to OpenAI that warrant a retry
+OPENAI_RETRYABLE_EXCEPTIONS = (
+    APIConnectionError,
+    RateLimitError,
+    InternalServerError,
+    APITimeoutError,
+    # Consider retrying generic 5xx errors caught by APIStatusError
+    # lambda e: isinstance(e, APIStatusError) and e.status_code >= 500 # Needs more complex decorator or logic
+    # For now, retrying the specific InternalServerError covers most 5xx cases.
+)
 
 
 class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProviderInterface):
@@ -92,58 +113,88 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
             self.logger.error(f"Failed to initialize OpenAI credentials: {str(e)}", exc_info=True)
             raise AICredentialsError(f"Failed to initialize OpenAI credentials: {str(e)}", provider="openai") from e
     
+    def _get_error_map(self) -> Dict[Type[Exception], Type[AIProviderError]]:
+        """Returns the specific error mapping for OpenAI."""
+        # Import relevant exceptions here to avoid potential circular dependency
+        # or keep them at the top level if already there.
+        from openai import (
+            AuthenticationError, PermissionDeniedError, APIConnectionError, 
+            RateLimitError, NotFoundError, BadRequestError, APIStatusError,
+            InternalServerError, APITimeoutError
+        )
+        # Import framework exceptions
+        from ...exceptions import (
+            AIAuthenticationError, AIRateLimitError, ModelNotFoundError, 
+            ContentModerationError, InvalidRequestError, AIProviderError,
+            AITimeoutError
+        )
+        
+        return {
+            # Map SDK exceptions to framework exceptions
+            AuthenticationError: AIAuthenticationError,
+            PermissionDeniedError: AIAuthenticationError, # Treat as Auth error
+            APIConnectionError: AIProviderError, # Maps to generic provider error (retry handles transient)
+            RateLimitError: AIRateLimitError,
+            NotFoundError: ModelNotFoundError, # Assume NotFound is model-related
+            APITimeoutError: AITimeoutError,
+            InternalServerError: AIProviderError, # Map 500s to generic provider error
+            BadRequestError: InvalidRequestError, # Map 400s (content moderation handled separately below)
+            # APIStatusError: AIProviderError, # Catch-all for other status errors
+            # Add more specific mappings if needed, e.g., for specific status codes within APIStatusError
+            # ContentModerationError needs special handling in _make_api_request or _convert_response
+            # as it's detected from the *content* of BadRequestError
+        }
+    
+    @async_retry_with_backoff(retry_on_exceptions=OPENAI_RETRYABLE_EXCEPTIONS)
     async def _make_api_request(self, payload: Dict[str, Any]) -> openai.types.chat.ChatCompletion: # Changed to async def
         """
         Make an asynchronous request to the OpenAI API.
+        Simplified to let exceptions propagate for central handling.
         
         Args:
             payload: Request payload dictionary
             
         Returns:
             ChatCompletion object from the OpenAI SDK
+        
+        Raises:
+            openai specific exceptions to be caught by BaseProvider.request
         """
+        # Remove any special keys not supported by OpenAI before the call
+        # (This part is specific preprocessing, not exception handling, so keep it)
+        for key in list(payload.keys()):
+            if key not in ["model", "messages", "temperature", "max_tokens", "top_p", 
+                           "frequency_penalty", "presence_penalty", "stop", 
+                           "tools", "tool_choice", "response_format"]:
+                self.logger.debug(f"Removing unsupported key '{key}' from OpenAI payload.")
+                del payload[key]
+        
+        # Make the API call using the async client - exceptions will propagate
+        self.logger.debug(f"Making async API call to OpenAI with payload keys: {list(payload.keys())}")
         try:
-            # Remove any special keys not supported by OpenAI
-            for key in list(payload.keys()):
-                if key not in ["model", "messages", "temperature", "max_tokens", "top_p", 
-                               "frequency_penalty", "presence_penalty", "stop", 
-                               "tools", "tool_choice", "response_format"]:
-                    del payload[key]
-            
-            # Make the API call using the async client
-            self.logger.debug(f"Making async API call to OpenAI with payload: {payload}")
             response = await self.client.chat.completions.create(**payload) # Use await
-            self.logger.debug("Async API call to OpenAI completed.")
-            return response
+            # --- Handle Content Moderation Check WITHIN the try block --- 
+            # OpenAI signals moderation via BadRequestError, need to check *after* the call
+            # but before returning successfully.
+            # NOTE: This check is removed as BadRequestError is now mapped directly.
+            # If more nuanced checking (based on error *content*) is needed, it would go here
+            # or be part of a custom _handle_api_error override.
+            # Example: if isinstance(e, openai.BadRequestError) and "content_filter" in str(e):
+            #             raise ContentModerationError(...) from e
             
-        except openai.APIConnectionError as e:
-             self.logger.error(f"OpenAI API Connection Error: {e}")
-             raise AIProviderError(f"Failed to connect to OpenAI API: {e}", provider="openai") from e
-        except openai.RateLimitError as e:
-             self.logger.error(f"OpenAI Rate Limit Error: {e}")
-             raise AIRateLimitError(f"OpenAI rate limit exceeded: {e}", provider="openai") from e
-        except openai.AuthenticationError as e: # Catch auth errors during request too
-             self.logger.error(f"OpenAI Authentication Error during request: {e}")
-             raise AIAuthenticationError(f"OpenAI authentication failed during request: {e}", provider="openai") from e
-        except openai.NotFoundError as e: # Model not found
-             self.logger.error(f"OpenAI Model Not Found Error: {e}")
-             raise ModelNotFoundError(f"OpenAI model not found: {self.model_id} - {e}", provider="openai", model=self.model_id) from e
+            self.logger.debug("Async API call to OpenAI completed successfully.")
+            return response
         except openai.BadRequestError as e:
-             # Differentiate between content moderation and other bad requests
+             # Specific check for Content Moderation *within* BadRequestError
              if "content_filter" in str(e):
-                 self.logger.error(f"OpenAI Content Moderation Error: {e}")
+                 self.logger.error(f"OpenAI Content Moderation Error detected: {e}")
+                 # Raise the specific framework exception here, bypassing the generic map for this case
                  raise ContentModerationError(f"OpenAI content moderation triggered: {e}", provider="openai") from e
              else:
-                 self.logger.error(f"OpenAI Invalid Request Error: {e}")
-                 raise InvalidRequestError(f"OpenAI invalid request: {e}", provider="openai") from e
-        except openai.APIStatusError as e:
-             # Catch broader API status errors (like 500s)
-             self.logger.error(f"OpenAI API Status Error: {e.status_code} - {e.response}")
-             raise AIRequestError(f"OpenAI API returned status {e.status_code}: {e}", provider="openai") from e
-        except Exception as e:
-            # Catch any other unexpected errors
-            self.logger.error(f"Unexpected error making OpenAI async request: {str(e)}", exc_info=True)
-            raise AIProviderError(f"Unexpected error during OpenAI request: {str(e)}", provider="openai") from e
+                 # If it's a different BadRequestError, let it propagate to be mapped
+                 raise e
+        # --- Other exceptions propagate to BaseProvider.request for mapping --- 
+        # Removed the extensive try...except block mapping exceptions here
     
     def _convert_response(self, raw_response: openai.types.chat.ChatCompletion) -> ProviderResponse:
         """

@@ -1,7 +1,7 @@
 """
 Anthropic provider implementation.
 """
-from typing import List, Dict, Any, Optional, Union, Tuple
+from typing import List, Dict, Any, Optional, Union, Tuple, Type
 from ..interfaces import ProviderInterface, ToolCapableProviderInterface
 from ...utils.logger import LoggerInterface, LoggerFactory
 from ...config import get_config
@@ -14,14 +14,34 @@ import os
 import httpx
 import asyncio # Add asyncio
 
+# Import the retry decorator
+from ...utils.retry import async_retry_with_backoff
+
 try:
     import anthropic
     from anthropic import Anthropic, AsyncAnthropic # Import Async client
     from anthropic.types import Message
+    # Import specific Anthropic errors for retrying
+    from anthropic import (
+        APIConnectionError,
+        RateLimitError,
+        InternalServerError,
+        # APIStatusError, # Avoid retrying all status errors for now
+        # APITimeoutError # Seems less common/often wrapped
+    )
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     ANTHROPIC_AVAILABLE = False
     Message = None # Define Message as None if import fails
+    # Define dummy exceptions if import fails, so the tuple below doesn't break
+    APIConnectionError = RateLimitError = InternalServerError = Exception
+
+# Define exceptions specific to Anthropic that warrant a retry
+ANTHROPIC_RETRYABLE_EXCEPTIONS = (
+    APIConnectionError,
+    RateLimitError,
+    InternalServerError,
+)
 
 
 class AnthropicProvider(BaseProvider, ToolCapableProviderInterface):
@@ -194,53 +214,77 @@ class AnthropicProvider(BaseProvider, ToolCapableProviderInterface):
         #     mapped_params["max_tokens_to_sample"] = mapped_params.pop("max_tokens")
         return mapped_params
         
+    def _get_error_map(self) -> Dict[Type[Exception], Type[AIProviderError]]:
+        """Returns the specific error mapping for Anthropic."""
+        if not ANTHROPIC_AVAILABLE:
+            return {}
+        # Import relevant exceptions here
+        from anthropic import (
+            APIConnectionError, RateLimitError, InternalServerError,
+            AuthenticationError, PermissionDeniedError, NotFoundError, 
+            BadRequestError, APIStatusError, APIError
+        )
+        # Import framework exceptions
+        from ...exceptions import (
+            AIProviderError, AIAuthenticationError, AIRateLimitError, 
+            ModelNotFoundError, InvalidRequestError, ContentModerationError
+        )
+        
+        return {
+            # Map SDK exceptions to framework exceptions
+            AuthenticationError: AIAuthenticationError,
+            PermissionDeniedError: AIAuthenticationError,
+            RateLimitError: AIRateLimitError,
+            NotFoundError: ModelNotFoundError, # Usually model not found
+            BadRequestError: InvalidRequestError, # Content moderation handled in _make_api_request
+            APIConnectionError: AIProviderError, # Map to generic (retry handles transient)
+            InternalServerError: AIProviderError, # Map 5xx to generic 
+            APIStatusError: AIProviderError, # Map other status errors to generic
+            APIError: AIProviderError # Map base Anthropic API error to generic
+        }
+
     # --- IMPLEMENT Required Abstract Methods --- 
 
+    @async_retry_with_backoff(retry_on_exceptions=ANTHROPIC_RETRYABLE_EXCEPTIONS)
     async def _make_api_request(self, payload: Dict[str, Any]) -> Message: # Changed to async def
-        """Makes the actual asynchronous API call to Anthropic messages endpoint."""
+        """Makes the actual asynchronous API call to Anthropic messages endpoint.
+           Simplified to let exceptions propagate for central handling.
+        """
         if not ANTHROPIC_AVAILABLE:
-             raise AIProviderError("Anthropic SDK not available.")
+             raise AISetupError("Anthropic SDK not available.", component="anthropic")
              
         self.logger.debug(f"Making async Anthropic API request with model {self.model_id}...")
         try:
             response = await self.client.messages.create(**payload) # Use await
+            # Check for content moderation based on stop_reason *after* successful call
+            # This is different from OpenAI where it's an exception
+            if response.stop_reason == 'max_tokens':
+                 # Check if max_tokens was hit due to moderation (heuristic)
+                 # Anthropic might return max_tokens AND have a moderation notice?
+                 # Need to check SDK documentation or observe behavior.
+                 # For now, assume only BadRequestError or API response content indicate moderation explicitly.
+                 pass # Let it be handled by _convert_response if needed
+            elif response.stop_reason == 'error': # Anthropic might signal errors this way too?
+                 # Unlikely for standard errors caught by exceptions, but possible
+                 self.logger.warning("Anthropic response stop_reason is 'error', check raw response.")
+                 # Might need to raise AIProviderError here based on response content
+            
             self.logger.debug(f"Received Anthropic API response. Stop Reason: {response.stop_reason}")
             return response
-        # --- Specific Anthropic Error Handling --- 
-        except anthropic.AuthenticationError as e:
-             self.logger.error(f"Anthropic Authentication Error: {e}")
-             raise AIAuthenticationError(f"Anthropic authentication failed: {e}", provider="anthropic") from e
-        except anthropic.PermissionDeniedError as e:
-             self.logger.error(f"Anthropic Permission Denied Error: {e}")
-             raise AIAuthenticationError(f"Anthropic permission denied: {e}", provider="anthropic") from e
-        except anthropic.RateLimitError as e:
-             self.logger.error(f"Anthropic Rate Limit Error: {e}")
-             # TODO: Extract retry_after if available
-             raise AIRateLimitError(f"Anthropic rate limit exceeded: {e}", provider="anthropic") from e
-        except anthropic.NotFoundError as e: # Often indicates model not found
-            self.logger.error(f"Anthropic Not Found Error (likely model): {e}")
-            raise ModelNotFoundError(f"Model or endpoint not found for Anthropic: {e}", provider="anthropic", model_id=payload.get("model")) from e
         except anthropic.BadRequestError as e:
-             # Check for content filtering
-             if "safety" in str(e).lower() or (hasattr(e, 'body') and e.body and "moderation" in str(e.body).lower()):
-                 self.logger.error(f"Anthropic Content Filter Error: {e}")
+             # Specific check for Content Moderation *within* BadRequestError
+             # Look for specific phrasing in the error message or body
+             err_str = str(e).lower()
+             body_str = str(getattr(e, 'body', '')).lower()
+             if "safety" in err_str or "moderation" in body_str or "content filter" in err_str:
+                 self.logger.error(f"Anthropic Content Filter Error detected: {e}")
+                 # Raise the specific framework exception here
                  raise ContentModerationError(f"Anthropic content moderation block: {e}", provider="anthropic") from e
              else:
-                 self.logger.error(f"Anthropic Bad Request Error: {e}")
-                 raise InvalidRequestError(f"Invalid request to Anthropic: {e}", provider="anthropic", status_code=e.status_code) from e
-        except anthropic.APIConnectionError as e:
-             self.logger.error(f"Anthropic API Connection Error: {e}")
-             raise AIProviderError(f"Anthropic connection error: {e}", provider="anthropic") from e
-        except anthropic.APIStatusError as e: # Catch other non-2xx status codes
-             self.logger.error(f"Anthropic API Status Error ({e.status_code}): {e}")
-             raise AIProviderError(f"Anthropic API returned status {e.status_code}: {e}", provider="anthropic", status_code=e.status_code) from e
-        except anthropic.APIError as e: # Catch-all for other Anthropic API errors
-            self.logger.error(f"Anthropic API Error: {e}", exc_info=True)
-            raise AIProviderError(f"Anthropic API error: {e}", provider="anthropic", status_code=getattr(e, 'status_code', None)) from e
-        # --- End Specific Anthropic Error Handling ---
-        except Exception as e:
-            self.logger.error(f"Unexpected error during Anthropic API request: {e}", exc_info=True)
-            raise AIProviderError(f"Unexpected error making Anthropic request: {e}", provider="anthropic") from e
+                 # If it's a different BadRequestError, let it propagate to be mapped
+                 raise e
+        # --- Other exceptions propagate to BaseProvider.request for mapping --- 
+        # Removed the extensive try...except block mapping exceptions here
 
     def _convert_response(self, raw_response: Message) -> ProviderResponse:
         """Converts the raw Anthropic Message object into a standardized ProviderResponse model."""
