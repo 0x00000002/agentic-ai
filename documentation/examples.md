@@ -226,3 +226,42 @@ if tool_info and 'usage_stats' in tool_info:
 ```
 
 For more detailed examples, see [Tool Statistics Example](examples/tool_stats_example.md).
+
+# Examples
+
+This section provides various examples demonstrating how to use the Agentic AI framework.
+
+## Core Functionality
+
+- **`framework_example.py`**: Shows overall framework setup, configuration, basic agent creation, and interaction.
+- **`configuration_example.py`**: Focuses on different ways to configure the framework using `configure()` and `UseCasePreset`.
+- **`agent_usage_example.py`**: Demonstrates direct instantiation and interaction with a specific agent (`RequestAnalyzer`).
+- **`simple_agent_interaction.py`**: (New) Provides a high-level example of interacting with the main `Coordinator` agent, hiding internal setup details. Shows how text requests, image requests (using direct dispatch), and meta requests are handled.
+
+## Tool Management & Usage
+
+- **`tool_execution_example.py`**: Illustrates how to list available tools (internal and MCP) and execute them directly using `ToolManager`.
+- **`mcp_tool_example.py`**: Specific example for configuring and using tools hosted on an external MCP (Model-Centric Protocol) server.
+- **`tool_stats_example.py`**: Shows how to enable, track, and view tool usage statistics using `ToolStatsManager`.
+- **`tool_test_example.py`**: Example of setting up tests for custom tools.
+
+## Advanced Features
+
+- **`metrics_example.py`**: Demonstrates the usage of the metrics system for tracking performance and other data points.
+- **`rag_mcp_example.py`**: Example showcasing Retrieval-Augmented Generation (RAG) potentially combined with MCP tools.
+- **`ui_example.py`**: Shows how to integrate the framework with a Gradio-based user interface (`SimpleChatUI`).
+
+## Running Examples
+
+Most examples can be run from the project's root directory using:
+
+```bash
+# Ensure necessary environment variables are set (e.g., API keys)
+export OPENAI_API_KEY=...
+export REPLICATE_API_TOKEN=...
+
+# Run using the module flag
+python -m examples.example_script_name
+```
+
+Replace `example_script_name` with the name of the Python file (without `.py`). Ensure the `examples/` directory contains an `__init__.py` file.

@@ -7,13 +7,15 @@ from .request_analyzer import RequestAnalyzer # To classify intent/use_case/agen
 from .response_aggregator import ResponseAggregator # To combine results
 from ..tools.tool_manager import ToolManager # To get tool info for context
 # Import ToolDefinition for type checking in _get_available_tools_info
-from ..tools.models import ToolDefinition
+from ..tools.models import ToolDefinition, ToolCall
 # Ensure AgentFactory is correctly imported (adjust path if needed)
 from .agent_factory import AgentFactory # Crucial for creating agents to delegate to
 from ..exceptions import AIAgentError, ErrorHandler # Standard error handling
 from .agent_registry import AgentRegistry # To get agent registry
 # Import the new formatter
 from ..core.framework_message_formatter import FrameworkMessageFormatter
+import uuid # Added uuid
+import os # Added os
 
 class Coordinator(BaseAgent):
     """
@@ -86,14 +88,16 @@ class Coordinator(BaseAgent):
             
             # --- 1. Classify Intent ---
             # Assuming classify_request_intent is sync for now. If it calls an LLM, it needs to be async.
-            analyzer = RequestAnalyzer(unified_config=self.config, logger=self.logger)
-            intent = analyzer.classify_request_intent(request)
+            # analyzer = RequestAnalyzer(unified_config=self.config, logger=self.logger) # No need to re-create
+            intent = self.request_analyzer.classify_request_intent(request)
             self.logger.info(f"Request Analyzer classified intent as: '{intent}'")
 
             # --- 2. Route based on Intent ---
             if intent == "META":
                 # Use await when calling the async handler
                 return await self._handle_meta_request(request)
+            elif intent == "IMAGE_GENERATION": # Handle new intent
+                return await self._handle_image_generation_request(request)
             elif intent == "QUESTION":
                 # Use await when calling the async handler
                 return await self._handle_delegated_request(request, self.default_handler_agent_id, "QUESTION")
@@ -350,6 +354,76 @@ class Coordinator(BaseAgent):
             err_logger.error(f"Error delegating audio request to agent '{listener_agent_id}': {e}", exc_info=True)
             return self._create_error_response(f"Failed during audio transcription handling by '{listener_agent_id}': {e}")
     # --- End Add ---
+
+    # --- Add Image Generation Handler --- 
+    async def _handle_image_generation_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Handles IMAGE_GENERATION requests by directly calling the tool."""
+        self.logger.info("Handling IMAGE_GENERATION request by calling tool directly...")
+        
+        if not self.tool_manager:
+             return self._create_error_response("ToolManager not available, cannot generate image.")
+             
+        tool_name = "generate_image"
+        prompt_text = request.get("prompt", "").strip()
+
+        if not prompt_text:
+            return self._create_error_response("Cannot generate image: prompt text is missing.")
+
+        # Simplification: Use the entire prompt as the image generation prompt.
+        # More sophisticated logic could try to extract only the description part.
+        tool_args = {"prompt": prompt_text}
+        
+        # Check for API key needed by the tool
+        # TODO: Make this check more robust - perhaps ToolManager should know prerequisites?
+        if not os.getenv("REPLICATE_API_TOKEN"):
+             logger.warning("REPLICATE_API_TOKEN not set. Image generation tool call will likely fail.")
+             # Proceed anyway to see the failure from the tool itself
+             
+        try:
+            tool_call_id = str(uuid.uuid4())
+            tool_call = ToolCall(id=tool_call_id, name=tool_name, arguments=tool_args)
+            self.logger.info(f"Dispatching direct tool call: {tool_call}")
+            
+            tool_result = await self.tool_manager.execute_tool(tool_call)
+            
+            self.logger.info(f"Direct tool call '{tool_name}' completed. Success: {tool_result.success}")
+            
+            # Format the result into a response
+            if tool_result.success:
+                # Extract image URL or relevant result data
+                result_data = tool_result.result
+                image_url = result_data.get("image_url") if isinstance(result_data, dict) else None
+                
+                if image_url:
+                    response_content = f"Here is the generated image: {image_url}"
+                else:
+                    # Fallback content if structure is unexpected
+                    response_content = f"Image generated, but couldn't extract URL. Result: {result_data}"
+                
+                return {
+                    "content": response_content,
+                    "agent_id": self.agent_id, # Report as coordinator
+                    "status": "success",
+                    "metadata": {
+                        "intent": "IMAGE_GENERATION", 
+                        "handler": "direct_tool_call", 
+                        "tool_name": tool_name,
+                        "tool_args": tool_args,
+                        "tool_result": result_data
+                    }
+                }
+            else:
+                # Tool execution failed, use _create_error_response
+                return self._create_error_response(
+                    f"Failed to generate image: {tool_result.error}", 
+                    agent_id=self.agent_id # Report error came from coordinator step
+                )
+                
+        except Exception as e:
+            # Catch errors during the execute_tool call itself or formatting
+            err_logger = LoggerFactory.create("coordinator_image_tool_error")
+            err_logger.error(f"Error during direct image tool call: {e}", exc_info=True)
+            return self._create_error_response(f"Failed during image generation tool execution: {e}")
 
     # --- Helper Methods (Remain Synchronous) ---
 

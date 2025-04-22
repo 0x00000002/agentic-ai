@@ -691,6 +691,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../tools/image_generator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Image Generation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="mcp_tool_usage/" class="md-nav__link">
         
   
@@ -1490,6 +1513,38 @@
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Weather tool used </span><span class="si">{</span><span class="n">usage_stats</span><span class="p">[</span><span class="s1">&#39;uses&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> times with </span><span class="si">{</span><span class="n">usage_stats</span><span class="p">[</span><span class="s1">&#39;successes&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> successes&quot;</span><span class="p">)</span>
 </code></pre></div>
 <p>For more detailed examples, see <a href="tool_stats_example/">Tool Statistics Example</a>.</p>
+<h1 id="examples">Examples</h1>
+<p>This section provides various examples demonstrating how to use the Agentic AI framework.</p>
+<h2 id="core-functionality">Core Functionality</h2>
+<ul>
+<li><strong><code>framework_example.py</code></strong>: Shows overall framework setup, configuration, basic agent creation, and interaction.</li>
+<li><strong><code>configuration_example.py</code></strong>: Focuses on different ways to configure the framework using <code>configure()</code> and <code>UseCasePreset</code>.</li>
+<li><strong><code>agent_usage_example.py</code></strong>: Demonstrates direct instantiation and interaction with a specific agent (<code>RequestAnalyzer</code>).</li>
+<li><strong><code>simple_agent_interaction.py</code></strong>: (New) Provides a high-level example of interacting with the main <code>Coordinator</code> agent, hiding internal setup details. Shows how text requests, image requests (using direct dispatch), and meta requests are handled.</li>
+</ul>
+<h2 id="tool-management-usage">Tool Management &amp; Usage</h2>
+<ul>
+<li><strong><code>tool_execution_example.py</code></strong>: Illustrates how to list available tools (internal and MCP) and execute them directly using <code>ToolManager</code>.</li>
+<li><strong><code>mcp_tool_example.py</code></strong>: Specific example for configuring and using tools hosted on an external MCP (Model-Centric Protocol) server.</li>
+<li><strong><code>tool_stats_example.py</code></strong>: Shows how to enable, track, and view tool usage statistics using <code>ToolStatsManager</code>.</li>
+<li><strong><code>tool_test_example.py</code></strong>: Example of setting up tests for custom tools.</li>
+</ul>
+<h2 id="advanced-features">Advanced Features</h2>
+<ul>
+<li><strong><code>metrics_example.py</code></strong>: Demonstrates the usage of the metrics system for tracking performance and other data points.</li>
+<li><strong><code>rag_mcp_example.py</code></strong>: Example showcasing Retrieval-Augmented Generation (RAG) potentially combined with MCP tools.</li>
+<li><strong><code>ui_example.py</code></strong>: Shows how to integrate the framework with a Gradio-based user interface (<code>SimpleChatUI</code>).</li>
+</ul>
+<h2 id="running-examples">Running Examples</h2>
+<p>Most examples can be run from the project's root directory using:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Ensure necessary environment variables are set (e.g., API keys)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">OPENAI_API_KEY</span><span class="o">=</span>...
+<span class="nb">export</span><span class="w"> </span><span class="nv">REPLICATE_API_TOKEN</span><span class="o">=</span>...
+
+<span class="c1"># Run using the module flag</span>
+python<span class="w"> </span>-m<span class="w"> </span>examples.example_script_name
+</code></pre></div>
+<p>Replace <code>example_script_name</code> with the name of the Python file (without <code>.py</code>). Ensure the <code>examples/</code> directory contains an <code>__init__.py</code> file.</p>
 
 
 

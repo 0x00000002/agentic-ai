@@ -2,86 +2,94 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/agents/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/architecture/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/configuration_system/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/core/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/error_handling/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/examples/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
+    </url>
+    <url>
+         <loc>https://0x00000002.github.io/agentic-ai/future_development/</loc>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/getting-started/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/metrics_system/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/utils/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/conversations/overview/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/development/testing_providers/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/development/testing_strategy/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/examples/configuration_example/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/examples/mcp_tool_usage/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/examples/tool_stats_example/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/prompt_templates/guide/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/prompt_templates/management/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/providers/overview/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
+    </url>
+    <url>
+         <loc>https://0x00000002.github.io/agentic-ai/tools/image_generator/</loc>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/tools/overview/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
     <url>
          <loc>https://0x00000002.github.io/agentic-ai/ui/gradio_interface/</loc>
-         <lastmod>2025-04-11</lastmod>
+         <lastmod>2025-04-22</lastmod>
     </url>
 </urlset>

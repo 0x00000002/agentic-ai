@@ -14,6 +14,8 @@ import uuid
 from ..prompts.prompt_template import PromptTemplate
 from ..config.unified_config import AIConfigError
 import asyncio
+import enum # Import enum base class
+from ..config import Model # Import the dynamic Model enum
 
 # Default system prompt if none provided
 DEFAULT_SYSTEM_PROMPT = """You are a helpful AI assistant. Answer the user's questions accurately and concisely."""
@@ -26,7 +28,7 @@ class AIBase(AIInterface):
     """
     
     def __init__(self, 
-                 model: Optional[str] = None, 
+                 model: Optional[Union[Model, str]] = None, # Allow Model enum or string
                  system_prompt: Optional[str] = None,
                  logger: Optional[LoggerInterface] = None,
                  request_id: Optional[str] = None,
@@ -35,7 +37,7 @@ class AIBase(AIInterface):
         Initialize the base AI implementation.
         
         Args:
-            model: The model to use (string ID, or None for default)
+            model: The model to use (Model enum member or string ID, or None for default)
             system_prompt: Custom system prompt (or None for default)
             logger: Logger instance
             request_id: Unique identifier for tracking this session
@@ -52,11 +54,18 @@ class AIBase(AIInterface):
             # Get unified configuration
             self._config = UnifiedConfig.get_instance()
             
-            # --- Detailed Init Logging (moved to DEBUG level) --- 
-            model_key = model or self._config.get_default_model()
-            self._logger.debug(f"AIBase Init: Requested model key='{model_key}'")
+            # --- Determine the actual model key (string) --- 
+            if isinstance(model, enum.Enum) and type(model).__name__ == 'Model': 
+                requested_model_key = model.value
+            elif isinstance(model, str):
+                requested_model_key = model
+            else: # Default case (model is None or unexpected type)
+                requested_model_key = self._config.get_default_model()
             
-            # Store the model key for later reference
+            model_key = requested_model_key # Use the determined string key
+            self._logger.debug(f"AIBase Init: Resolved model key='{model_key}'")
+            
+            # Store the resolved model key for later reference
             self._model_key = model_key
             
             try:

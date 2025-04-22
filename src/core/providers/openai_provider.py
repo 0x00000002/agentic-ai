@@ -53,16 +53,17 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
     # Parameter mapping for OpenAI API
     PARAMETER_MAPPING = {}  # OpenAI uses standard parameter names
     
-    # Set of parameters allowed by OpenAI API
+    # Set of parameters allowed by OpenAI API (reverted)
     ALLOWED_PARAMETERS = {
         "temperature", "max_tokens", "top_p", "frequency_penalty", 
         "presence_penalty", "stop", "response_format"
+        # Note: max_completion_tokens might be needed dynamically for some models
     }
     
-    # Default parameters for OpenAI API
+    # Default parameters for OpenAI API (reverted)
     DEFAULT_PARAMETERS = {
         "temperature": 0.7,
-        "max_tokens": 4096  # Default fallback
+        "max_tokens": 4096  # Default fallback, using original name
     }
     
     def __init__(self, 
@@ -84,7 +85,7 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
                          model_config=model_config,
                          logger=logger)
         
-        # Use output_limit from config for max_tokens if present
+        # Use output_limit from config for max_tokens if present (reverted)
         if 'output_limit' in model_config:
             self.parameter_manager.update_defaults({'max_tokens': model_config['output_limit']})
             
@@ -146,7 +147,7 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
         }
     
     @async_retry_with_backoff(retry_on_exceptions=OPENAI_RETRYABLE_EXCEPTIONS)
-    async def _make_api_request(self, payload: Dict[str, Any]) -> openai.types.chat.ChatCompletion: # Changed to async def
+    async def _make_api_request(self, payload: Dict[str, Any]) -> openai.types.chat.ChatCompletion:
         """
         Make an asynchronous request to the OpenAI API.
         Simplified to let exceptions propagate for central handling.
@@ -160,19 +161,48 @@ class OpenAIProvider(BaseProvider, MultimediaProviderInterface, ToolCapableProvi
         Raises:
             openai specific exceptions to be caught by BaseProvider.request
         """
-        # Remove any special keys not supported by OpenAI before the call
-        # (This part is specific preprocessing, not exception handling, so keep it)
+        # Revert the list of keys to keep/check back to max_tokens initially
+        # We will handle the switch dynamically below
+        allowed_payload_keys_base = {
+            "model", "messages", "temperature", "max_tokens", "top_p", 
+            "frequency_penalty", "presence_penalty", "stop", 
+            "tools", "tool_choice", "response_format"
+        }
+        # Add max_completion_tokens here temporarily just so it doesn't get deleted by the cleanup loop below
+        # if it was somehow added previously. The dynamic logic will ensure only one remains.
+        temp_allowed_keys = allowed_payload_keys_base.union({"max_completion_tokens"})
+
         for key in list(payload.keys()):
-            if key not in ["model", "messages", "temperature", "max_tokens", "top_p", 
-                           "frequency_penalty", "presence_penalty", "stop", 
-                           "tools", "tool_choice", "response_format"]:
-                self.logger.debug(f"Removing unsupported key '{key}' from OpenAI payload.")
+            if key not in temp_allowed_keys:
+                self.logger.debug(f"Removing unsupported key '{key}' from OpenAI payload initially.")
                 del payload[key]
         
-        # Make the API call using the async client - exceptions will propagate
-        self.logger.debug(f"Making async API call to OpenAI with payload keys: {list(payload.keys())}")
+        # --- DYNAMIC PARAMETER ADJUSTMENT --- 
+        model_id = payload.get("model")
+        # List of models known to require max_completion_tokens
+        models_requiring_max_completion = {"o3-mini-2025-01-31"} # Add others as needed
+
+        if model_id in models_requiring_max_completion:
+            if "max_tokens" in payload:
+                if "max_completion_tokens" not in payload: # Only rename if the new one isn't already set
+                    self.logger.debug(f"Model {model_id} requires max_completion_tokens. Renaming max_tokens.")
+                    payload["max_completion_tokens"] = payload.pop("max_tokens")
+                else:
+                     self.logger.warning(f"Both max_tokens and max_completion_tokens found for model {model_id}. Using max_completion_tokens and removing max_tokens.")
+                     del payload["max_tokens"] # Remove the old one
+            # Ensure max_tokens is definitely removed if model requires the new one
+            if "max_tokens" in payload:
+                 del payload["max_tokens"]
+        else: # Model uses standard max_tokens
+             if "max_completion_tokens" in payload:
+                  self.logger.warning(f"Model {model_id} uses max_tokens. Removing unexpected max_completion_tokens.")
+                  del payload["max_completion_tokens"]
+        # --- END DYNAMIC ADJUSTMENT --- 
+
+        # Make the API call using the async client
+        self.logger.debug(f"Making async API call to OpenAI with final payload keys: {list(payload.keys())}")
         try:
-            response = await self.client.chat.completions.create(**payload) # Use await
+            response = await self.client.chat.completions.create(**payload)
             # --- Handle Content Moderation Check WITHIN the try block --- 
             # OpenAI signals moderation via BadRequestError, need to check *after* the call
             # but before returning successfully.

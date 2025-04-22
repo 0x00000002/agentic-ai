@@ -49,7 +49,11 @@ Agentic-AI is a modular framework for building AI applications with integrated t
 
 - **Agents (`src/agents`)**: Enables specialized processing and workflows.
 
-  - `Coordinator`: Central agent orchestrating request handling based on intent analysis (`RequestAnalyzer`), often delegating to specialized agents. Checks agent response metadata for `tool_history` and uses `FrameworkMessageFormatter` to present results/errors.
+  - `Coordinator`: Central agent orchestrating request handling.
+    - Uses `RequestAnalyzer` to classify intent (e.g., META, TASK, IMAGE_GENERATION).
+    - For specific intents like META or IMAGE_GENERATION, it may handle the request directly (e.g., fetching info or directly calling a tool via `ToolManager`).
+    - For other intents (TASK, QUESTION, UNKNOWN), it typically delegates to specialized agents selected via `AgentFactory`.
+    - Checks delegated agent response metadata for `tool_history` and uses `FrameworkMessageFormatter` to present results/errors.
   - `BaseAgent`: Abstract base class for all agents. If using `ToolEnabledAI`, calls `process_prompt` and attaches raw `tool_history` to response metadata.
   - `AgentFactory`: Creates agent instances using `AgentRegistry`.
   - `AgentRegistry`: Maps agent IDs to agent classes.
@@ -220,6 +224,7 @@ graph TD
         Coordinator -- "Uses" --> AgentFactory
         Coordinator -- "Uses" --> RequestAnalyzer
         Coordinator -- "Uses" --> FrameworkMessageFormatter
+        Coordinator -- "Calls (Direct Dispatch)" --> ToolManagerRef["ToolManager"]
         AgentFactory -- "Uses" --> AgentRegistry
         AgentFactory -- "Creates" --> BaseAgent
         RequestAnalyzer -- "Uses" --> AgentRegistry
@@ -227,16 +232,16 @@ graph TD
 
     subgraph "Dependencies"
        UnifiedConfig["UnifiedConfig Singleton"]
-       ToolManager["ToolManager"]
+       ToolManagerRef
        LoggerFactory["LoggerFactory Singleton"]
        AIBase["AIBase"]
     end
 
     BaseAgent --> UnifiedConfig
-    BaseAgent --> ToolManager
+    BaseAgent --> ToolManagerRef
     BaseAgent --> LoggerFactory
     BaseAgent --> AIBase
-    Coordinator -- "Coordinator might directly use" --> ToolManager
+    Coordinator -- "Coordinator might directly use" --> ToolManagerRef
 ```
 
 ### 5. High-Level Interactions

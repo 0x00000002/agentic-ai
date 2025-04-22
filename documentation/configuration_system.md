@@ -41,9 +41,42 @@ tools:
     speed: "fast" # Optional: fast, medium, slow (default: medium)
     safety: "native" # Optional: native, sandboxed, external (default: native)
 
+  # Example: Updated generate_image tool definition
+  - name: "generate_image"
+    description: "Generates an image from a text description using the latest Stable Diffusion 3.5 Medium model via Replicate API. Use this tool when asked to create, draw, or generate an image."
+    module: "src.tools.media.image_generator"
+    function: "generate_image"
+    parameters_schema:
+      type: "object"
+      properties:
+        prompt:
+          type: "string"
+          description: "Description of the image to generate"
+        negative_prompt:
+          type: "string"
+          description: "Elements to avoid in the generated image"
+        width:
+          type: "integer"
+          description: "Image width (used to approximate aspect_ratio if aspect_ratio kwarg not provided)"
+          default: 1024
+        height:
+          type: "integer"
+          description: "Image height (used to approximate aspect_ratio if aspect_ratio kwarg not provided)"
+          default: 1024
+        num_inference_steps:
+          type: "integer"
+          description: "Number of denoising steps (passed as 'steps' to API)"
+          default: 40 # Default for SD 3.5 Medium
+        # Optional kwargs like aspect_ratio, output_format, output_quality, cfg can be passed via **kwargs
+      required: ["prompt"]
+    category: "media"
+    source: "internal"
+    speed: "medium"
+    safety: "external"
+
 # Tool execution settings (optional)
 execution:
-  timeout: 30 # Default timeout in seconds
+  timeout: 360 # Example increased global timeout
   max_retries: 3
 
 # Tool statistics settings (optional)

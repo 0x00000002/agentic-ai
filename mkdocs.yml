@@ -24,6 +24,7 @@ nav:
       - Configuration: configuration_system.md
   - Tools & MCP:
       - Overview: tools/overview.md
+      - Image Generation: tools/image_generator.md
       - Using MCP Tools: examples/mcp_tool_usage.md
       - Tool Statistics: examples/tool_stats_example.md
   - Utilities:

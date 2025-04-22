@@ -8,6 +8,8 @@ from ..config.unified_config import UnifiedConfig
 from ..utils.logger import LoggerInterface, LoggerFactory
 from ..exceptions import AIAgentError, ErrorHandler # Keep for potential future use?
 
+# --- Add Literal for Intent Types ---
+IntentType = Literal["META", "TASK", "IMAGE_GENERATION", "UNKNOWN"]
 
 class RequestAnalyzer:
     """
@@ -27,6 +29,13 @@ class RequestAnalyzer:
         re.IGNORECASE
     )
 
+    # Keywords/patterns indicating an IMAGE_GENERATION request (case-insensitive)
+    _IMAGE_PATTERNS = re.compile(
+        r"\b(generate|create|make|draw)\s+(a |an )?(image|picture|photo|drawing|illustration|painting|graphic)\b|"
+        r"\b(image of|picture of|photo of|drawing of)\b",
+        re.IGNORECASE
+    )
+
     def __init__(self,
                  unified_config: Optional[UnifiedConfig] = None,
                  logger: Optional[LoggerInterface] = None):
@@ -43,7 +52,7 @@ class RequestAnalyzer:
         self._logger.info("RequestAnalyzer V2 initialized.")
 
 
-    def classify_request_intent(self, request: Dict[str, Any]) -> Literal["META", "TASK", "UNKNOWN"]:
+    def classify_request_intent(self, request: Dict[str, Any]) -> IntentType:
         """
         Classify the user's request intent using simple keyword matching.
 
@@ -51,7 +60,7 @@ class RequestAnalyzer:
             request: The request object containing the prompt.
 
         Returns:
-            The classified intent: "META", "TASK", or "UNKNOWN" if prompt is missing.
+            The classified intent: "META", "IMAGE_GENERATION", "TASK", or "UNKNOWN".
         """
         prompt_text = request.get("prompt", "").strip()
         if not prompt_text:
@@ -61,14 +70,19 @@ class RequestAnalyzer:
         self._logger.debug(f"Classifying intent for prompt: {prompt_text[:100]}...")
 
         try:
-            # Check for META patterns
+            # Check for META first
             if self._META_PATTERNS.search(prompt_text):
                 self._logger.info(f"Prompt matched META pattern. Intent: META")
                 return "META"
-            else:
-                # If not META, classify as TASK
-                self._logger.info(f"Prompt did not match META pattern. Intent: TASK")
-                return "TASK"
+                
+            # Check for IMAGE_GENERATION next
+            if self._IMAGE_PATTERNS.search(prompt_text):
+                 self._logger.info(f"Prompt matched IMAGE pattern. Intent: IMAGE_GENERATION")
+                 return "IMAGE_GENERATION"
+                 
+            # If not META or IMAGE_GENERATION, classify as TASK
+            self._logger.info(f"Prompt did not match META or IMAGE pattern. Intent: TASK")
+            return "TASK"
 
         except Exception as e:
             # Log full error with traceback

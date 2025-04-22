@@ -4,7 +4,7 @@ Base provider implementation.
 from typing import List, Dict, Any, Optional, Union, Type
 from ..interfaces import ProviderInterface
 from ...utils.logger import LoggerInterface, LoggerFactory
-from ...exceptions import AIProviderError
+from ...exceptions import AIProviderError, ModelNotFoundError
 from ...config import get_config
 from ...config import UnifiedConfig
 # Import Tool models for type hinting

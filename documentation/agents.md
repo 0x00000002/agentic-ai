@@ -20,15 +20,17 @@ The Agentic AI framework utilizes a flexible agent system centered around a `Coo
 
   - The central orchestrator of the agent system.
   - Acts as the primary entry point for user requests directed at the agent layer.
-  - Uses `RequestAnalyzer` to classify the intent of the incoming request (e.g., META, AUDIO_TRANSCRIPTION, QUESTION, TASK).
+  - Uses `RequestAnalyzer` to classify the intent of the incoming request (e.g., META, IMAGE_GENERATION, AUDIO_TRANSCRIPTION, QUESTION, TASK).
   - Routes requests based on the classified intent:
     - **META**: Handles directly by providing system information (agents, tools).
+    - **IMAGE_GENERATION**: Handles directly by calling the `generate_image` tool via `ToolManager`.
     - **AUDIO_TRANSCRIPTION**: Delegates to a specialized agent (e.g., `ListenerAgent`).
     - **QUESTION**: Delegates simple queries to a configured default agent (e.g., `ChatAgent`).
     - **TASK**: Intended for complex requests potentially requiring multiple agents. The current implementation might delegate to a default handler or requires further development for multi-step/multi-agent planning and execution.
     - **UNKNOWN**: Falls back to the default handler agent.
-  - Utilizes `AgentFactory` to create instances of the required agents for delegation.
+  - Utilizes `AgentFactory` to create instances of agents for delegation.
   - May use `ResponseAggregator` (though TASK handling is currently simplified) to combine results from multiple agents if implemented.
+  - Checks delegated agent response metadata for `tool_history` and uses `FrameworkMessageFormatter` to present tool results/errors clearly.
 
 - **`AgentFactory` (`src/agents/agent_factory.py`)**:
 
@@ -45,8 +47,9 @@ The Agentic AI framework utilizes a flexible agent system centered around a `Coo
 
 - **`RequestAnalyzer` (`src/agents/request_analyzer.py`)**:
 
-  - Analyzes incoming requests to determine user intent (META, QUESTION, TASK, etc.).
-  - May also be used (or intended to be used) to identify which specific agents or tools are best suited for a TASK request, potentially involving an LLM call with context about available agents and tools.
+  - Analyzes incoming requests primarily using keyword/regex matching to determine user intent (META, IMAGE_GENERATION, AUDIO_TRANSCRIPTION, QUESTION, TASK, UNKNOWN).
+  - Does **not** currently use an LLM for this classification.
+  - Its classification directly informs the `Coordinator`'s routing decisions, including whether to handle directly (META, IMAGE_GENERATION) or delegate.
 
 - **`ResponseAggregator` (`src/agents/response_aggregator.py`)**:
   - Designed to combine responses from multiple agents (primarily for complex TASK requests).

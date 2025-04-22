@@ -858,6 +858,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../tools/image_generator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Image Generation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../examples/mcp_tool_usage/" class="md-nav__link">
         
   
@@ -1389,9 +1412,42 @@
 <span class="w">    </span><span class="nt">speed</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;fast&quot;</span><span class="w"> </span><span class="c1"># Optional: fast, medium, slow (default: medium)</span>
 <span class="w">    </span><span class="nt">safety</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;native&quot;</span><span class="w"> </span><span class="c1"># Optional: native, sandboxed, external (default: native)</span>
 
+<span class="w">  </span><span class="c1"># Example: Updated generate_image tool definition</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;generate_image&quot;</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Generates</span><span class="nv"> </span><span class="s">an</span><span class="nv"> </span><span class="s">image</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">text</span><span class="nv"> </span><span class="s">description</span><span class="nv"> </span><span class="s">using</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">latest</span><span class="nv"> </span><span class="s">Stable</span><span class="nv"> </span><span class="s">Diffusion</span><span class="nv"> </span><span class="s">3.5</span><span class="nv"> </span><span class="s">Medium</span><span class="nv"> </span><span class="s">model</span><span class="nv"> </span><span class="s">via</span><span class="nv"> </span><span class="s">Replicate</span><span class="nv"> </span><span class="s">API.</span><span class="nv"> </span><span class="s">Use</span><span class="nv"> </span><span class="s">this</span><span class="nv"> </span><span class="s">tool</span><span class="nv"> </span><span class="s">when</span><span class="nv"> </span><span class="s">asked</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">create,</span><span class="nv"> </span><span class="s">draw,</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">generate</span><span class="nv"> </span><span class="s">an</span><span class="nv"> </span><span class="s">image.&quot;</span>
+<span class="w">    </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;src.tools.media.image_generator&quot;</span>
+<span class="w">    </span><span class="nt">function</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;generate_image&quot;</span>
+<span class="w">    </span><span class="nt">parameters_schema</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;object&quot;</span>
+<span class="w">      </span><span class="nt">properties</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">prompt</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span>
+<span class="w">          </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Description</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">image</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">generate&quot;</span>
+<span class="w">        </span><span class="nt">negative_prompt</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;string&quot;</span>
+<span class="w">          </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Elements</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">avoid</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">generated</span><span class="nv"> </span><span class="s">image&quot;</span>
+<span class="w">        </span><span class="nt">width</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;integer&quot;</span>
+<span class="w">          </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Image</span><span class="nv"> </span><span class="s">width</span><span class="nv"> </span><span class="s">(used</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">approximate</span><span class="nv"> </span><span class="s">aspect_ratio</span><span class="nv"> </span><span class="s">if</span><span class="nv"> </span><span class="s">aspect_ratio</span><span class="nv"> </span><span class="s">kwarg</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">provided)&quot;</span>
+<span class="w">          </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1024</span>
+<span class="w">        </span><span class="nt">height</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;integer&quot;</span>
+<span class="w">          </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Image</span><span class="nv"> </span><span class="s">height</span><span class="nv"> </span><span class="s">(used</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">approximate</span><span class="nv"> </span><span class="s">aspect_ratio</span><span class="nv"> </span><span class="s">if</span><span class="nv"> </span><span class="s">aspect_ratio</span><span class="nv"> </span><span class="s">kwarg</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">provided)&quot;</span>
+<span class="w">          </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1024</span>
+<span class="w">        </span><span class="nt">num_inference_steps</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;integer&quot;</span>
+<span class="w">          </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Number</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">denoising</span><span class="nv"> </span><span class="s">steps</span><span class="nv"> </span><span class="s">(passed</span><span class="nv"> </span><span class="s">as</span><span class="nv"> </span><span class="s">&#39;steps&#39;</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">API)&quot;</span>
+<span class="w">          </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">40</span><span class="w"> </span><span class="c1"># Default for SD 3.5 Medium</span>
+<span class="w">        </span><span class="c1"># Optional kwargs like aspect_ratio, output_format, output_quality, cfg can be passed via **kwargs</span>
+<span class="w">      </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;prompt&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">category</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;media&quot;</span>
+<span class="w">    </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;internal&quot;</span>
+<span class="w">    </span><span class="nt">speed</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;medium&quot;</span>
+<span class="w">    </span><span class="nt">safety</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;external&quot;</span>
+
 <span class="c1"># Tool execution settings (optional)</span>
 <span class="nt">execution</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span><span class="w"> </span><span class="c1"># Default timeout in seconds</span>
+<span class="w">  </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">360</span><span class="w"> </span><span class="c1"># Example increased global timeout</span>
 <span class="w">  </span><span class="nt">max_retries</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
 
 <span class="c1"># Tool statistics settings (optional)</span>
